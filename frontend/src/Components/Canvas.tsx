@@ -103,17 +103,32 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
           return;
         }
 
-        return <line
-          key = {edge.id}
-          x1 = {node1.pos.x}
-          y1 = {node1.pos.y}
-          x2 = {node2.pos.x}
-          y2 = {node2.pos.y}
-          stroke="black"
-          strokeWidth="2"
-        ></line>
-      })}
+        const labelPos : Position = {
+          x: Math.min(node1.pos.x, node2.pos.x) + Math.abs(node1.pos.x - node2.pos.x)/2,
+          y: Math.min(node1.pos.y, node2.pos.y) + Math.abs(node1.pos.y - node2.pos.y)/2
+        }
+        console.log(labelPos)
 
+        return <g>
+            <line
+              key = {edge.id}
+              x1 = {node1.pos.x}
+              y1 = {node1.pos.y}
+              x2 = {node2.pos.x}
+              y2 = {node2.pos.y}
+              stroke="black"
+              strokeWidth="2"
+            ></line>
+            <text
+              x={labelPos.x}
+              y={labelPos.y}
+              style={{ font: '1em monospace', userSelect: 'none' }}
+              stroke="black"
+            >
+             {edge.value}
+            </text>
+          </g>
+      })}
       {edging && <line
         x1 = {edging.p1.x}
         y1 = {edging.p1.y}

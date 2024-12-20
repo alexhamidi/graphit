@@ -19,7 +19,7 @@ export default function App() {
     const currID = seenEdges;
     const newEdge : Edge = {
       id: `${currID}`,
-      value:'',
+      value:'5',
       n1: n1,
       n2: n2
     }
@@ -40,7 +40,6 @@ export default function App() {
 
   // Add Node
   const handleAddNode = (cursorPos: Position | null) => {
-    console.log(seenNodes);
     setNodes(prevNodes => [
       ...prevNodes,
       {
@@ -118,6 +117,7 @@ export default function App() {
 
 
   useEffect(() => {
+    console.log('hi');
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
@@ -135,7 +135,13 @@ export default function App() {
         hello, and welcome to the best graph editor
       </header>
       <main>
-        <Canvas nodes={nodes} edges={edges} handleAddEdge={handleAddEdge} handleDeleteNode={handleDeleteNode}  handleUpdateNodePos={handleUpdateNodePos} shiftPressed={shiftPressed}/>
+        <Canvas
+          nodes={nodes}
+          edges={edges}
+          handleAddEdge={handleAddEdge}
+          handleDeleteNode={handleDeleteNode}
+          handleUpdateNodePos={handleUpdateNodePos}
+          shiftPressed={shiftPressed}/>
       </main>
     </>
   )
