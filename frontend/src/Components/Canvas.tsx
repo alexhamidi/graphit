@@ -1,0 +1,153 @@
+import { useState } from 'react'
+import { getPosRelParent, getNodeAt, outOfBounds } from '../utils'
+import { Node, Position, Edge, TempEdge } from '../interfaces'
+import { circleRadius } from '../constants'
+
+interface CanvasProps {
+  nodes: Node[];
+  edges: Edge[];
+  handleAddEdge: (n1: string, n2: string) => void;
+  handleDeleteNode: (id: string) => void;
+  handleUpdateNodePos: (id: string, pos: Position) => void;
+  shiftPressed: boolean;
+}
+
+
+export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, handleUpdateNodePos, shiftPressed }: CanvasProps) {
+  const [dragPos, setDragPos] = useState<{x:number, y:number} | null>(null);
+  const [dragging, setDragging] = useState<Node | null>(null);
+  const [edging, setEdging] = useState<TempEdge | null>(null);
+
+
+  // This is really the only one thats needed here since it deals with an svg element other than the canvas
+  // Mouse down - handle drag or edge depending on shift
+  const handleMouseDown = (e: React.MouseEvent<SVGGElement, MouseEvent>, node: Node) => {//problem - relative to nodes (not a problem)
+    e.preventDefault();
+    const startingMousePosRelCircle : Position = getPosRelParent(e);
+    if (shiftPressed) {
+      setEdging({
+        n1: node.id,
+        p1: node.pos,
+        p2: node.pos,
+      })
+    } else {
+      setDragging(node);
+      setDragPos({x: startingMousePosRelCircle.x - (circleRadius * 2)/2.2, y: startingMousePosRelCircle.y - (circleRadius * 2)/2.2 });
+    }
+  }
+
+
+
+  // Mouse move - handle dragging or edging
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+    if (dragging) {
+      const cursorPos : Position = getPosRelParent(e);
+      if (outOfBounds(cursorPos)) {
+        handleMouseUp(e);
+        return;
+      }
+      handleUpdateNodePos(dragging.id, { x: cursorPos.x - dragPos!.x, y: cursorPos.y - dragPos!.y });
+    } else if (edging) {
+      const cursorPos = getPosRelParent(e);
+      setEdging({
+        ...edging,
+        p2: cursorPos,
+      })
+    }
+  };
+
+
+
+  // Mouse up - stop edging/dragging
+  const handleMouseUp = (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
+    if (dragging) {
+      setDragging(null);
+      setDragPos(null);
+    } else if (edging) {
+      const cursorPos = getPosRelParent(e);
+      const cursorNode : Node | null = getNodeAt(cursorPos, nodes)
+      if (cursorNode) {
+        handleAddEdge(edging.n1, cursorNode.id);
+      }
+      setEdging(null);
+    }
+  }
+
+
+
+  // Right click - delete node
+  const handleRightClick = (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
+    e.preventDefault();
+    const cursorPos = getPosRelParent(e);
+    const cursorNode : Node | null = getNodeAt(cursorPos, nodes)
+    if (cursorNode) {
+      handleDeleteNode(cursorNode.id);
+    }
+  }
+
+
+  // Returned component
+  return (
+    <svg
+      className="component"
+      id="canvas"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onContextMenu={handleRightClick}
+    >
+      {edges.map(edge => {
+        const node1 = nodes.find((node) => node.id === edge.n1);
+        const node2 = nodes.find((node) => node.id === edge.n2);
+
+        if (!node1 || !node2) {
+          return;
+        }
+
+        return <line
+          key = {edge.id}
+          x1 = {node1.pos.x}
+          y1 = {node1.pos.y}
+          x2 = {node2.pos.x}
+          y2 = {node2.pos.y}
+          stroke="black"
+          strokeWidth="2"
+        ></line>
+      })}
+
+      {edging && <line
+        x1 = {edging.p1.x}
+        y1 = {edging.p1.y}
+        x2 = {edging.p2.x}
+        y2 = {edging.p2.y}
+        stroke="black"
+        strokeWidth="2"
+      ></line>}
+      {nodes.map(node => (
+        <g
+          key={node.id}
+          onMouseDown={(e) => handleMouseDown(e, node)}
+        >
+          <circle
+            cx={node.pos.x}
+            cy={node.pos.y}
+            r={circleRadius}
+            fill="white"
+            stroke="black"
+            strokeWidth={2}
+          />
+          <text
+            x={node.pos.x}
+            y={node.pos.y}
+            dy="0.35em"
+            textAnchor="middle"
+            style={{ font: '1em monospace', userSelect: 'none' }}
+            pointerEvents="none"
+          >
+            {node.value}
+          </text>
+        </g>
+
+      ))}
+    </svg>
+  )
+}

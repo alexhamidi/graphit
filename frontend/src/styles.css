@@ -1,0 +1,53 @@
+* {
+    font-family:monospace
+}
+
+#root, body {
+    width:100vw;
+    height:100vh;
+    padding:0px;
+    margin:0px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow:hidden
+}
+
+#mainHead {
+    width:100vw;
+    height:2em;
+    background-color:rgb(108, 116, 116);
+    color:rgb(254, 255, 255);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:2em
+}
+
+.component {
+    border:3px solid rgb(110, 110, 110);
+    border-radius:4px;
+}
+
+main {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    height:100%;
+
+}
+
+#options {
+    width:300px;
+    height:800px;
+}
+
+#canvas {
+    width:1100px;
+    height:800px;
+    margin:5px
+}
+
+text {
+    user-select: none;
+}
