@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import Canvas from './Components/Canvas'
-import { outOfBounds, getPosRelCanvas } from './utils'
+import { outOfBounds, getPosRelRect, getNodeAt } from './utils'
 import { Edge, Position, Node } from './interfaces'
-import { canvasSize } from './constants'
 
 export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -10,8 +9,8 @@ export default function App() {
   const [seenEdges, setSeenEdges] = useState<number>(0);
   const [seenNodes, setSeenNodes] = useState<number>(0);
   const [shiftPressed, setShiftPressed] = useState<boolean>(false);
-  const [downPos, setDownPos] = useState<Position | null>(null);
-
+  const [mouseDownStationary, setMouseDownStationary] = useState<boolean>(false);
+  const [canvasRect, setCanvasRect] = useState<DOMRect | null> (null)
 
 
   // Add edge
@@ -19,7 +18,7 @@ export default function App() {
     const currID = seenEdges;
     const newEdge : Edge = {
       id: `${currID}`,
-      value:'5',
+      value:'0',
       n1: n1,
       n2: n2
     }
@@ -37,7 +36,6 @@ export default function App() {
   }
 
 
-
   // Add Node
   const handleAddNode = (cursorPos: Position | null) => {
     setNodes(prevNodes => [
@@ -46,8 +44,8 @@ export default function App() {
         id: `${seenNodes}`,
         value: `${seenNodes}`,
         pos: cursorPos ? cursorPos : {
-          x: Math.random() * canvasSize.width,
-          y: Math.random() * canvasSize.height,
+          x: Math.random() * canvasRect!.width,
+          y: Math.random() * canvasRect!.height,
         },
         edges:[]
       }
@@ -76,7 +74,7 @@ export default function App() {
 
 
   // Key Handling - updating shift
-  const handleKeyDown = (e : KeyboardEvent) => {
+  const handleKeyDown = (e : KeyboardEvent) => { //use shift
     if (e.key === 'Shift') {
       setShiftPressed(true);
     }
@@ -98,33 +96,37 @@ export default function App() {
 
 
   // Mouse Handling - adding nodes
-  const handleMouseDown = (e: MouseEvent) => {
+  const handleMouseDown = (e: MouseEvent) => { //
     if (e.button === 0) {
-      setDownPos({ x: e.clientX, y: e.clientY })
+      setMouseDownStationary(true)
     }
   };
 
+  const handleMouseMove = () => {
+    setMouseDownStationary(false);
+  }
 
-  const handleMouseUp = (e:MouseEvent) => {
-    if (downPos && downPos.x === e.clientX && downPos.y === e.clientY) {
-      const posRelCanvas : Position = getPosRelCanvas({ x: e.clientX, y: e.clientY });
-      if (!outOfBounds(posRelCanvas)) {
-        handleAddNode({x:posRelCanvas.x+5, y:posRelCanvas.y+9});
+  const handleMouseUp = (e: MouseEvent) => { //send downpos down
+    if (!shiftPressed && mouseDownStationary) {
+      const posRelCanvas : Position = getPosRelRect({ x: e.clientX, y: e.clientY }, canvasRect);
+      if (!outOfBounds(posRelCanvas, canvasRect) && !getNodeAt(posRelCanvas, nodes)) {
+        handleAddNode({x:posRelCanvas.x+5, y:posRelCanvas.y+10});
       }
     }
-    setDownPos(null);
+    setMouseDownStationary(true);
   }
 
 
   useEffect(() => {
-    console.log('hi');
     window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [downPos]);
+  }, [mouseDownStationary, seenNodes]);
 
 
 
@@ -141,7 +143,10 @@ export default function App() {
           handleAddEdge={handleAddEdge}
           handleDeleteNode={handleDeleteNode}
           handleUpdateNodePos={handleUpdateNodePos}
-          shiftPressed={shiftPressed}/>
+          shiftPressed={shiftPressed}
+          setCanvasRect={setCanvasRect}
+          canvasRect={canvasRect}
+          />
       </main>
     </>
   )

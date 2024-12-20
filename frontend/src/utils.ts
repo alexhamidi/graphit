@@ -1,31 +1,32 @@
 import { Position, Node } from './interfaces'
-import { circleRadius, canvasSize, canvasBoundingRect } from './constants'
+import { circleRadius } from './constants'
 
 // App
-export function outOfBounds(pos : Position) : boolean {
-    return (pos.x < 10 || pos.x > canvasSize.width || pos.y < 10 || pos.y > canvasSize.height);
-  }
+export function outOfBounds(pos : Position, canvasDims : DOMRect | null) : boolean {
+  return (pos.x < 10 || pos.x > canvasDims!.width || pos.y < 10 || pos.y > canvasDims!.height);
+}
 
-export function getPosRelCanvas (pos : Position) : Position {
-return {x:pos.x - canvasBoundingRect!.left, y:pos.y - canvasBoundingRect!.top}
+export function getPosRelRect (pos : Position, canvasDims : DOMRect | null) : Position {
+  return {x:pos.x - canvasDims!.left, y:pos.y - canvasDims!.top}
 }
 
 
 
-// Canvas
+// Canvas             //position, parentrect
 export function getPosRelParent (e:  React.MouseEvent<SVGGElement, MouseEvent>) : Position {
-    const dim = e.currentTarget.getBoundingClientRect();
-    return {x:e.clientX - dim.left, y:e.clientY - dim.top}
-  }
+  const dim = e.currentTarget.getBoundingClientRect();
+  return {x:e.clientX - dim.left, y:e.clientY - dim.top}
+}
 
- export  function getNodeAt(pos: Position, nodes: Node[]): Node | null {
-    for (const node of nodes) {
-      const dx : number = pos.x-node.pos.x;
-      const dy : number = pos.y-node.pos.y;
-      const distance = Math.sqrt(dx*dx + dy*dy);
-      if (distance < circleRadius) {
+export function getNodeAt(pos: Position, nodes: Node[]): Node | null { //want to get the last one
+  for (let i = nodes.length-1; i >= 0; i--) {
+    const node = nodes[i];
+    const dx : number = pos.x-node.pos.x;
+    const dy : number = pos.y-node.pos.y;
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    if (distance < circleRadius) {
         return node;
-      }
     }
-    return null;
   }
+  return null;
+}

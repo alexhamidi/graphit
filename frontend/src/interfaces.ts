@@ -22,11 +22,6 @@ export interface Size {
     height:number;
 }
 
-export interface BoundingRect {
-    left:number;
-    top:number;
-}
-
 export interface TempEdge {
     n1: string;
     p1: Position;
