@@ -3,16 +3,18 @@ import { circleRadius } from './constants'
 
 // App
 export function outOfBounds(pos : Position, canvasDims : DOMRect | null) : boolean {
-  return (pos.x < 10 || pos.x > canvasDims!.width || pos.y < 10 || pos.y > canvasDims!.height);
+  return (pos.x < 0 || pos.x > canvasDims!.width || pos.y < 0 || pos.y > canvasDims!.height);
 }
 
 export function getPosRelRect (pos : Position, canvasDims : DOMRect | null) : Position {
   return {x:pos.x - canvasDims!.left, y:pos.y - canvasDims!.top}
 }
 
+export function isNode (obj: any) {
+  return (obj as Node).edges !== undefined
+}
 
-
-// Canvas             //position, parentrect
+// Canvas
 export function getPosRelParent (e:  React.MouseEvent<SVGGElement, MouseEvent>) : Position {
   const dim = e.currentTarget.getBoundingClientRect();
   return {x:e.clientX - dim.left, y:e.clientY - dim.top}

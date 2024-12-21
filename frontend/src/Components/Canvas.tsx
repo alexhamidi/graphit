@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getPosRelParent, getNodeAt, outOfBounds } from '../utils'
-import { Node, Position, Edge, TempEdge } from '../interfaces'
-import { circleRadius } from '../constants'
+import { Node, Position, Edge, TempEdge, LocatedEdge } from '../interfaces'
+import { circleRadius, textBoxAdjustment } from '../constants'
 
 interface CanvasProps {
   nodes: Node[];
@@ -9,22 +9,27 @@ interface CanvasProps {
   handleAddEdge: (n1: string, n2: string) => void;
   handleDeleteNode: (id: string) => void;
   handleUpdateNodePos: (id: string, pos: Position) => void;
+  handleDeleteEdge: (id: string) => void;
   shiftPressed: boolean;
   setCanvasRect: React.Dispatch<React.SetStateAction<DOMRect | null>>;
   canvasRect: DOMRect | null;
+  handleEditObj: (obj : Node | LocatedEdge, newValue : string) => void;
+  editingObj: LocatedEdge | Node | null;
+  setEditingObj: React.Dispatch<React.SetStateAction<LocatedEdge | Node | null>>
 }
 
 
-export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, handleUpdateNodePos, shiftPressed, setCanvasRect, canvasRect }: CanvasProps) {
+export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, handleUpdateNodePos, handleDeleteEdge, shiftPressed, setCanvasRect, canvasRect, handleEditObj, editingObj, setEditingObj}: CanvasProps) {
   const [dragPos, setDragPos] = useState<{x:number, y:number} | null>(null);
   const [dragging, setDragging] = useState<Node | null>(null);
   const [edging, setEdging] = useState<TempEdge | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
-  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null)
+  const [selectedEdge, setSelectedEdge] = useState<LocatedEdge | null>(null)
   const canvasRef = useRef<SVGSVGElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Mouse down - handle drag or edge depending on shift
-  const handleMouseDownCircle = (e: React.MouseEvent<SVGGElement, MouseEvent>, node: Node) => {//problem - relative to nodes (not a problem)
+  const handleMouseDownNode = (e: React.MouseEvent<SVGGElement, MouseEvent>, node: Node) => {//problem - relative to nodes (not a problem)
     e.preventDefault();
     const startingMousePosRelCircle : Position = getPosRelParent(e);
     if (shiftPressed) {
@@ -40,7 +45,7 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
     }
   }
 
-  const handleMouseDownEdge = (e: React.MouseEvent<SVGElement, MouseEvent>, edge: Edge) => {
+  const handleMouseDownEdge = (e: React.MouseEvent<SVGElement, MouseEvent>, edge: LocatedEdge) => {
     e.preventDefault();
     if (shiftPressed) {
       setSelectedEdge(edge);
@@ -75,10 +80,12 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
   const handleMouseUp = (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
      if (shiftPressed && selectedEdge) { // not exactly workin
       console.log('editing edge with value ', selectedEdge.value) //working
+      setEditingObj(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);
     } else if (shiftPressed && selectedNode) {
       console.log('editing node with value ', selectedNode.value)
+      setEditingObj(selectedNode);
       setSelectedNode(null);
       setEdging(null);
     } else if (dragging) {
@@ -97,37 +104,74 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
     // if positions are equal, do none
   }
 
+  // Right click - delete edge
+  const handleRightClickEdge = (e: React.MouseEvent<SVGGElement, MouseEvent>, edge: Edge) => {
+    e.preventDefault();
+    handleDeleteEdge(edge.id);
+  }
 
 
   // Right click - delete node
-  const handleRightClick = (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
+  const handleRightClickNode = (e: React.MouseEvent<SVGGElement, MouseEvent>, node: Node) => {
     e.preventDefault();
-    const cursorPos = getPosRelParent(e);
-    const cursorNode : Node | null = getNodeAt(cursorPos, nodes)
-    if (cursorNode) {
-      handleDeleteNode(cursorNode.id);
-    }
+    handleDeleteNode(node.id);
   }
 
 
   // Set initial boundary
   useEffect(() => {
-    if (canvasRef.current) {
-      const rect : DOMRect = canvasRef.current.getBoundingClientRect();
-      setCanvasRect(rect);
+    const updateCanvasRect = () => {
+      if (canvasRef.current) {
+        const rect : DOMRect = canvasRef.current.getBoundingClientRect();
+        setCanvasRect(rect);
+      }
     }
+    updateCanvasRect();
+    window.addEventListener('resize', updateCanvasRect);
+    return () => {
+      window.removeEventListener('resize', updateCanvasRect);
+    };
   }, [setCanvasRect])
 
+
+  // Update input focus
+  useEffect(() => {
+    if (editingObj && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingObj]);
+
   // Returned component
-  return (
+  return (<>
+    {editingObj && (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (inputRef.current) handleEditObj(editingObj, inputRef.current.value);
+          setEditingObj(null);
+        }}
+      >
+        <input
+          style={{
+            position: "absolute",
+            width: `2em`,
+            top: canvasRect!.top + editingObj.pos.y-textBoxAdjustment.height,
+            left: canvasRect!.left + editingObj.pos.x-textBoxAdjustment.width,
+            borderRadius:4,
+          }}
+          type="text"
+          ref={inputRef}
+        />
+        <input type="submit" style={{ display: "none" }} />
+      </form>
+    )}
     <svg
       className="component"
       id="canvas"
-      style={{ font: '1em monospace', userSelect: 'none' }}
+      style={{ font: "1em monospace", userSelect: "none" }}
       ref={canvasRef}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onContextMenu={handleRightClick}
     >
       {edges.map(edge => {
         const node1 = nodes.find((node) => node.id === edge.n1);
@@ -137,45 +181,60 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
           return;
         }
 
+        const xPos = Math.min(node1.pos.x, node2.pos.x) + Math.abs(node1.pos.x - node2.pos.x)/2;
+        const yPos = Math.min(node1.pos.y, node2.pos.y) + Math.abs(node1.pos.y - node2.pos.y)/2;
+
         const labelPos : Position = {
-          x: Math.min(node1.pos.x, node2.pos.x) + Math.abs(node1.pos.x - node2.pos.x)/2,
-          y: Math.min(node1.pos.y, node2.pos.y) + Math.abs(node1.pos.y - node2.pos.y)/2
+          x: xPos,
+          y: yPos
         }
 
         return <g
-            key = {edge.id}
-            onMouseDown={(e) => handleMouseDownEdge(e,edge)}
-            >
+        key={edge.id}
+        onMouseDown={(e) => handleMouseDownEdge(e, {...edge, pos: {x:xPos, y:yPos}})}
+        onContextMenu={(e) => handleRightClickEdge(e, edge)}
+      >
+        {/* Invisible hitbox */}
+        <line
+          x1={node1.pos.x}
+          y1={node1.pos.y}
+          x2={node2.pos.x}
+          y2={node2.pos.y}
+          stroke="transparent"
+          strokeWidth="15" // Large hitbox
+        />
+        {/* Visible line */}
+        <line
+          x1={node1.pos.x}
+          y1={node1.pos.y}
+          x2={node2.pos.x}
+          y2={node2.pos.y}
+          stroke="black"
+          strokeWidth="2"
+        />
+        {/* Text */}
+        <text
+          x={labelPos.x}
+          y={labelPos.y}
+          dy="0.35em"
+          textAnchor="middle"
+          pointerEvents="none"
+          stroke="white"
+          strokeWidth="10"
+        >
+           {'I'.repeat(edge.value.length)}
+        </text>
+        <text
+          x={labelPos.x}
+          y={labelPos.y}
+          dy="0.35em"
+          textAnchor="middle"
+          pointerEvents="none"
+        >
+          {edge.value}
+        </text>
+      </g>
 
-            <line
-              x1 = {node1.pos.x}
-              y1 = {node1.pos.y}
-              x2 = {node2.pos.x}
-              y2 = {node2.pos.y}
-              stroke="black"
-              strokeWidth="2"
-            ></line>
-            <text
-              x={labelPos.x}
-              y={labelPos.y}
-              dy="0.35em"
-              textAnchor="middle"
-              pointerEvents="none"
-              stroke="white"
-              strokeWidth={8}
-              >
-                O
-            </text>
-            <text
-              x={labelPos.x}
-              y={labelPos.y}
-              dy="0.35em"
-              textAnchor="middle"
-              pointerEvents="none"
-            >
-             {edge.value}
-            </text>
-          </g>
       })}
       {edging && <line
         x1 = {edging.p1.x}
@@ -188,7 +247,8 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
       {nodes.map(node => (
         <g
           key={node.id}
-          onMouseDown={(e) => handleMouseDownCircle(e, node)}
+          onMouseDown={(e) => handleMouseDownNode(e, node)}
+          onContextMenu={(e) => handleRightClickNode(e,node)}
         >
           <circle
             cx={node.pos.x}
@@ -196,7 +256,7 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
             r={circleRadius}
             fill="white"
             stroke="black"
-            strokeWidth={2}
+            strokeWidth="2"
           />
           <text
             x={node.pos.x}
@@ -211,5 +271,5 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
 
       ))}
     </svg>
-  )
+  </>)
 }
