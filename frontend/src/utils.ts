@@ -3,7 +3,7 @@ import { circleRadius } from './constants'
 
 // App
 export function outOfBounds(pos : Position, canvasDims : DOMRect | null) : boolean {
-  return (pos.x < 0 || pos.x > canvasDims!.width || pos.y < 0 || pos.y > canvasDims!.height);
+  return (pos.x < 10 || pos.x > canvasDims!.width || pos.y < 10 || pos.y > canvasDims!.height);
 }
 
 export function getPosRelRect (pos : Position, canvasDims : DOMRect | null) : Position {
@@ -32,3 +32,34 @@ export function getNodeAt(pos: Position, nodes: Node[]): Node | null { //want to
   }
   return null;
 }
+
+export function getDistance(pos1 : Position, pos2 : Position) : number {
+  const distance = Math.sqrt((pos1.x-pos2.x) * (pos1.x-pos2.x) + (pos1.y-pos2.y) * (pos1.y-pos2.y));
+  return distance;
+}
+
+export function getArrowPos(node1 : Node, node2 : Node) : Position { // how tf is it all nan
+  const nodeDistance : number = getDistance(node1.pos, node2.pos);
+  const arrowDistance : number = nodeDistance-circleRadius*1.3;
+
+
+  // console.log(arrowDistance);
+  // console.log(nodeDistance);
+
+  const scale : number = arrowDistance / nodeDistance;
+
+  // console.log(scale);
+
+  const newRelX : number = scale * (node2.pos.x - node1.pos.x);
+  const newRelY : number = scale * (node2.pos.y - node1.pos.y);
+
+  // console.log(newRelX, newRelY)
+
+  const newXPos : number = node1.pos.x + newRelX;
+  const newYPos : number = node1.pos.y + newRelY;
+
+  const newPos : Position = {x:newXPos,y:newYPos};
+  // console.log(newPos);df
+  return newPos;
+}
+

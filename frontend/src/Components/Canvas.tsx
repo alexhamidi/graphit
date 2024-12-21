@@ -3,7 +3,7 @@ import { getPosRelParent, getNodeAt, outOfBounds } from '../utils'
 import { Node, Position, Edge, TempEdge, LocatedEdge } from '../interfaces'
 import { circleRadius, textBoxAdjustment } from '../constants'
 
-interface CanvasProps {
+interface Props {
   nodes: Node[];
   edges: Edge[];
   handleAddEdge: (n1: string, n2: string) => void;
@@ -16,10 +16,12 @@ interface CanvasProps {
   handleEditObj: (obj : Node | LocatedEdge, newValue : string) => void;
   editingObj: LocatedEdge | Node | null;
   setEditingObj: React.Dispatch<React.SetStateAction<LocatedEdge | Node | null>>
+  edgeMode: boolean
+  directedMode: boolean
 }
 
 
-export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, handleUpdateNodePos, handleDeleteEdge, shiftPressed, setCanvasRect, canvasRect, handleEditObj, editingObj, setEditingObj}: CanvasProps) {
+export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, handleUpdateNodePos, handleDeleteEdge, shiftPressed, setCanvasRect, canvasRect, handleEditObj, editingObj, setEditingObj, edgeMode, directedMode}: Props) {
   const [dragPos, setDragPos] = useState<{x:number, y:number} | null>(null);
   const [dragging, setDragging] = useState<Node | null>(null);
   const [edging, setEdging] = useState<TempEdge | null>(null);
@@ -39,9 +41,11 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
         p1: node.pos,
         p2: node.pos,
       })
-    } else {
+    } else { //this is bad but its ok for now
+      const pxOverflow = (Math.max((node.value.length * 10) - (circleRadius * 2 * 1.25), 0));
+      const adjustment = pxOverflow * .39
       setDragging(node);
-      setDragPos({x: startingMousePosRelCircle.x - (circleRadius * 2)/2.2, y: startingMousePosRelCircle.y - (circleRadius * 2)/2.2 });
+      setDragPos({x: startingMousePosRelCircle.x - (circleRadius * 2)/2.15 - adjustment, y: startingMousePosRelCircle.y - (circleRadius * 2)/2.15});
     }
   }
 
@@ -70,7 +74,7 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
         p2: cursorPos,
       })
     }
-    if (selectedEdge) setSelectedEdge(null);
+    if (selectedEdge) setSelectedEdge(null); //only allow selected on click
     if (selectedNode) setSelectedNode(null);
   };
 
@@ -78,19 +82,20 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
 
   // Mouse up - stop edging/dragging
   const handleMouseUp = (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
-     if (shiftPressed && selectedEdge) { // not exactly workin
-      console.log('editing edge with value ', selectedEdge.value) //working
+     if (shiftPressed && selectedEdge && edgeMode) { // not exactly workin
       setEditingObj(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);
+
     } else if (shiftPressed && selectedNode) {
-      console.log('editing node with value ', selectedNode.value)
       setEditingObj(selectedNode);
       setSelectedNode(null);
       setEdging(null);
+
     } else if (dragging) {
       setDragging(null);
       setDragPos(null);
+
     } else if (edging) { //dont add nodee if equal because already at the same
       const cursorPos = getPosRelParent(e);
       const cursorNode : Node | null = getNodeAt(cursorPos, nodes)
@@ -143,6 +148,9 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
 
   // Returned component
   return (<>
+    {/*
+        Editing Text boxes
+    */}
     {editingObj && (
       <form
         onSubmit={(e) => {
@@ -164,16 +172,48 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
         />
         <input type="submit" style={{ display: "none" }} />
       </form>
-    )}
-    <svg
-      className="component"
-      id="canvas"
-      style={{ font: "1em monospace", userSelect: "none" }}
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
-      {edges.map(edge => {
+      )}
+      {/*
+          Main canvas component
+      */}
+      <svg
+        className="component"
+        id="canvas"
+        style={{ font: "1em monospace", userSelect: "none" }}
+        ref={canvasRef}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        {/*
+          Definition for arrowhead
+        */}
+        <defs>
+          <marker
+            id="arrow-head"
+            viewBox="0 0 10 10"
+            refX={circleRadius+4}
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" />
+          </marker>
+        </defs>
+        {/*
+          Edge currently being created
+        */}
+        {edging && <line
+          x1 = {edging.p1.x}
+          y1 = {edging.p1.y}
+          x2 = {edging.p2.x}
+          y2 = {edging.p2.y}
+          stroke="black"
+          strokeWidth="2"
+        ></line>}
+        {/*
+          All edges
+        */}
+        {edges.map(edge => {
         const node1 = nodes.find((node) => node.id === edge.n1);
         const node2 = nodes.find((node) => node.id === edge.n2);
 
@@ -190,60 +230,56 @@ export default function Canvas({ nodes, edges, handleAddEdge, handleDeleteNode, 
         }
 
         return <g
-        key={edge.id}
-        onMouseDown={(e) => handleMouseDownEdge(e, {...edge, pos: {x:xPos, y:yPos}})}
-        onContextMenu={(e) => handleRightClickEdge(e, edge)}
-      >
-        {/* Invisible hitbox */}
-        <line
-          x1={node1.pos.x}
-          y1={node1.pos.y}
-          x2={node2.pos.x}
-          y2={node2.pos.y}
-          stroke="transparent"
-          strokeWidth="15" // Large hitbox
-        />
-        {/* Visible line */}
-        <line
-          x1={node1.pos.x}
-          y1={node1.pos.y}
-          x2={node2.pos.x}
-          y2={node2.pos.y}
-          stroke="black"
-          strokeWidth="2"
-        />
-        {/* Text */}
-        <text
-          x={labelPos.x}
-          y={labelPos.y}
-          dy="0.35em"
-          textAnchor="middle"
-          pointerEvents="none"
-          stroke="white"
-          strokeWidth="10"
+          key={edge.id}
+          onMouseDown={(e) => handleMouseDownEdge(e, {...edge, pos: {x:xPos, y:yPos}})}
+          onContextMenu={(e) => handleRightClickEdge(e, edge)}
         >
-           {'I'.repeat(edge.value.length)}
-        </text>
-        <text
-          x={labelPos.x}
-          y={labelPos.y}
-          dy="0.35em"
-          textAnchor="middle"
-          pointerEvents="none"
-        >
-          {edge.value}
-        </text>
+          {/* Invisible hitbox */}
+          <line
+            x1={node1.pos.x}
+            y1={node1.pos.y}
+            x2={node2.pos.x}
+            y2={node2.pos.y}
+            stroke="transparent"
+            strokeWidth="15" // Large hitbox
+          />
+          {/* Visible line */}
+          <line
+            x1={node1.pos.x}
+            y1={node1.pos.y}
+            x2={node2.pos.x}
+            y2={node2.pos.y}
+            stroke="black"
+            strokeWidth="2"
+            {...(directedMode && { markerEnd: "url(#arrow-head)" })}
+            />
+          {/* Text background */}
+          {edgeMode && <><text
+            x={labelPos.x}
+            y={labelPos.y}
+            dy="0.35em"
+            textAnchor="middle"
+            pointerEvents="none"
+            stroke="white"
+            strokeWidth="10"
+          >
+            {'I'.repeat(edge.value.length)}
+          </text>
+          {/* Actual edge value */}
+          <text
+            x={labelPos.x}
+            y={labelPos.y}
+            dy="0.35em"
+            textAnchor="middle"
+            pointerEvents="none"
+          >
+            {edge.value}
+          </text></>}
       </g>
-
       })}
-      {edging && <line
-        x1 = {edging.p1.x}
-        y1 = {edging.p1.y}
-        x2 = {edging.p2.x}
-        y2 = {edging.p2.y}
-        stroke="black"
-        strokeWidth="2"
-      ></line>}
+      {/*
+         All nodes
+      */}
       {nodes.map(node => (
         <g
           key={node.id}

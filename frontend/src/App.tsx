@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Canvas from './Components/Canvas'
+import Options from './Components/Options'
 import { outOfBounds, getPosRelRect, getNodeAt, isNode } from './utils'
 import { Edge, Position, Node, LocatedEdge } from './interfaces'
 
@@ -11,8 +12,11 @@ const [seenEdges, setSeenEdges] = useState<number>(0);
 const [seenNodes, setSeenNodes] = useState<number>(0);
 const [shiftPressed, setShiftPressed] = useState<boolean>(false);
 const [mouseDownStationary, setMouseDownStationary] = useState<boolean>(false);
-const [canvasRect, setCanvasRect] = useState<DOMRect | null> (null)
+const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
 const [editingObj, setEditingObj] = useState<LocatedEdge | Node | null>(null);
+
+const [edgeMode, setEdgeMode] = useState<boolean>(false);
+const [directedMode, setDirectedMode] = useState<boolean>(false);
 
 
 // Add edge
@@ -170,10 +174,14 @@ useEffect(() => {
 // Returned component
 return (
   <>
-    <header id='mainHead'>
+    {/* <header id='mainHead'>
       hello, and welcome to the best graph editor
-    </header>
+    </header> */}
     <main>
+      <Options
+        setEdgeMode={setEdgeMode}
+        setDirectedMode={setDirectedMode}
+      />
       <Canvas
         nodes={nodes}
         edges={edges}
@@ -187,6 +195,8 @@ return (
         handleEditObj={handleEditObj}
         editingObj={editingObj}
         setEditingObj={setEditingObj}
+        edgeMode={edgeMode}
+        directedMode={directedMode}
         />
     </main>
   </>
