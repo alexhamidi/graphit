@@ -1,0 +1,86 @@
+server:
+  port: 8080
+
+frontend:
+  url: ${FRONTEND_URL}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+
+spring:
+  application:
+    name: graphit
+  data:
+    mongodb: # this should be where the info is derived from
+      uri: ${MONGODB_URI}
+      sslEnabled: true
+      sslInvalidHostNameAllowed: true
+      database: graphit
+  profiles:
+    active: dev
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+      resourceserver:
+        jwt:
+          issuer-url: "https://accounts.google.com"
+  ai:
+    openai:
+        model:
+          gpt-4o-mini
+        api-key: ${OPENAI_API_KEY}
+        prompt:
+        # expiriment with telling it to do nodes first
+          first: |
+            You are tasked with generating a graph G (formally, $G=(U, V)$) that best and most accurately matches a given prompt. The origin (0,0) is defined as the top left of the canvas, and the bottom right is defined as (%s,%s). All nodes should have a poasition within this space. x and y are in pixels. Assign a unique string id to each graph, edge, and node. Edges are referred to by their id, value, and the ids of the two nodes they connect, with n1 representing the edge origin and n2 representing the edge destination. If there is no appropriate value for an edge or node, default to 0. Set customColor to the empty string always. Values can be strings/words representing diverse types of relationships (not just numbers). Structure all graphs logically. Ensure that everything is spread sparsely throughout the space and avoid edge/node intersections if possible.
+            ===========================PROMPT BELOW====================
+          schema: |
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "nodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "value": { "type": "string" },
+                          "pos": {
+                            "type": "object",
+                            "properties": {
+                              "x": { "type": "number" },
+                              "y": { "type": "number" }
+                            },
+                            "required": ["x", "y"]
+                          }
+                        },
+                        "required": ["value", "pos"]
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "value": { "type": "string" },
+                          "n1": { "type": "string" },
+                          "n2": { "type": "string" }
+                        },
+                        "required": ["value", "n1", "n2"]
+                      }
+                    }
+                  },
+                  "required": ["nodes", "edges"],
+                  "additionalProperties": false
+                }
+
+
+
+# observation: since nodes reference other nodes, some type of id needs to be generated during creation. these can be uuids or simpler auxillary.
+# both options would require llm involvement - creation -> constructor returning or direct id generation

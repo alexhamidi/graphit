@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: frontend-image
+    container_name: frontend
+    ports:
+      - "5173:80"
+    env_file: ".env"
