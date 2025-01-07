@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Canvas from "../components/Canvas";
 import Options from "../components/Options";
 import AiBox from "../components/AiBox";
-import NewGraphBox from "../components/NewGraphBox";
+import NewBlankGraphBox from "../components/NewBlankGraphBox";
+import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
 import Error from "../components/Error";
 import {
@@ -16,6 +17,8 @@ import {
   LocatedEdge,
   PageProps,
   GraphConfig,
+  BoxActive,
+  MiniEdge
 } from "../interfaces";
 import { authorizedFetch, authorizedPost } from "../networking";
 import {
@@ -30,6 +33,7 @@ import {
   CLOUD_SAVE_FAIL_ERROR,
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
+  DEFAULT_BOX_ACTIVE,
 } from "../constants";
 
 export default function GraphPage({
@@ -39,6 +43,8 @@ export default function GraphPage({
   // =================================================================
   // ========================== Declarations ==========================
   // =================================================================
+
+
 
   // IDENTITY
   const [token, setToken] = useState<string | null>(null);
@@ -74,8 +80,7 @@ export default function GraphPage({
     useState<boolean>(false);
 
   // VISIBILITY
-  const [aiBoxActive, setAiBoxActive] = useState<boolean>(false);
-  const [newGraphBoxActive, setNewGraphBoxActive] = useState<boolean>(false);
+  const [boxActive, setBoxActive] = useState<BoxActive>(DEFAULT_BOX_ACTIVE)
   const [graphPopupActive, setGraphPopupActive] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -142,8 +147,7 @@ export default function GraphPage({
 
   // CACHE GRAPH OPTIONS
   useEffect(() => {
-    // potentially too slow / too much latency
-    localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
+    if (authenticated) localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
   }, [graphConfig]);
 
   // FETCH CURRGRAPH - need to wait for graphs
@@ -160,14 +164,29 @@ export default function GraphPage({
   // ========================= Graph Actions =========================
   // =================================================================
 
+  // CREATE AND SAVE GRAPH INITIALIZED WITH INPUTS
+  const handleNewGraphFromInput = (name: string, nodeValues: string[], edgeValues: MiniEdge[]) => {
+    const newGraph: Graph = new Graph(name);
+    const nodeIdMap = new Map<string, string>();
+    nodeValues.forEach((value) => {
+      const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, undefined, value);
+      nodeIdMap.set(value, newNode.id);
+      newGraph.nodes.push(newNode);
+    });
+    edgeValues.forEach(([node1Value, node2Value, edgeValue]) => {
+      const n1Id = nodeIdMap.get(node1Value);
+      const n2Id = nodeIdMap.get(node2Value);
+      if (n1Id && n2Id && n1Id !== n2Id) {
+        const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue)
+        newGraph.edges.push(newEdge);
+      }
+    });
+    handleAddGraph(newGraph);
+  };
+
   // CREATE AND SAVE EMPTY GRAPH
   const handleNewGraph = (name: string) => {
-    const newGraph: Graph = {
-      id: uuidv4(),
-      name: name,
-      nodes: [],
-      edges: [],
-    };
+    const newGraph: Graph = new Graph(name);
     handleAddGraph(newGraph);
   };
 
@@ -287,16 +306,9 @@ export default function GraphPage({
   // =================================================================
 
   // ADD NODE
-  const handleAddNode = (cursorPos: Position | null) => {
-    const newNode: Node = {
-      id: uuidv4(),
-      value: "0",
-      pos: cursorPos || {
-        x: Math.random() * (canvasRect?.width ?? 0),
-        y: Math.random() * (canvasRect?.height ?? 0),
-      },
-      customColor: graphConfig.currentChosenColor || "",
-    };
+  const handleAddNode = (cursorPos?: Position, newValue?: string) => {
+    console.log(graphs)
+    const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, cursorPos, newValue);
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
@@ -307,6 +319,7 @@ export default function GraphPage({
       return updatedGraphs;
     });
   };
+
 
   // DELETE NODE
   const handleDeleteNode = (id: string) => {
@@ -442,9 +455,11 @@ export default function GraphPage({
     } else if (e.key === "Meta") {
       setMetaPressed(true);
     } else if (e.key === "k" && metaPressed) {
-      setAiBoxActive(true);
+      setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true});
     } else if (e.key === "i" && metaPressed) {
-      setNewGraphBoxActive(true);
+      setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox:true});
+    } else if (e.key === "u" && metaPressed) {
+      setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true});
     } else if (e.key == "Escape") {
       handleCancelAllActive();
     }
@@ -503,8 +518,7 @@ export default function GraphPage({
       currGraph !== "" &&
       !editingEdge &&
       !editingNode &&
-      !aiBoxActive &&
-      !newGraphBoxActive &&
+      !isBoxActive() &&
       canvasRect
     ) {
       const posRelCanvas: Position = getPosRelRect(
@@ -544,8 +558,7 @@ export default function GraphPage({
   const handleCancelAllActive = () => {
     setEditingEdge(null);
     setEditingNode(null);
-    setAiBoxActive(false);
-    setNewGraphBoxActive(false);
+    setBoxActive(DEFAULT_BOX_ACTIVE);
     setGraphPopupActive(false);
     setErrorMessage(null);
   };
@@ -561,6 +574,15 @@ export default function GraphPage({
     if (!message) message = DEFAULT_ERROR;
     setErrorMessage(message);
   };
+
+  const isBoxActive = () => {
+    return (boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox)
+  }
+
+  // should we make a new auxillary function OR usestate on box state
+  // easy if convert to single object
+
+
 
   // =================================================================
   // ======================= Returned Component =======================
@@ -582,25 +604,32 @@ export default function GraphPage({
         handleNewGraph={handleNewGraph}
         handleDeleteGraph={handleDeleteGraph}
         email={email}
-        setAiBoxActive={setAiBoxActive}
-        setNewGraphBoxActive={setNewGraphBoxActive}
+        setBoxActive={setBoxActive}
         graphPopupActive={graphPopupActive}
         setGraphPopupActive={setGraphPopupActive}
         graphSelectPopupRef={graphSelectPopupRef}
         handleSetError={handleSetError}
       />
       <main id="graphpage-main">
-        {newGraphBoxActive && (
-          <NewGraphBox
-            setNewGraphBoxActive={setNewGraphBoxActive}
+        {boxActive.newBlankGraphBox && (
+          <NewBlankGraphBox
+            setBoxActive={setBoxActive}
             handleNewGraph={handleNewGraph}
             setGraphPopupActive={setGraphPopupActive}
             handleSetError={handleSetError}
           />
         )}
-        {aiBoxActive && (
+        {boxActive.newTextGraphBox && (
+          <NewTextGraphBox
+            setBoxActive={setBoxActive}
+            setGraphPopupActive={setGraphPopupActive}
+            handleSetError={handleSetError}
+            handleNewGraphFromInput={handleNewGraphFromInput}
+          />
+        )}
+        {boxActive.aiBox && (
           <AiBox
-            setAiBoxActive={setAiBoxActive}
+            setBoxActive={setBoxActive}
             handleAddGraph={handleAddGraph}
             canvasRect={canvasRect}
             handleSetError={handleSetError}
@@ -617,7 +646,7 @@ export default function GraphPage({
           canvasRect={canvasRect}
           handleEditNode={handleEditNode}
           handleEditEdge={handleEditEdge}
-          aiBoxActive={aiBoxActive}
+          isBoxActive={isBoxActive}
           editingEdge={editingEdge}
           setEditingEdge={setEditingEdge}
           editingNode={editingNode}

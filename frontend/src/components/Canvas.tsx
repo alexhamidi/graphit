@@ -32,7 +32,7 @@ interface Props {
   canvasRect: DOMRect | null;
   handleEditNode: (node: Node, newValue: string) => void;
   handleEditEdge: (edge: Edge, newValue: string) => void;
-  aiBoxActive: boolean;
+  isBoxActive: () => boolean;
   editInputRef: React.RefObject<HTMLInputElement>;
   handleChangeNodeColor: (id: string) => void;
   canvasRef: React.RefObject<SVGSVGElement>;
@@ -55,7 +55,7 @@ export default function Canvas({
   canvasRect,
   handleEditNode,
   handleEditEdge,
-  aiBoxActive,
+  isBoxActive,
   editInputRef,
   handleChangeNodeColor,
   canvasRef,
@@ -85,7 +85,7 @@ export default function Canvas({
     e: React.MouseEvent<SVGGElement, MouseEvent>,
     node: Node,
   ) => {
-    if (aiBoxActive) return;
+    if (isBoxActive()) return;
     e.preventDefault();
     handleDeleteNode(node.id);
   };
@@ -95,11 +95,12 @@ export default function Canvas({
     e: React.MouseEvent<SVGGElement, MouseEvent>,
     node: Node,
   ) => {
-    if (aiBoxActive) return;
+    if (isBoxActive()) return;
     e.preventDefault();
     const startingMousePosRelCircle: Position = getPosRelParent(e);
     if (shiftPressed) {
       setSelectedNode(node);
+      console.log("setselectednode");
       setEdging({
         n1: node.id,
         p1: node.pos,
@@ -123,12 +124,14 @@ export default function Canvas({
 
   // EDGE INTERACTIONS
   const handleMouseDownEdge = (
+    //these are working
     e: React.MouseEvent<SVGElement, MouseEvent>,
     edge: LocatedEdge,
   ) => {
-    if (aiBoxActive) return;
+    if (isBoxActive()) return;
     e.preventDefault();
     if (shiftPressed) {
+      console.log("setselectededge");
       setSelectedEdge(edge);
     }
   };
@@ -137,7 +140,7 @@ export default function Canvas({
     e: React.MouseEvent<SVGGElement, MouseEvent>,
     edge: Edge,
   ) => {
-    if (aiBoxActive) return;
+    if (isBoxActive()) return;
     e.preventDefault();
     handleDeleteEdge(edge.id);
   };
@@ -146,8 +149,7 @@ export default function Canvas({
   const handleMouseMoveElement = (
     e: React.MouseEvent<SVGSVGElement, MouseEvent>,
   ) => {
-    if (aiBoxActive) return;
-    setMovedCurrNode(true);
+    if (isBoxActive()) return;
     if (dragging) {
       const cursorPos: Position = getPosRelParent(e);
       if (outOfBounds(cursorPos, canvasRect)) {
@@ -165,30 +167,27 @@ export default function Canvas({
         p2: cursorPos,
       });
     }
+    setMovedCurrNode(true);
+    setSelectedNode(null);
+    setSelectedEdge(null);
   };
 
   const handleMouseUpElement = (
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
-    if (aiBoxActive) return;
-    if (
-      shiftPressed &&
-      selectedEdge &&
-      graphConfig.edgeMode &&
-      !movedCurrNode
-    ) {
+    if (shiftPressed && selectedEdge && graphConfig.edgeMode) {
+      console.log("edge");
       setEditingEdge(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);
-    } else if (shiftPressed && selectedNode && !movedCurrNode) {
+    } else if (shiftPressed && selectedNode) {
+      console.log("node");
       setEditingNode(selectedNode);
       setSelectedNode(null);
       setEdging(null);
     } else if (dragging && !movedCurrNode) {
-      // didnt change then try to change the color
       handleChangeNodeColor(dragging.id);
     } else if (edging) {
-      // add edge if we reached a node
       const cursorPos = getPosRelParent(e);
       const cursorNode = getNodeAt(
         cursorPos,
@@ -199,6 +198,7 @@ export default function Canvas({
         handleAddEdge(edging.n1, cursorNode.id);
       }
     }
+    setMovedCurrNode(false);
     setEdging(null);
     setDragging(null);
     setDragPos(null);
@@ -306,10 +306,10 @@ export default function Canvas({
                 id="this-arrow-head"
                 className="arrow-head"
                 viewBox="0 0 10 10"
-                refX={graphConfig.circleRadius+4}
+                refX={graphConfig.circleRadius + 4}
                 refY="5"
-                markerWidth={(12/graphConfig.lineWeight)}
-                markerHeight={(12/graphConfig.lineWeight)}
+                markerWidth={12 / graphConfig.lineWeight}
+                markerHeight={12 / graphConfig.lineWeight}
                 orient="auto-start-reverse"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" />
@@ -326,8 +326,7 @@ export default function Canvas({
                 y2={edging.p2.y}
               ></line>
             )}
-
-            {graph!.edges.map((edge) => {
+             {graph!.edges.map((edge) => { //move toward each other proportional to distance here. is it bad to update graph here?
               const node1: Node | undefined = graph!.nodes.find(
                 (node) => node.id === edge.n1,
               );
@@ -338,10 +337,19 @@ export default function Canvas({
                 return;
               }
 
+              // const approachFactor: number = 100;
+
+              // handleUpdateNodePos(node1.id, {x:node1.pos.x+(node2.pos.x-node1.pos.x)/approachFactor,
+              //                          y:node1.pos.y+(node2.pos.y-node1.pos.y)/approachFactor})
+              // handleUpdateNodePos(node2.id, {x:node2.pos.x+(node1.pos.x-node2.pos.x)/approachFactor,
+              //                          y:node2.pos.y+(node1.pos.y-node2.pos.y)/approachFactor})
+
               const labelPos: Position = {
                 x: getMidpoint(node1.pos.x, node2.pos.x),
                 y: getMidpoint(node1.pos.y, node2.pos.y),
               };
+
+
 
               return (
                 <g
@@ -378,7 +386,7 @@ export default function Canvas({
                         y={labelPos.y}
                         dy="0.35em"
                         strokeWidth={0.4 * graphConfig.fontSize}
-                        stroke={MAIN_COLOR}
+                        className="invisible-edge-text"
                         textAnchor="middle"
                       >
                         {INVISIBLE_CHAR.repeat(edge.value.length)}
@@ -388,6 +396,7 @@ export default function Canvas({
                         x={labelPos.x}
                         y={labelPos.y}
                         dy="0.35em"
+                        className="edge-text"
                       >
                         {edge.value} {/* should be fine */}
                       </text>
@@ -396,7 +405,7 @@ export default function Canvas({
                 </g>
               );
             })}
-            {graph!.nodes.map((node) => (
+             {graph!.nodes.map((node) => (
               <g
                 key={node.id}
                 onMouseDown={(e) => handleMouseDownNode(e, node)}
@@ -430,6 +439,8 @@ export default function Canvas({
                 </text>
               </g>
             ))}
+
+
           </svg>
         ) : (
           <svg id="canvas" ref={canvasRef}>

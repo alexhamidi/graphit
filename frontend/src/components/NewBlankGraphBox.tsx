@@ -1,15 +1,17 @@
 import { useState } from "react";
-import Box from "../components/Box";
+import Box from "./Box";
+import { DEFAULT_BOX_ACTIVE } from "../constants";
+import { BoxActive } from "../interfaces";
 
 interface Props {
-  setNewGraphBoxActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
   handleNewGraph: (name: string) => void;
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
   handleSetError: (message: string) => void;
 }
 
-export default function NewGraphBox({
-  setNewGraphBoxActive,
+export default function NewBlankGraphBox({
+  setBoxActive,
   handleNewGraph,
   setGraphPopupActive,
 }: Props) {
@@ -20,7 +22,7 @@ export default function NewGraphBox({
     const newName: string = newGraphName;
     setNewGraphName("");
     handleNewGraph(newName);
-    setNewGraphBoxActive(false);
+    setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false});
     setGraphPopupActive(false);
   };
 
@@ -28,13 +30,14 @@ export default function NewGraphBox({
     <Box
       mainText={"create a new graph"}
       placeholderText={"enter title here"}
-      closeFunction={() => setNewGraphBoxActive(false)}
+      closeFunction={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false})}
       submitFunction={handleNewGraphSubmit}
       inputValue={newGraphName}
       inputChangeFunction={setNewGraphName}
       error={null}
       loading={null}
       loadingMessage={null}
+      children={null}
     />
   );
 }

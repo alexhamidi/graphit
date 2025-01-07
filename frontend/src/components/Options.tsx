@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { COLORS } from "../constants";
+import Appearance from "../components/Appearance";
+import Algorithms from "../components/Algorithms";
+// import EditGraph from "../components/EditGraph";
 import { GraphConfig } from "../interfaces";
+import { OPTIONS_PAGES } from "../constants";
 
 interface Props {
+  // appearance
   handleSaveGraphPng: () => void;
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
@@ -13,150 +17,37 @@ export default function Options({
   graphConfig,
   setGraphConfig,
 }: Props) {
-  const [firstChosen, setFirstChosen] = useState<boolean>(true);
-
-  const updateGraphConfig = <K extends keyof GraphConfig>(
-    key: K,
-    value: GraphConfig[K],
-  ) => {
-    setGraphConfig((prev) => ({ ...prev, [key]: value }));
-  };
+  const [chosenPage, setChosenPage] = useState<string>(OPTIONS_PAGES[0]);
 
   return (
     <div id="options" className="main-graphpage-section main-component">
-      <header>
-        <button
-          onClick={() => setFirstChosen(true)}
-          className={`plain-button options-header ${
-            firstChosen ? "selected-options-header" : ""
-          }`}
-        >
-          Appearance
-        </button>
-        <button
-          onClick={() => setFirstChosen(false)}
-          className={`plain-button options-header ${
-            !firstChosen ? "selected-options-header" : ""
-          }`}
-        >
-          Algorithms
-        </button>
+      <header id="options-header">
+        {OPTIONS_PAGES.map((value, idx) => (
+          <button
+            key={idx}
+            onClick={() => setChosenPage(value)}
+            className={`plain-button options-pagetitle ${
+              chosenPage == value ? "selected-options-pagetitle" : ""
+            }`}
+          >
+            {value}
+          </button>
+        ))}
       </header>
       <hr />
       <section id="options-lower">
-        {firstChosen ? (
-          <>
-            <div className="slider-section">
-              <label htmlFor="circle-radius" className="section-label">
-                Node Radius
-              </label>
-              <input
-                type="range"
-                id="circle-radius"
-                value={graphConfig.circleRadius}
-                min={10}
-                max={50}
-                step={1}
-                onChange={(e) =>
-                  updateGraphConfig("circleRadius", Number(e.target.value))
-                }
-              />
-            </div>
-            <div className="slider-section">
-              <label htmlFor="font-size" className="section-label">
-                Font Size
-              </label>
-              <input
-                type="range"
-                id="font-size"
-                value={graphConfig.fontSize}
-                min={8}
-                max={22}
-                step={1}
-                onChange={(e) =>
-                  updateGraphConfig("fontSize", Number(e.target.value))
-                }
-              />
-            </div>
-            <div className="slider-section">
-              <label htmlFor="line-weight" className="section-label">
-                Line Weight
-              </label>
-              <input
-                type="range"
-                id="line-weight"
-                value={graphConfig.lineWeight}
-                min={0}
-                max={4}
-                step={0.1}
-                onChange={(e) =>
-                  updateGraphConfig("lineWeight", Number(e.target.value))
-                }
-              />
-            </div>
-            <div className="toggle-item">
-              <label htmlFor="edgeMode" className="toggle-label">
-                Valued Edges
-              </label>
-              <input
-                type="checkbox"
-                id="edgeMode"
-                checked={graphConfig.edgeMode}
-                onChange={() =>
-                  updateGraphConfig("edgeMode", !graphConfig.edgeMode)
-                }
-              />
-            </div>
-
-            <div className="toggle-item">
-              <label htmlFor="directedMode" className="toggle-label">
-                Directed Edges
-              </label>
-              <input
-                type="checkbox"
-                id="directedMode"
-                checked={graphConfig.directedMode}
-                onChange={() =>
-                  updateGraphConfig("directedMode", !graphConfig.directedMode)
-                }
-              />
-            </div>
-            <div>
-              Colors
-              <div id="colors">
-                {COLORS.map((color, idx) => (
-                  <button
-                    onClick={() =>
-                      updateGraphConfig("currentChosenColor", color)
-                    }
-                    key={idx}
-                    className="color-option"
-                    id={
-                      graphConfig.currentChosenColor === color
-                        ? "selected-color"
-                        : ""
-                    }
-                    style={{ backgroundColor: color }}
-                  ></button>
-                ))}
-                <button
-                  onClick={() => updateGraphConfig("currentChosenColor", null)}
-                  id="deselect-color"
-                  className="color-option"
-                >
-                  <i className="fa-solid fa-xmark fa-xl"></i>
-                </button>
-              </div>
-            </div>
-            <button onClick={handleSaveGraphPng} className="basic-button">
-              Download Graph (.png)
-            </button>
-          </>
-        ) : (
-          <>
-            <div>Coming soon!</div>
-          </>
+        {chosenPage == OPTIONS_PAGES[0] && (
+          <Appearance
+            handleSaveGraphPng={handleSaveGraphPng}
+            graphConfig={graphConfig}
+            setGraphConfig={setGraphConfig}
+          />
         )}
+        {chosenPage == OPTIONS_PAGES[1] && <Algorithms />}
+        {/* {chosenPage == OPTIONS_PAGES[2] && <EditGraph
+          graphs={graphs}
+          setGraphs={setGraphs}
+        />} */}
       </section>
     </div>
   );

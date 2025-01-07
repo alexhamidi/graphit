@@ -1,4 +1,6 @@
-import { Size, GraphConfig } from "./interfaces";
+import { Size, GraphConfig, BoxActive} from "./interfaces";
+
+export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
 
 //graph stuff
 export const INITIAL_CIRCLE_RADIUS: number = 30;
@@ -12,6 +14,11 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   circleRadius: INITIAL_CIRCLE_RADIUS,
   fontSize: INITIAL_FONT_SIZE,
   lineWeight: INITIAL_LINE_WEIGHT,
+};
+export const DEFAULT_BOX_ACTIVE: BoxActive = {
+  aiBox: false,
+  newBlankGraphBox: false,
+  newTextGraphBox: false
 };
 
 export const PIXELS_PER_FONT_SIZE_UNIT = 0.6;

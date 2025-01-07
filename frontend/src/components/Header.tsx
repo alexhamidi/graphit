@@ -1,6 +1,7 @@
-import { Graph } from "../interfaces";
+import { Graph, BoxActive } from "../interfaces";
 import { useState, useEffect } from "react";
 import Close from "../components/Close";
+import { DEFAULT_BOX_ACTIVE } from "../constants";
 
 interface Props {
   handleLogout: () => void;
@@ -13,8 +14,7 @@ interface Props {
   setAndCacheCurrGraph: (id: string) => void;
   currGraph: string;
   email: string | null;
-  setAiBoxActive: React.Dispatch<React.SetStateAction<boolean>>;
-  setNewGraphBoxActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
   graphPopupActive: boolean;
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
   graphSelectPopupRef: React.RefObject<HTMLDivElement>;
@@ -31,8 +31,7 @@ export default function Header({
   currGraph,
   handleDeleteGraph,
   email,
-  setAiBoxActive,
-  setNewGraphBoxActive,
+  setBoxActive,
   graphPopupActive,
   setGraphPopupActive,
   graphSelectPopupRef,
@@ -112,18 +111,26 @@ export default function Header({
               )}
               <button
                 className="plain-button popup-item"
-                onClick={() => setNewGraphBoxActive(true)}
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true})}
               >
                 <i className="fa-solid fa-plus fa-sm"></i>
-                add new blank graph
+                add new empty graph
               </button>
               <button
                 className="plain-button popup-item"
-                onClick={() => setAiBoxActive(true)}
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox:true})}
+              >
+                <i className="fa-solid fa-edit fa-sm"></i>
+                add a new graph with text
+              </button>
+              <button
+                className="plain-button popup-item"
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true})}
               >
                 <i className="fa-solid fa-wand-sparkles fa-sm"></i>
                 add new graph with ai
               </button>
+
             </div>
           )}
         </div>

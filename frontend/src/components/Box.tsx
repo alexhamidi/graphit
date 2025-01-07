@@ -10,6 +10,7 @@ interface Props {
   error: string | null;
   loading: boolean | null;
   loadingMessage: string | null;
+  children: React.ReactNode;
 }
 
 export default function Box({
@@ -21,6 +22,7 @@ export default function Box({
   inputChangeFunction,
   loading,
   loadingMessage,
+  children
 }: Props) {
   return (
     <div id="box" className="main-component">
@@ -41,6 +43,7 @@ export default function Box({
         </button>
       </form>
       <Close onClose={closeFunction} />
+      {children && children}
       {loading && <div className="loading">{loadingMessage}</div>}
     </div>
   );
