@@ -22,11 +22,8 @@ mvnw
 ### frontend ###
 node_modules
 .prettierrc
-tsconfig.app.json
-tsconfig.json
-vite.config.ts
-vite.config.ts
-
+notes.txt
+physics.txt
 
 ### STS ###
 .apt_generated
