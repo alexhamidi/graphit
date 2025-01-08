@@ -254,6 +254,7 @@ input[type="checkbox"] {
 /* box */
 
 #box {
+  z-index: 1000;
   align-items: center;
   position: absolute;
   width: 50vw;

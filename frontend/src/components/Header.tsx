@@ -111,21 +111,21 @@ export default function Header({
               )}
               <button
                 className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true})}
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE,  newBlankGraphBox :true})}
               >
                 <i className="fa-solid fa-plus fa-sm"></i>
                 add new empty graph
               </button>
               <button
                 className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox:true})}
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true})}
               >
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
               <button
                 className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true})}
+                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true})}
               >
                 <i className="fa-solid fa-wand-sparkles fa-sm"></i>
                 add new graph with ai

@@ -44,17 +44,17 @@ export class Node {
     this.id = uuidv4();
     this.value = newValue ?? "0";
     this.pos = cursorPos ?? {
-      x: Math.random() * (canvasRect?.width ?? 0),
-      y: Math.random() * (canvasRect?.height ?? 0),
+      x:Math.random() * (canvasRect?.width ?? 0),
+      y:Math.random() * (canvasRect?.height ?? 0),
     };
     this.customColor = currentChosenColor ?? "";
   }
 }
-
 export interface Position {
   x: number;
   y: number;
 }
+
 
 
 
@@ -92,6 +92,7 @@ export interface PageProps {
 export interface GraphConfig {
   edgeMode: boolean;
   directedMode: boolean;
+  gravityMode: boolean;
   circleRadius: number;
   fontSize: number;
   lineWeight: number;

@@ -2,6 +2,15 @@ import { Size, GraphConfig, BoxActive} from "./interfaces";
 
 export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
 
+
+//Physics
+
+export const NUM_MAX_PHYSICS_ITERS = 0;
+export const GRAVITATIONAL_CONSTANT = 0.03;
+export const DELTA_TIME = 1.2;
+export const DAMPING = 0.6;
+export const MOVEMENT_THRESHOLD = .1;
+
 //graph stuff
 export const INITIAL_CIRCLE_RADIUS: number = 30;
 export const INITIAL_FONT_SIZE: number = 15;
@@ -10,6 +19,7 @@ export const MAIN_COLOR: string = "rgb(248, 249, 250)";
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeMode: false,
   directedMode: false,
+  gravityMode: false,
   currentChosenColor: null,
   circleRadius: INITIAL_CIRCLE_RADIUS,
   fontSize: INITIAL_FONT_SIZE,
@@ -27,7 +37,12 @@ export const TEXT_BOX_ADJUSTMENT: Size = {
   width: 15,
   height: 10,
 };
+
+export const EDGE_BOUNDARY : number = 35;
 export const INVISIBLE_CHAR: string = "O";
+
+
+
 
 //networking
 export const BASE_BACKEND_URL: string = import.meta.env.VITE_BASE_BACKEND_URL!;

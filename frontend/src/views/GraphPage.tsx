@@ -26,6 +26,7 @@ import {
   getNodeAt,
   getPosRelRect,
   outOfBounds,
+  getBoundedPosition
 } from "../utils/utils";
 import { debounce } from "lodash";
 import {
@@ -34,6 +35,7 @@ import {
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
+
 } from "../constants";
 
 export default function GraphPage({
@@ -61,6 +63,7 @@ export default function GraphPage({
   // CANVAS
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null);
   const [unsaved, setUnsaved] = useState<boolean>(false);
+  const [numCurrPhysicsIters, setNumCurrPhysicsIters] = useState<number>(0);
 
   // GRAPH SETTINGS
   const [graphConfig, setGraphConfig] = useState<GraphConfig>(() => {
@@ -92,6 +95,7 @@ export default function GraphPage({
   // OTHER
   const navigate = useNavigate();
 
+
   // =================================================================
   // ========================== Auth Actions ==========================
   // =================================================================
@@ -106,8 +110,7 @@ export default function GraphPage({
       }
       const email: string | null = await fetchEmail(currToken);
       if (!email) {
-        setAuthenticated(false);
-        localStorage.clear();
+        handleLogout();
       } else {
         setAuthenticated(true);
         setEmail(email);
@@ -240,6 +243,8 @@ export default function GraphPage({
     handleFetchGraphs();
   }, [token, authenticated]);
 
+
+
   // SAVE GRAPH STATE TO CLOUD
   const handleSaveGraphToCloud = async () => {
     if (!authenticated || !token) return;
@@ -253,14 +258,22 @@ export default function GraphPage({
     }
   };
 
+
   // SAVE GRAPH TO CLOUD REGULARLY
   const debouncedSaveGraph = useCallback(
-    debounce(() => {
+    debounce(() => { //debounce - waits till no changes in 1000ms
       handleSaveGraphToCloud();
       setUnsaved(false);
     }, 1000),
     [handleSaveGraphToCloud],
   );
+
+  useEffect(() => {
+    if (!unsaved && graphs.size > 0) {
+      setUnsaved(true);
+    }
+  }, [graphs]);
+
   useEffect(() => {
     if (authenticated && token) {
       debouncedSaveGraph();
@@ -307,6 +320,7 @@ export default function GraphPage({
 
   // ADD NODE
   const handleAddNode = (cursorPos?: Position, newValue?: string) => {
+    setNumCurrPhysicsIters(0)
     console.log(graphs)
     const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, cursorPos, newValue);
     setGraphs((prevGraphs) => {
@@ -323,6 +337,7 @@ export default function GraphPage({
 
   // DELETE NODE
   const handleDeleteNode = (id: string) => {
+    setNumCurrPhysicsIters(0)
     handleCancelEditing();
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
@@ -360,15 +375,22 @@ export default function GraphPage({
     });
   };
 
+        //Math.min(Math.max(pos.x, 0), canvasRect!.width)
+
+
   // UPDATE NODE POSITION
-  const handleUpdateNodePos = (id: string, pos: Position) => {
+  const handleUpdateNodePos = (id: string, pos: Position) => {//need to min canvasrect
+    setNumCurrPhysicsIters(0)
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
+
+      const newPos : Position = getBoundedPosition(pos, canvasRect);
+
       updatedGraphs.set(currGraph, {
         ...prevGraph,
         nodes: prevGraph.nodes.map((node) =>
-          node.id === id ? { ...node, pos } : node,
+          node.id === id ? { ...node, pos:newPos } : node,
         ),
       });
       return updatedGraphs;
@@ -383,8 +405,8 @@ export default function GraphPage({
       const prevGraph = prevGraphs.get(currGraph)!;
       updatedGraphs.set(currGraph, {
         ...prevGraph,
-        edges: prevGraph.edges.map((edge) =>
-          edge.id === editNode.id ? { ...edge, value: newValue } : edge,
+        nodes: prevGraph.nodes.map((node) =>
+          node.id === editNode.id ? { ...node, value: newValue } : node,
         ),
       });
       return updatedGraphs;
@@ -411,6 +433,7 @@ export default function GraphPage({
 
   // ADD EDGE
   const handleAddEdge = (n1: string, n2: string) => {
+    setNumCurrPhysicsIters(0)
     if (n1 === n2) return;
     const newEdge: Edge = {
       id: uuidv4(),
@@ -431,6 +454,7 @@ export default function GraphPage({
 
   // DELETE EDGE
   const handleDeleteEdge = (id: string) => {
+    setNumCurrPhysicsIters(0)
     handleCancelEditing();
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
@@ -521,10 +545,7 @@ export default function GraphPage({
       !isBoxActive() &&
       canvasRect
     ) {
-      const posRelCanvas: Position = getPosRelRect(
-        { x: e.clientX, y: e.clientY },
-        canvasRect,
-      );
+      const posRelCanvas: Position = getPosRelRect({x:e.clientX, y:e.clientY}, canvasRect );
       if (
         !outOfBounds(posRelCanvas, canvasRect) &&
         !getNodeAt(
@@ -533,7 +554,7 @@ export default function GraphPage({
           graphConfig.circleRadius,
         )
       ) {
-        handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
+        handleAddNode({x:posRelCanvas.x, y:posRelCanvas.y});
       }
     }
     setMouseDownStationary(false);
@@ -581,6 +602,16 @@ export default function GraphPage({
 
   // should we make a new auxillary function OR usestate on box state
   // easy if convert to single object
+
+
+
+  // =================================================================
+  // ============================ Physics ============================
+  // =================================================================
+
+
+
+
 
 
 
@@ -656,6 +687,9 @@ export default function GraphPage({
           canvasRef={canvasRef}
           handleSetError={handleSetError}
           graphConfig={graphConfig}
+          setGraphs={setGraphs}
+          numCurrPhysicsIters={numCurrPhysicsIters}
+          setNumCurrPhysicsIters={setNumCurrPhysicsIters}
         />
         <Options
           graphConfig={graphConfig}

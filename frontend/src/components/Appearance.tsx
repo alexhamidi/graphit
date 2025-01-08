@@ -70,27 +70,40 @@ export default function Appearance({
         />
       </div>
       <div className="toggle-item">
-        <label htmlFor="edgeMode" className="toggle-label">
+        <label htmlFor="edge-mode" className="toggle-label">
           Valued Edges
         </label>
         <input
           type="checkbox"
-          id="edgeMode"
+          id="edge-mode"
           checked={graphConfig.edgeMode}
           onChange={() => updateGraphConfig("edgeMode", !graphConfig.edgeMode)}
         />
       </div>
 
       <div className="toggle-item">
-        <label htmlFor="directedMode" className="toggle-label">
+        <label htmlFor="directed-mode" className="toggle-label">
           Directed Edges
         </label>
         <input
+          id="directed-mode"
           type="checkbox"
-          id="directedMode"
           checked={graphConfig.directedMode}
           onChange={() =>
             updateGraphConfig("directedMode", !graphConfig.directedMode)
+          }
+        />
+      </div>
+      <div className="toggle-item">
+        <label htmlFor="gravity-mode" className="toggle-label">
+          Gravity Mode
+        </label>
+        <input
+          type="checkbox"
+          id="gravity-mode"
+          checked={graphConfig.gravityMode}
+          onChange={() =>
+            updateGraphConfig("gravityMode", !graphConfig.gravityMode)
           }
         />
       </div>
