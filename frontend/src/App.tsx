@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import GraphPage from "./views/GraphPage";
 import RegisterPage from "./views/RegisterPage";
@@ -9,7 +9,7 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState<boolean>(true);
 
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route
           path="/"
@@ -40,6 +40,6 @@ export default function App() {
         />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
