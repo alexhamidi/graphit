@@ -512,6 +512,8 @@ export default function Canvas({
 
   useEffect(() => {
     const intervalId = setInterval(() => {
+      NUM_MAX_PHYSICS_ITERS;
+      numCurrPhysicsIters;
       if (graphConfig.gravityMode) updateNodePositions();
   }, 5);
 
