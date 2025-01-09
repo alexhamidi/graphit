@@ -385,7 +385,6 @@ export default function Canvas({
                 const ITERS_PER_UPDATE : number = Math.round(20/REFRESH_RATE)
 
                 if (edging && edging.n1 == node.id && numTotalIters%ITERS_PER_UPDATE===0) {
-                  console.log("updating edge")
                   setEdging({...edging, p1:newPos})
                 }
 
