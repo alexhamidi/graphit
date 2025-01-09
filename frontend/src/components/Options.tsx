@@ -44,10 +44,7 @@ export default function Options({
           />
         )}
         {chosenPage == OPTIONS_PAGES[1] && <Algorithms />}
-        {/* {chosenPage == OPTIONS_PAGES[2] && <EditGraph
-          graphs={graphs}
-          setGraphs={setGraphs}
-        />} */}
+
       </section>
     </div>
   );
