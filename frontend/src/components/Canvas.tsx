@@ -16,7 +16,8 @@ import {
   NUM_MAX_PHYSICS_ITERS,
   DAMPING,
   DELTA_TIME,
-  MOVEMENT_THRESHOLD
+  MOVEMENT_THRESHOLD,
+  REFRESH_RATE
 } from "../constants";
 import {
   getPosRelParent,
@@ -112,7 +113,6 @@ export default function Canvas({
     const startingMousePosRelCircle: Position = getPosRelParent(e);
     if (shiftPressed) {
       setSelectedNode(node);
-      console.log("setselectednode");
       setEdging({
         n1: node.id,
         p1: node.pos,
@@ -142,7 +142,6 @@ export default function Canvas({
     if (isBoxActive()) return;
     e.preventDefault();
     if (shiftPressed) {
-      console.log("setselectededge");
       setSelectedEdge(edge);
     }
   };
@@ -187,12 +186,9 @@ export default function Canvas({
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
     if (shiftPressed && selectedEdge && graphConfig.edgeMode) {
-      console.log("edge");
-      setEditingEdge(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);
     } else if (shiftPressed && selectedNode) {
-      console.log("node");
       setEditingNode(selectedNode);
       setSelectedNode(null);
       setEdging(null);
@@ -280,7 +276,7 @@ export default function Canvas({
   // =================================================================
   // ============================= Physics ============================
   // =================================================================
-
+  const [numTotalIters, setNumTotalIters] = useState(0)
 
   const graphRef = useRef(graph);
   const draggingRef = useRef(dragging);
@@ -386,9 +382,10 @@ export default function Canvas({
                   anyNodeMoved=true;
                 }
 
+                const ITERS_PER_UPDATE : number = Math.round(20/REFRESH_RATE)
 
-
-                if (edging && edging.n1 == node.id) {
+                if (edging && edging.n1 == node.id && numTotalIters%ITERS_PER_UPDATE===0) {
+                  console.log("updating edge")
                   setEdging({...edging, p1:newPos})
                 }
 
@@ -401,7 +398,6 @@ export default function Canvas({
     };
 
     // Only update if at least one node had significant movement
-    console.log(anyNodeMoved)
     if (!anyNodeMoved) {
         return;
     }
@@ -411,7 +407,7 @@ export default function Canvas({
         newGraphs.set(updatedGraph.id, updatedGraph);
         return newGraphs;
     });
-
+    setNumTotalIters(p=>p+1);
   }
 
 
@@ -419,7 +415,7 @@ export default function Canvas({
     const intervalId = setInterval(() => {
       NUM_MAX_PHYSICS_ITERS;
       if (graphConfig.gravityMode && !editingEdge && !editingNode) updateNodePositions();
-  }, 3);
+  }, REFRESH_RATE);
 
     return () => clearInterval(intervalId);
   }, [graph, graphConfig]);

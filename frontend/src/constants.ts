@@ -12,6 +12,7 @@ export const GRAVITATIONAL_CONSTANT = 0.03;
 export const DELTA_TIME = 1.2;
 export const DAMPING = 0.6;
 export const MOVEMENT_THRESHOLD = .03;
+export const REFRESH_RATE = 3
 
 //graph stuff
 export const INITIAL_CIRCLE_RADIUS: number = 30;
