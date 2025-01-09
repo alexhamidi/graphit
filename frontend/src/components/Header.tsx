@@ -100,7 +100,7 @@ export default function Header({
                 </button>
               ))}
               <hr />
-              {currGraph !== "" && (
+              {currGraph !== "" && <>
                 <button
                   className="plain-button popup-item"
                   onClick={handleDeleteGraphSubmit}
@@ -108,8 +108,9 @@ export default function Header({
                   <i className="fa-solid fa-trash fa-sm"></i>
                   delete the current graph
                 </button>
-              )}
-              <hr />
+                <hr />
+                </>}
+
               <button
                 className="plain-button popup-item"
                 onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE,  newBlankGraphBox :true})}
