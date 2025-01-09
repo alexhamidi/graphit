@@ -134,9 +134,9 @@ export default function Appearance({
       <button onClick={handleSaveGraphPng} className="basic-button">
         Download Graph (.png)
       </button>
-      <button onClick={(e)=>(e)} className="basic-button">
+      {/* <button onClick={(e)=>(e)} className="basic-button">
         Export Code (.cpp)
-      </button>
+      </button> */}
     </>
   );
 }
