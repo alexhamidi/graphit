@@ -383,11 +383,11 @@ export default function Canvas({
                 const displacement : number = Math.abs(lengthPos(node.pos) - lengthPos(newPos));
                 console.log(displacement);
 
-                if (displacement < MOVEMENT_THRESHOLD) {
-                  return node;
+                if (displacement > MOVEMENT_THRESHOLD) {
+                  anyNodeMoved=true;
                 }
 
-                anyNodeMoved=true;
+
 
                 if (edging && edging.n1 == node.id) {
                   setEdging({...edging, p1:newPos})
