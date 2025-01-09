@@ -45,7 +45,7 @@ export default function AiBox({
     }
     try {
       setLoading(true);
-      const response = await post("/api/ai", {
+      const response = await post("/ai", {
         prompt: currPrompt,
         width: canvasRect!.width,
         height: canvasRect!.height,

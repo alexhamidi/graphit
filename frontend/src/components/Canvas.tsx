@@ -53,8 +53,6 @@ interface Props {
   setEditingNode: React.Dispatch<React.SetStateAction<Node | null>>;
   graphConfig: GraphConfig;
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
-  numCurrPhysicsIters:number;
-  setNumCurrPhysicsIters:React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function Canvas({
@@ -78,8 +76,6 @@ export default function Canvas({
   setEditingNode,
   graphConfig,
   setGraphs,
-  numCurrPhysicsIters,
-  setNumCurrPhysicsIters,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -285,104 +281,6 @@ export default function Canvas({
   // ============================= Physics ============================
   // =================================================================
 
-  // const INITIAL_TEMPERATURE = 100;
-  // const [temperature, setTemperature] = useState<number>(INITIAL_TEMPERATURE)
-
-  // const graphRef = useRef(graph);
-  // const draggingRef = useRef(dragging);
-  // const canvasRectRef = useRef(canvasRect);
-
-  // useEffect(() => {
-  //   graphRef.current = graph;
-  //   draggingRef.current = dragging;
-  //   canvasRectRef.current = canvasRect;
-  // }, [graph, dragging, canvasRect]);
-
-  // function updateNodePositions() {
-  //   const currentGraph = graphRef.current;
-  //   if (!currentGraph || !canvasRect) return;
-
-
-  //   const area : number = canvasRect!.width * canvasRect!.height;
-  //   const k : number = Math.sqrt(area / currentGraph.nodes.length)
-  //   const f_r = (x : number) => (k * k)/x;
-  //   const f_a = (x : number) => (x * x)/k;
-
-
-  //   const disp = new Map<string, Position>(); //
-  //   const pos = new Map<string, Position>();
-
-  //   for (const v of currentGraph.nodes) { //only one disp being tracked
-  //     pos.set(v.id, v.pos);
-  //     disp.set(v.id, {x:0,y:0});
-  //     for (const u of currentGraph.nodes) {
-  //       if (u.id !== v.id) {
-
-  //         // Update the function calls
-  //         const delta: Position = subtractPos(v.pos, u.pos);
-  //         const currentDisp: Position = disp.get(v.id)!;
-  //         const deltaLength: number = lengthPos(delta);
-  //         const adjustment: Position = dividePos(delta, deltaLength * f_r(deltaLength));
-
-  //         disp.set(v.id, addPos(currentDisp, adjustment));
-  //       }
-  //     }
-  //   }
-
-  //   for (const e of currentGraph.edges) {
-  //     // console.log(e)
-  //     // console.log(disp) //why only one entry?
-  //     const currentVDisp: Position = disp.get(e.n2)!;
-  //     const currentUDisp: Position = disp.get(e.n1)!;
-
-  //     const delta: Position = subtractPos(pos.get(e.n2)!, pos.get(e.n1)!);
-  //     const deltaLength: number = lengthPos(delta);
-  //     const adjustment: Position = dividePos(delta, deltaLength * f_a(deltaLength));
-
-  //     disp.set(e.n2, subtractPos(currentVDisp, adjustment));
-  //     disp.set(e.n1, addPos(currentUDisp, adjustment));
-  //   }
-
-  //    //probably divide by zero
-  //   const updatedGraph = {
-  //     ...currentGraph,
-  //     nodes: currentGraph.nodes.map((v) => {
-  //       if (draggingRef.current !== null && v.id === draggingRef.current.id) {
-  //         return v;
-  //       } else {
-  //         const displacement: Position = disp.get(v.id)!;
-  //         const displacementLength: number = lengthPos(displacement);
-  //         const limitedDisp : Position= multiplyPos(displacement, Math.min(displacementLength, temperature) / displacementLength);
-
-  //         const scaledLimited : Position = multiplyPos(limitedDisp, 20)
-  //         const newPos = addPos(pos.get(v.id)!, scaledLimited);
-
-  //         return {
-  //           ...v,
-  //           pos: getBoundedPosition(newPos, canvasRect!),
-  //         };
-  //       }
-  //     }),
-  //   };
-
-  //   setTemperature(prev => prev * .99);
-
-  //   setGraphs((prevGraphs) => {
-  //     const newGraphs = new Map(prevGraphs);
-  //     newGraphs.set(updatedGraph.id, updatedGraph);
-  //     return newGraphs;
-  //   });
-  // }
-
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     updateNodePositions();
-  //   }, 100);
-
-  //   return () => clearInterval(intervalId);
-  // }, [graph]);
-
-//still not ideal - on big changes, updates earlier than it should, and vice versa. need to get to the root cause. fine for now.
 
   const graphRef = useRef(graph);
   const draggingRef = useRef(dragging);
@@ -413,7 +311,7 @@ export default function Canvas({
 
                 const k = Math.sqrt((canvasRect.width * canvasRect.height) / currentGraph.nodes.length);
 
-                let force = { x: 0, y: 0 };
+                let force = { x: 0, y: 0 }; //anynode updated with num
 
                 // Center gravity with distance falloff
                 const distanceToCenter = subtractPos(
@@ -465,14 +363,8 @@ export default function Canvas({
                 // Clear threshold - if movement is below this, node stops completely
                 // seems tk be some edge length variable/constant force
 
-                const displacement = lengthPos(force);
 
 
-                if (displacement < MOVEMENT_THRESHOLD ) {
-                    return node;
-                }
-
-                anyNodeMoved = true;
 
 
                 let newPos = addPos(node.pos, force);
@@ -486,15 +378,31 @@ export default function Canvas({
                 if (newPos.y > canvasRect.height - margin)
                     newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
 
+                newPos = getBoundedPosition(newPos, canvasRect);
+
+                const displacement : number = Math.abs(lengthPos(node.pos) - lengthPos(newPos));
+                console.log(displacement);
+
+                if (displacement < MOVEMENT_THRESHOLD) {
+                  return node;
+                }
+
+                anyNodeMoved=true;
+
+                if (edging && edging.n1 == node.id) {
+                  setEdging({...edging, p1:newPos})
+                }
+
                 return {
                     ...node,
-                    pos: getBoundedPosition(newPos, canvasRect)
+                    pos: newPos
                 };
             }
         }),
     };
 
     // Only update if at least one node had significant movement
+    console.log(anyNodeMoved)
     if (!anyNodeMoved) {
         return;
     }
@@ -505,16 +413,13 @@ export default function Canvas({
         return newGraphs;
     });
 
-    setNumCurrPhysicsIters(p=>p+1);
-
   }
 
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       NUM_MAX_PHYSICS_ITERS;
-      numCurrPhysicsIters;
-      if (graphConfig.gravityMode) updateNodePositions();
+      if (graphConfig.gravityMode && !editingEdge && !editingNode) updateNodePositions();
   }, 5);
 
     return () => clearInterval(intervalId);

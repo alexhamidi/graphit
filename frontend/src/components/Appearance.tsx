@@ -135,7 +135,7 @@ export default function Appearance({
         Download Graph (.png)
       </button>
       <button onClick={(e)=>(e)} className="basic-button">
-        Export Graph (.txt)
+        Export Code (.cpp)
       </button>
     </>
   );

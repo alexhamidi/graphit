@@ -63,7 +63,6 @@ export default function GraphPage({
   // CANVAS
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null);
   const [unsaved, setUnsaved] = useState<boolean>(false);
-  const [numCurrPhysicsIters, setNumCurrPhysicsIters] = useState<number>(0);
 
   // GRAPH SETTINGS
   const [graphConfig, setGraphConfig] = useState<GraphConfig>(() => {
@@ -228,7 +227,7 @@ export default function GraphPage({
         return;
       }
       try {
-        const response = await authorizedFetch("/api/graphs", token);
+        const response = await authorizedFetch("/graphs", token);
         const graphs: Map<string, Graph> = new Map(
           Object.entries(response.data.graphs),
         );
@@ -249,7 +248,7 @@ export default function GraphPage({
   const handleSaveGraphToCloud = async () => {
     if (!authenticated || !token) return;
     try {
-      await authorizedPost("/api/graphs", Object.fromEntries(graphs), token);
+      await authorizedPost("/graphs", Object.fromEntries(graphs), token);
     } catch (err) {
       console.error(CLOUD_SAVE_FAIL_ERROR);
       if (isAxiosError(err) && err.response?.status === 400) {
@@ -320,7 +319,6 @@ export default function GraphPage({
 
   // ADD NODE
   const handleAddNode = (cursorPos?: Position, newValue?: string) => {
-    setNumCurrPhysicsIters(0)
     console.log(graphs)
     const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, cursorPos, newValue);
     setGraphs((prevGraphs) => {
@@ -337,7 +335,6 @@ export default function GraphPage({
 
   // DELETE NODE
   const handleDeleteNode = (id: string) => {
-    setNumCurrPhysicsIters(0)
     handleCancelEditing();
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
@@ -380,7 +377,6 @@ export default function GraphPage({
 
   // UPDATE NODE POSITION
   const handleUpdateNodePos = (id: string, pos: Position) => {//need to min canvasrect
-    setNumCurrPhysicsIters(0)
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
@@ -433,7 +429,6 @@ export default function GraphPage({
 
   // ADD EDGE
   const handleAddEdge = (n1: string, n2: string) => {
-    setNumCurrPhysicsIters(0)
     if (n1 === n2) return;
     const newEdge: Edge = {
       id: uuidv4(),
@@ -454,7 +449,6 @@ export default function GraphPage({
 
   // DELETE EDGE
   const handleDeleteEdge = (id: string) => {
-    setNumCurrPhysicsIters(0)
     handleCancelEditing();
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
@@ -688,8 +682,6 @@ export default function GraphPage({
           handleSetError={handleSetError}
           graphConfig={graphConfig}
           setGraphs={setGraphs}
-          numCurrPhysicsIters={numCurrPhysicsIters}
-          setNumCurrPhysicsIters={setNumCurrPhysicsIters}
         />
         <Options
           graphConfig={graphConfig}

@@ -8,6 +8,7 @@ import {
   INCOMPLETE_CREDENTIALS_ERROR,
   USER_NOT_FOUND_ERROR,
   INCORRECT_PASSWORD_ERROR,
+  BASE_BACKEND_URL
 } from "../constants";
 import { isAxiosError } from "axios";
 import Error from "../components/Error";
@@ -55,7 +56,7 @@ export default function LoginPage({ setAuthenticated }: PageProps) {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
     } else
       try {
-        const response = await post("/api/login", credentials);
+        const response = await post("/login", credentials);
         localStorage.setItem("token", response.data.token);
         navigate("/");
         setAuthenticated(true);
@@ -73,7 +74,7 @@ export default function LoginPage({ setAuthenticated }: PageProps) {
 
   const handleGoogleLogin = () => {
     window.location.href =
-      "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8080/api/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline";
+      `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
   };
 
   return (

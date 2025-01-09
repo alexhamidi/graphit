@@ -1,0 +1,45 @@
+# Query: /api
+# ContextLines: 1
+
+9 results - 6 files
+
+.env:
+  1: VITE_BASE_BACKEND_URL=http://localhost:8080/api
+  2  
+
+src/components/AiBox.tsx:
+  47        setLoading(true);
+  48:       const response = await post("/api/ai", {
+  49          prompt: currPrompt,
+
+src/utils/utils.ts:
+  74    try {
+  75:     const response = await authorizedFetch("/api/validate", token);
+  76      return response.data.email;
+
+src/views/GraphPage.tsx:
+  230        try {
+  231:         const response = await authorizedFetch("/api/graphs", token);
+  232          const graphs: Map<string, Graph> = new Map(
+
+  251      try {
+  252:       await authorizedPost("/api/graphs", Object.fromEntries(graphs), token);
+  253      } catch (err) {
+
+src/views/LoginPage.tsx:
+  57        try {
+  58:         const response = await post("/api/login", credentials);
+  59          localStorage.setItem("token", response.data.token);
+
+  75      window.location.href =
+  76:       "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8080/api/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline";
+  77    };
+
+src/views/RegisterPage.tsx:
+  55        try {
+  56:         const response = await post("/api/register", credentials);
+  57          localStorage.setItem("token", response.data.token);
+
+  71      window.location.href =
+  72:       "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8080/api/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline";
+  73    };

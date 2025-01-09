@@ -72,7 +72,7 @@ export function getMidpoint(coord1: number, coord2: number): number {
 
 export async function fetchEmail(token: string): Promise<string | null> {
   try {
-    const response = await authorizedFetch("/api/validate", token);
+    const response = await authorizedFetch("/validate", token);
     return response.data.email;
   } catch (err) {
     return null;
