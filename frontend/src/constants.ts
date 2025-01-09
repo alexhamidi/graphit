@@ -1,6 +1,7 @@
 import { Size, GraphConfig, BoxActive} from "./interfaces";
 
 export const MODE: string = import.meta.env.VITE_MODE!;
+export const AI_ACCESSIBLE: boolean = import.meta.env.VITE_AI_ACCESSIBLE! === "TRUE";
 
 
 export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
