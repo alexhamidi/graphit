@@ -1,7 +1,9 @@
 import { Size, GraphConfig, BoxActive} from "./interfaces";
 
-export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
+export const MODE: string = import.meta.env.VITE_MODE!;
 
+
+export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
 
 //Physics
 

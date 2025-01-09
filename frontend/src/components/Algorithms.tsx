@@ -1,3 +1,3 @@
 export default function Appearance({}) {
-  return <>hi</>;
+  return <>Coming Soon...</>;
 }

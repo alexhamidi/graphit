@@ -1,7 +1,7 @@
 import { Graph, BoxActive } from "../interfaces";
 import { useState, useEffect } from "react";
 import Close from "../components/Close";
-import { DEFAULT_BOX_ACTIVE } from "../constants";
+import { DEFAULT_BOX_ACTIVE, MODE } from "../constants";
 
 interface Props {
   handleLogout: () => void;
@@ -109,6 +109,7 @@ export default function Header({
                   delete the current graph
                 </button>
               )}
+              <hr />
               <button
                 className="plain-button popup-item"
                 onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE,  newBlankGraphBox :true})}
@@ -123,13 +124,13 @@ export default function Header({
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
-              <button
+              {MODE == "development" && <button
                 className="plain-button popup-item"
                 onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true})}
               >
-                <i className="fa-solid fa-wand-sparkles fa-sm"></i>
+                 <i className="fa-solid fa-wand-sparkles fa-sm"></i>
                 add new graph with ai
-              </button>
+              </button>}
 
             </div>
           )}

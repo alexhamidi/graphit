@@ -313,7 +313,7 @@ export default function Canvas({
 
                 let force = { x: 0, y: 0 }; //anynode updated with num
 
-                // Center gravity with distance falloff
+
                 const distanceToCenter = subtractPos(
                     { x: centerX, y: centerY },
                     node.pos
@@ -326,7 +326,7 @@ export default function Canvas({
                     );
                 }
 
-                // Node-node repulsion
+
                 currentGraph.nodes.forEach((otherNode) => {
                     if (node.id !== otherNode.id) {
                         const diff = subtractPos(node.pos, otherNode.pos);
@@ -339,7 +339,7 @@ export default function Canvas({
                     }
                 });
 
-                // Edge spring forces
+
                 currentGraph.edges.forEach((edge) => {
                     if (edge.n1 === node.id || edge.n2 === node.id) {
                         const otherNodeId = edge.n1 === node.id ? edge.n2 : edge.n1;
@@ -381,7 +381,6 @@ export default function Canvas({
                 newPos = getBoundedPosition(newPos, canvasRect);
 
                 const displacement : number = Math.abs(lengthPos(node.pos) - lengthPos(newPos));
-                console.log(displacement);
 
                 if (displacement > MOVEMENT_THRESHOLD) {
                   anyNodeMoved=true;
@@ -420,7 +419,7 @@ export default function Canvas({
     const intervalId = setInterval(() => {
       NUM_MAX_PHYSICS_ITERS;
       if (graphConfig.gravityMode && !editingEdge && !editingNode) updateNodePositions();
-  }, 5);
+  }, 3);
 
     return () => clearInterval(intervalId);
   }, [graph, graphConfig]);
