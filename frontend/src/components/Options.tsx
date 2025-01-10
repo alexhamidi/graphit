@@ -44,7 +44,6 @@ export default function Options({
           />
         )}
         {chosenPage == OPTIONS_PAGES[1] && <Algorithms />}
-
       </section>
     </div>
   );
