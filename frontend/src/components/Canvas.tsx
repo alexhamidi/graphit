@@ -186,6 +186,7 @@ export default function Canvas({
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
     if (shiftPressed && selectedEdge && graphConfig.edgeMode) {
+      setEditingEdge(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);
     } else if (shiftPressed && selectedNode) {
