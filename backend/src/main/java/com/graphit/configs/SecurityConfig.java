@@ -24,7 +24,8 @@ public class SecurityConfig {
                     "/api/validate",
                     "/api/health",
                     "/api/login/oauth2/code/google",
-                    "/api/ai"
+                    "/api/ai",
+                    "/api/algorithm/shortest"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

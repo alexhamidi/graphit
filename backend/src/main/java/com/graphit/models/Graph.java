@@ -2,6 +2,7 @@ package com.graphit.models;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Graph {
 
@@ -9,6 +10,8 @@ public class Graph {
     private String name;
     private ArrayList<Node> nodes;
     private ArrayList<Edge> edges;
+
+
 
     public String getId() {
         return id;
@@ -41,4 +44,24 @@ public class Graph {
     public void setEdges(ArrayList<Edge> edges) {
         this.edges = edges;
     }
+
+    public HashMap<String, HashMap<String, AdjEdge>> toAdj() {
+        HashMap<String, HashMap<String, AdjEdge>> adj = new HashMap<String, HashMap<String, AdjEdge>>();
+        for (Edge edge : edges) {
+            if (!adj.containsKey(edge.getN1())) {
+                adj.put(edge.getN1(), new HashMap<String, AdjEdge>());
+            }
+
+            Integer edgeVal = 0;
+            try {
+                edgeVal = Integer.parseInt(edge.getValue());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(e);
+            }
+
+            adj.get(edge.getN1()).put(edge.getN2(), new AdjEdge(edgeVal, edge.getID()));
+        }
+        return adj;
+    }
+
 }

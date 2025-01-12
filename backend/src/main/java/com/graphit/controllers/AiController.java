@@ -34,7 +34,7 @@ public class AiController {
     }
 
     @PostMapping("/ai")
-    public ResponseEntity<Map<String, Object>> doPrompt(
+    public ResponseEntity<Map<String, Object>> doPrompt( //should get iiud for graph to avoid intergraph conflict
             @RequestBody HashMap<String, String> data
     ) {
         try {
