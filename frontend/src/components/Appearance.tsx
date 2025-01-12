@@ -134,7 +134,6 @@ export default function Appearance({
       <button onClick={handleSaveGraphPng} className="basic-button">
         Download Graph (.png)
       </button>
-
     </>
   );
 }

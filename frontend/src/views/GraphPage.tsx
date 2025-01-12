@@ -18,7 +18,7 @@ import {
   PageProps,
   GraphConfig,
   BoxActive,
-  MiniEdge
+  MiniEdge,
 } from "../interfaces";
 import { authorizedFetch, authorizedPost, post } from "../networking";
 import {
@@ -26,7 +26,7 @@ import {
   getNodeAt,
   getPosRelRect,
   outOfBounds,
-  getBoundedPosition
+  getBoundedPosition,
 } from "../utils/utils";
 import { debounce } from "lodash";
 import {
@@ -35,7 +35,6 @@ import {
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
-
 } from "../constants";
 
 export default function GraphPage({
@@ -45,8 +44,6 @@ export default function GraphPage({
   // =================================================================
   // ========================== Declarations ==========================
   // =================================================================
-
-
 
   // IDENTITY
   const [token, setToken] = useState<string | null>(null);
@@ -82,7 +79,7 @@ export default function GraphPage({
     useState<boolean>(false);
 
   // VISIBILITY
-  const [boxActive, setBoxActive] = useState<BoxActive>(DEFAULT_BOX_ACTIVE)
+  const [boxActive, setBoxActive] = useState<BoxActive>(DEFAULT_BOX_ACTIVE);
   const [graphPopupActive, setGraphPopupActive] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -94,7 +91,6 @@ export default function GraphPage({
   // OTHER
   const navigate = useNavigate();
 
-
   // =================================================================
   // ========================== Auth Actions ==========================
   // =================================================================
@@ -105,6 +101,7 @@ export default function GraphPage({
       const currToken = localStorage.getItem("token");
       if (!currToken) {
         setAuthenticated(false);
+        setLoading(false)
         return;
       }
       const email: string | null = await fetchEmail(currToken);
@@ -149,7 +146,8 @@ export default function GraphPage({
 
   // CACHE GRAPH OPTIONS
   useEffect(() => {
-    if (authenticated) localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
+    if (authenticated)
+      localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
   }, [graphConfig]);
 
   // FETCH CURRGRAPH - need to wait for graphs
@@ -167,11 +165,20 @@ export default function GraphPage({
   // =================================================================
 
   // CREATE AND SAVE GRAPH INITIALIZED WITH INPUTS
-  const handleNewGraphFromInput = (name: string, nodeValues: string[], edgeValues: MiniEdge[]) => {
+  const handleNewGraphFromInput = (
+    name: string,
+    nodeValues: string[],
+    edgeValues: MiniEdge[],
+  ) => {
     const newGraph: Graph = new Graph(name);
     const nodeIdMap = new Map<string, string>();
     nodeValues.forEach((value) => {
-      const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, undefined, value);
+      const newNode: Node = new Node(
+        canvasRect,
+        graphConfig.currentChosenColor,
+        undefined,
+        value,
+      );
       nodeIdMap.set(value, newNode.id);
       newGraph.nodes.push(newNode);
     });
@@ -179,7 +186,7 @@ export default function GraphPage({
       const n1Id = nodeIdMap.get(node1Value);
       const n2Id = nodeIdMap.get(node2Value);
       if (n1Id && n2Id && n1Id !== n2Id) {
-        const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue)
+        const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue);
         newGraph.edges.push(newEdge);
       }
     });
@@ -222,6 +229,7 @@ export default function GraphPage({
 
   // FETCH GRAPHS FROM CLOUD
   useEffect(() => {
+    console.log("running fetch")
     const handleFetchGraphs = async () => {
       if (!authenticated || !token) {
         return;
@@ -232,6 +240,7 @@ export default function GraphPage({
           Object.entries(response.data.graphs),
         );
         setGraphs(graphs);
+        setLoading(false)
       } catch (err) {
         setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
         if (isAxiosError(err) && err.response?.status === 400) {
@@ -241,8 +250,6 @@ export default function GraphPage({
     };
     handleFetchGraphs();
   }, [token, authenticated]);
-
-
 
   // SAVE GRAPH STATE TO CLOUD
   const handleSaveGraphToCloud = async () => {
@@ -257,10 +264,10 @@ export default function GraphPage({
     }
   };
 
-
   // SAVE GRAPH TO CLOUD REGULARLY
   const debouncedSaveGraph = useCallback(
-    debounce(() => { //debounce - waits till no changes in 1000ms
+    debounce(() => {
+      //debounce - waits till no changes in 1000ms
       handleSaveGraphToCloud();
       setUnsaved(false);
     }, 1000),
@@ -319,7 +326,12 @@ export default function GraphPage({
 
   // ADD NODE
   const handleAddNode = (cursorPos?: Position, newValue?: string) => {
-    const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, cursorPos, newValue);
+    const newNode: Node = new Node(
+      canvasRect,
+      graphConfig.currentChosenColor,
+      cursorPos,
+      newValue,
+    );
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
@@ -330,7 +342,6 @@ export default function GraphPage({
       return updatedGraphs;
     });
   };
-
 
   // DELETE NODE
   const handleDeleteNode = (id: string) => {
@@ -353,7 +364,7 @@ export default function GraphPage({
   // UPDATE NODE COLOR or do others
   const handleBasicNodeClick = (id: string) => {
     if (selectingShortest) {
-      setHighlighted(prev => new Set(prev).add(id));
+      setHighlighted((prev) => new Set(prev).add(id));
       return;
     }
     if (!graphConfig.currentChosenColor) {
@@ -375,21 +386,21 @@ export default function GraphPage({
     });
   };
 
-        //Math.min(Math.max(pos.x, 0), canvasRect!.width)
-
+  //Math.min(Math.max(pos.x, 0), canvasRect!.width)
 
   // UPDATE NODE POSITION
-  const handleUpdateNodePos = (id: string, pos: Position) => {//need to min canvasrect
+  const handleUpdateNodePos = (id: string, pos: Position) => {
+    //need to min canvasrect
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
 
-      const newPos : Position = getBoundedPosition(pos, canvasRect);
+      const newPos: Position = getBoundedPosition(pos, canvasRect);
 
       updatedGraphs.set(currGraph, {
         ...prevGraph,
         nodes: prevGraph.nodes.map((node) =>
-          node.id === id ? { ...node, pos:newPos } : node,
+          node.id === id ? { ...node, pos: newPos } : node,
         ),
       });
       return updatedGraphs;
@@ -476,11 +487,11 @@ export default function GraphPage({
     } else if (e.key === "Meta") {
       setMetaPressed(true);
     } else if (e.key === "k" && metaPressed) {
-      setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true});
+      setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
     } else if (e.key === "i" && metaPressed) {
-      setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox:true});
+      setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
     } else if (e.key === "u" && metaPressed) {
-      setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true});
+      setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
     } else if (e.key == "Escape") {
       handleCancelAllActive();
     }
@@ -542,7 +553,10 @@ export default function GraphPage({
       !isBoxActive() &&
       canvasRect
     ) {
-      const posRelCanvas: Position = getPosRelRect({x:e.clientX, y:e.clientY}, canvasRect );
+      const posRelCanvas: Position = getPosRelRect(
+        { x: e.clientX, y: e.clientY },
+        canvasRect,
+      );
       if (
         !outOfBounds(posRelCanvas, canvasRect) &&
         !getNodeAt(
@@ -551,7 +565,7 @@ export default function GraphPage({
           graphConfig.circleRadius,
         )
       ) {
-        handleAddNode({x:posRelCanvas.x, y:posRelCanvas.y});
+        handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
       }
     }
 
@@ -595,106 +609,110 @@ export default function GraphPage({
   };
 
   const isBoxActive = () => {
-    return (boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox)
-  }
+    return (
+      boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox
+    );
+  };
 
   // should we make a new auxillary function OR usestate on box state
   // easy if convert to single object
-
-
 
   // =================================================================
   // =========================== Algorithms ===========================
   // =================================================================
 
-  const [selectingShortest, setSelectingShortest] = useState<boolean>(false)
-  const [highlighted, setHighlighted] = useState<Set<string>>(new Set<string>())
-  const [message, setMessage] = useState<string>('');
+  const [selectingShortest, setSelectingShortest] = useState<boolean>(false);
+  const [highlighted, setHighlighted] = useState<Set<string>>(
+    new Set<string>(),
+  );
+  const [message, setMessage] = useState<string>("");
   const [shortestDisplayed, setShortestDisplayed] = useState<boolean>(false);
 
   const handleStartShortest = () => {
-    if (currGraph == '') {
+    if (currGraph == "") {
       setErrorMessage("Need to select a graph before running algorithms");
       return;
     }
     setSelectingShortest(true);
-    setMessage("select origin node...")
-  }
+    setMessage("select origin node...");
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (highlighted.size === 1 && selectingShortest) {
-      setMessage("select destination node...")
-    } else if (highlighted.size === 2 && selectingShortest ) {
+      setMessage("select destination node...");
+    } else if (highlighted.size === 2 && selectingShortest) {
       handleGetShortest();
-      setMessage('');
+      setMessage("");
     }
-  }, [highlighted])
+  }, [highlighted]);
 
-  const handleGetShortest = async() => {
-    console.log("gettingshortest")
+  const handleGetShortest = async () => {
+    console.log("gettingshortest");
     if (highlighted.size !== 2) {
       setErrorMessage("Need to select 2 nodes");
-      setHighlighted(new Set())
+      setHighlighted(new Set());
       setSelectingShortest(false);
       return;
     }
     if (!graphs.has(currGraph)) {
-      setErrorMessage(DEFAULT_ERROR)
-      setHighlighted(new Set())
+      setErrorMessage(DEFAULT_ERROR);
+      setHighlighted(new Set());
       setSelectingShortest(false);
       return;
     }
     try {
       const [n1, n2] = highlighted;
       const graph: Graph = graphs.get(currGraph)!;
-      const response = await post(`/algorithm/shortest?n1=${n1}&n2=${n2}`, graph);
+      const response = await post(
+        `/algorithm/shortest?n1=${n1}&n2=${n2}`,
+        graph,
+      );
       const ids: string[] = response.data.visitedIds;
       if (ids.length === 0) {
-        setErrorMessage("no path exists between these nodes")
+        setErrorMessage("no path exists between these nodes");
         setHighlighted(new Set());
       } else {
         setHighlighted(new Set(ids));
-        setShortestDisplayed(true)
+        setShortestDisplayed(true);
       }
       setSelectingShortest(false);
     } catch (err) {
-      setHighlighted(new Set())
+      setHighlighted(new Set());
       setSelectingShortest(false);
       if (isAxiosError(err) && err.response?.status === 400) {
-        setErrorMessage("Invalid graph for finding shortest path")
+        setErrorMessage("Invalid graph for finding shortest path");
       } else {
         setErrorMessage(DEFAULT_ERROR);
       }
     }
-  }
+  };
 
   const handleDisableDisplayed = () => {
     setShortestDisplayed(false);
-    setHighlighted(new Set())
-  }
-
+    setHighlighted(new Set());
+  };
 
   // =================================================================
-  // ======================= Refturned Component =======================
+  // ======================= Refurned Component =======================
   // =================================================================
 
+  const [loading, setLoading] = useState(true);
   return (
     <>
+      {loading && <div id="loading"/>}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}
-      {(message || shortestDisplayed)  && <div
-          id="message"
-          className="main-component"
-        >
-        {message && message}
-        {shortestDisplayed && <button
-        className="plain-button"
-        onClick={handleDisableDisplayed}
-        >
-          reset highlighting
-        </button>}
-      </div>}
+      {(message || shortestDisplayed) && (
+        <div id="message" className="main-component">
+          {message && message}
+          {shortestDisplayed && (
+            <button className="plain-button" onClick={handleDisableDisplayed}>
+              reset highlighting
+            </button>
+          )}
+        </div>
+      )}
       <Header
         unsaved={unsaved}
         authenticated={authenticated}
@@ -711,6 +729,7 @@ export default function GraphPage({
         setGraphPopupActive={setGraphPopupActive}
         graphSelectPopupRef={graphSelectPopupRef}
         handleSetError={handleSetError}
+        loading={loading}
       />
       <main id="graphpage-main">
         {boxActive.newBlankGraphBox && (
@@ -760,6 +779,7 @@ export default function GraphPage({
           graphConfig={graphConfig}
           setGraphs={setGraphs}
           highlighted={highlighted}
+          loading={loading}
         />
         <Options
           graphConfig={graphConfig}

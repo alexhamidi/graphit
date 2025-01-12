@@ -22,7 +22,7 @@ export default function NewBlankGraphBox({
     const newName: string = newGraphName;
     setNewGraphName("");
     handleNewGraph(newName);
-    setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false});
+    setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false });
     setGraphPopupActive(false);
   };
 
@@ -30,7 +30,9 @@ export default function NewBlankGraphBox({
     <Box
       mainText={"create a new graph"}
       placeholderText={"enter title here"}
-      closeFunction={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false})}
+      closeFunction={() =>
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: false })
+      }
       submitFunction={handleNewGraphSubmit}
       inputValue={newGraphName}
       inputChangeFunction={setNewGraphName}

@@ -10,7 +10,7 @@ interface Props {
   handleSaveGraphPng: () => void;
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
-  handleStartShortest: () => void
+  handleStartShortest: () => void;
 }
 
 export default function Options({
@@ -45,10 +45,9 @@ export default function Options({
             setGraphConfig={setGraphConfig}
           />
         )}
-        {chosenPage == OPTIONS_PAGES[1] && <Algorithms
-          handleStartShortest={handleStartShortest}
-
-        />}
+        {chosenPage == OPTIONS_PAGES[1] && (
+          <Algorithms handleStartShortest={handleStartShortest} />
+        )}
       </section>
     </div>
   );

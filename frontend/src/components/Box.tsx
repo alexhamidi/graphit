@@ -22,7 +22,7 @@ export default function Box({
   inputChangeFunction,
   loading,
   loadingMessage,
-  children
+  children,
 }: Props) {
   return (
     <div id="box" className="main-component">

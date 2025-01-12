@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Node,
   Position,
@@ -17,7 +17,7 @@ import {
   DAMPING,
   DELTA_TIME,
   MOVEMENT_THRESHOLD,
-  REFRESH_RATE
+  REFRESH_RATE,
 } from "../constants";
 import {
   getPosRelParent,
@@ -54,7 +54,8 @@ interface Props {
   setEditingNode: React.Dispatch<React.SetStateAction<Node | null>>;
   graphConfig: GraphConfig;
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
-  highlighted: Set<string>
+  highlighted: Set<string>;
+  loading: boolean;
 }
 
 export default function Canvas({
@@ -79,6 +80,7 @@ export default function Canvas({
   graphConfig,
   setGraphs,
   highlighted,
+  loading,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -130,8 +132,8 @@ export default function Canvas({
       const halfWidth = totalWidth / 2;
       const halfOver = Math.max(0, halfWidth - graphConfig.circleRadius);
       setDragPos({
-        x:startingMousePosRelCircle.x - graphConfig.circleRadius - halfOver,
-        y:startingMousePosRelCircle.y - graphConfig.circleRadius,
+        x: startingMousePosRelCircle.x - graphConfig.circleRadius - halfOver,
+        y: startingMousePosRelCircle.y - graphConfig.circleRadius,
       });
     }
   };
@@ -170,8 +172,8 @@ export default function Canvas({
         return;
       }
       handleUpdateNodePos(dragging.id, {
-        x:cursorPos.x - dragPos!.x,
-        y:cursorPos.y - dragPos!.y,
+        x: cursorPos.x - dragPos!.x,
+        y: cursorPos.y - dragPos!.y,
       });
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
@@ -277,11 +279,10 @@ export default function Canvas({
     setEditingName("");
   };
 
-
   // =================================================================
   // ============================= Physics ============================
   // =================================================================
-  const [numTotalIters, setNumTotalIters] = useState(0)
+  const [numTotalIters, setNumTotalIters] = useState(0);
 
   const graphRef = useRef(graph);
   const draggingRef = useRef(dragging);
@@ -291,11 +292,9 @@ export default function Canvas({
   useEffect(() => {
     graphRef.current = graph;
     draggingRef.current = dragging;
-    edgingRef.current = edging
+    edgingRef.current = edging;
     canvasRectRef.current = canvasRect;
   }, [graph, dragging, canvasRect, edging]);
-
-
 
   function updateNodePositions() {
     const currentGraph = graphRef.current;
@@ -304,141 +303,149 @@ export default function Canvas({
     let anyNodeMoved = false; // Track if any node had significant movement
 
     const updatedGraph = {
-        ...currentGraph,
-        nodes: currentGraph.nodes.map((node) => {
-            if (draggingRef.current !== null && node.id === draggingRef.current.id) {
-                return node;
-            } else {
-                const centerX = canvasRect.width / 2;
-                const centerY = canvasRect.height / 2;
+      ...currentGraph,
+      nodes: currentGraph.nodes.map((node) => {
+        if (
+          draggingRef.current !== null &&
+          node.id === draggingRef.current.id
+        ) {
+          return node;
+        } else {
+          const centerX = canvasRect.width / 2;
+          const centerY = canvasRect.height / 2;
 
-                const k = Math.sqrt((canvasRect.width * canvasRect.height) / currentGraph.nodes.length);
+          const k = Math.sqrt(
+            (canvasRect.width * canvasRect.height) / currentGraph.nodes.length,
+          );
 
-                let force = { x: 0, y: 0 }; //anynode updated with num
+          let force = { x: 0, y: 0 }; //anynode updated with num
 
+          const distanceToCenter = subtractPos(
+            { x: centerX, y: centerY },
+            node.pos,
+          );
+          const centerDistance = lengthPos(distanceToCenter);
+          if (centerDistance > k * 3) {
+            force = addPos(
+              force,
+              multiplyPos(
+                distanceToCenter,
+                (GRAVITATIONAL_CONSTANT * (centerDistance - k * 3)) /
+                  centerDistance,
+              ),
+            );
+          }
 
-                const distanceToCenter = subtractPos(
-                    { x: centerX, y: centerY },
-                    node.pos
-                );
-                const centerDistance = lengthPos(distanceToCenter);
-                if (centerDistance > k * 3) {
-                    force = addPos(
-                        force,
-                        multiplyPos(distanceToCenter, GRAVITATIONAL_CONSTANT * (centerDistance - k * 3) / centerDistance)
-                    );
-                }
-
-
-                currentGraph.nodes.forEach((otherNode) => {
-                    if (node.id !== otherNode.id) {
-                        const diff = subtractPos(node.pos, otherNode.pos);
-                        const distance = Math.max(k/2, lengthPos(diff));
-                        const repulsionForce = (k * k / (distance * distance)) * .3;
-                        force = addPos(
-                            force,
-                            multiplyPos(diff, repulsionForce / distance)
-                        );
-                    }
-                });
-
-
-                currentGraph.edges.forEach((edge) => {
-                    if (edge.n1 === node.id || edge.n2 === node.id) {
-                        const otherNodeId = edge.n1 === node.id ? edge.n2 : edge.n1;
-                        const otherNode = currentGraph.nodes.find(n => n.id === otherNodeId);
-
-                        if (otherNode) {
-                            const diff = subtractPos(otherNode.pos, node.pos);
-                            const distance = lengthPos(diff);
-                            const springForce = (distance - k) * 0.15;
-                            force = addPos(
-                                force,
-                                multiplyPos(diff, springForce / distance)
-                            );
-                        }
-                    }
-                });
-
-
-                force = multiplyPos(force, DAMPING * DELTA_TIME);
-
-                // Clear threshold - if movement is below this, node stops completely
-                // seems tk be some edge length variable/constant force
-
-
-
-
-
-                let newPos = addPos(node.pos, force);
-
-                const margin = k/2;
-                const boundaryForce = 0.05;
-                if (newPos.x < margin) newPos.x += (margin - newPos.x) * boundaryForce;
-                if (newPos.x > canvasRect.width - margin)
-                    newPos.x -= (newPos.x - (canvasRect.width - margin)) * boundaryForce;
-                if (newPos.y < margin) newPos.y += (margin - newPos.y) * boundaryForce;
-                if (newPos.y > canvasRect.height - margin)
-                    newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
-
-                newPos = getBoundedPosition(newPos, canvasRect);
-
-                const displacement : number = Math.abs(lengthPos(node.pos) - lengthPos(newPos));
-
-                if (displacement > MOVEMENT_THRESHOLD) {
-                  anyNodeMoved=true;
-                }
-
-                const ITERS_PER_UPDATE : number = Math.round(20/REFRESH_RATE)
-
-                if (edgingBool && edging && edging.n1 == node.id && numTotalIters%ITERS_PER_UPDATE===0) {
-                  setEdging(prevEdging => {
-                    if (prevEdging === null) {
-                      return null;
-                    }
-                    return {
-                      ...prevEdging,
-                      p1: newPos
-                    };
-                  });
-
-                }
-
-                return {
-                    ...node,
-                    pos: newPos
-                };
+          currentGraph.nodes.forEach((otherNode) => {
+            if (node.id !== otherNode.id) {
+              const diff = subtractPos(node.pos, otherNode.pos);
+              const distance = Math.max(k / 2, lengthPos(diff));
+              const repulsionForce = ((k * k) / (distance * distance)) * 0.3;
+              force = addPos(
+                force,
+                multiplyPos(diff, repulsionForce / distance),
+              );
             }
-        }),
+          });
+
+          currentGraph.edges.forEach((edge) => {
+            if (edge.n1 === node.id || edge.n2 === node.id) {
+              const otherNodeId = edge.n1 === node.id ? edge.n2 : edge.n1;
+              const otherNode = currentGraph.nodes.find(
+                (n) => n.id === otherNodeId,
+              );
+
+              if (otherNode) {
+                const diff = subtractPos(otherNode.pos, node.pos);
+                const distance = lengthPos(diff);
+                const springForce = (distance - k) * 0.15;
+                force = addPos(
+                  force,
+                  multiplyPos(diff, springForce / distance),
+                );
+              }
+            }
+          });
+
+          force = multiplyPos(force, DAMPING * DELTA_TIME);
+
+          // Clear threshold - if movement is below this, node stops completely
+          // seems tk be some edge length variable/constant force
+
+          let newPos = addPos(node.pos, force);
+
+          const margin = k / 2;
+          const boundaryForce = 0.05;
+          if (newPos.x < margin)
+            newPos.x += (margin - newPos.x) * boundaryForce;
+          if (newPos.x > canvasRect.width - margin)
+            newPos.x -=
+              (newPos.x - (canvasRect.width - margin)) * boundaryForce;
+          if (newPos.y < margin)
+            newPos.y += (margin - newPos.y) * boundaryForce;
+          if (newPos.y > canvasRect.height - margin)
+            newPos.y -=
+              (newPos.y - (canvasRect.height - margin)) * boundaryForce;
+
+          newPos = getBoundedPosition(newPos, canvasRect);
+
+          const displacement: number = Math.abs(
+            lengthPos(node.pos) - lengthPos(newPos),
+          );
+
+          if (displacement > MOVEMENT_THRESHOLD) {
+            anyNodeMoved = true;
+          }
+
+          const ITERS_PER_UPDATE: number = Math.round(20 / REFRESH_RATE);
+
+          if (
+            edgingBool &&
+            edging &&
+            edging.n1 == node.id &&
+            numTotalIters % ITERS_PER_UPDATE === 0
+          ) {
+            setEdging((prevEdging) => {
+              if (prevEdging === null) {
+                return null;
+              }
+              return {
+                ...prevEdging,
+                p1: newPos,
+              };
+            });
+          }
+
+          return {
+            ...node,
+            pos: newPos,
+          };
+        }
+      }),
     };
 
     // Only update if at least one node had significant movement
     if (!anyNodeMoved) {
-        return;
+      return;
     }
 
     setGraphs((prevGraphs) => {
-        const newGraphs = new Map(prevGraphs);
-        newGraphs.set(updatedGraph.id, updatedGraph);
-        return newGraphs;
+      const newGraphs = new Map(prevGraphs);
+      newGraphs.set(updatedGraph.id, updatedGraph);
+      return newGraphs;
     });
-    setNumTotalIters(p=>p+1);
+    setNumTotalIters((p) => p + 1);
   }
-
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       NUM_MAX_PHYSICS_ITERS;
-      if (graphConfig.gravityMode && !editingEdge && !editingNode) updateNodePositions();
-  }, REFRESH_RATE);
+      if (graphConfig.gravityMode && !editingEdge && !editingNode)
+        updateNodePositions();
+    }, REFRESH_RATE);
 
     return () => clearInterval(intervalId);
   }, [graph, graphConfig]);
-
-
-
-
-
 
   // =================================================================
   // ======================= Returned Component ======================
@@ -518,7 +525,7 @@ export default function Canvas({
                 y2={edging.p2.y}
               ></line>
             )}
-             {graph!.edges.map((edge) => {
+            {graph!.edges.map((edge) => {
               const node1: Node | undefined = graph!.nodes.find(
                 (node) => node.id === edge.n1,
               );
@@ -530,8 +537,8 @@ export default function Canvas({
               }
 
               const labelPos: Position = {
-                x:getMidpoint(node1.pos.x, node2.pos.x),
-                y:getMidpoint(node1.pos.y, node2.pos.y),
+                x: getMidpoint(node1.pos.x, node2.pos.x),
+                y: getMidpoint(node1.pos.y, node2.pos.y),
               };
 
               return (
@@ -556,7 +563,9 @@ export default function Canvas({
                     y1={node1.pos.y}
                     x2={node2.pos.x}
                     y2={node2.pos.y}
-                    stroke={highlighted && highlighted.has(edge.id) ? "red" : "black"}
+                    stroke={
+                      highlighted && highlighted.has(edge.id) ? "red" : "black"
+                    }
                     strokeWidth={graphConfig.lineWeight}
                     {...(graphConfig.directedMode && {
                       markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
@@ -588,7 +597,7 @@ export default function Canvas({
                 </g>
               );
             })}
-             {graph!.nodes.map((node) => (
+            {graph!.nodes.map((node) => (
               <g
                 key={node.id}
                 onMouseDown={(e) => handleMouseDownNode(e, node)}
@@ -600,7 +609,9 @@ export default function Canvas({
                   r={graphConfig.circleRadius}
                   fill={node.customColor ? node.customColor : MAIN_COLOR}
                   strokeWidth={graphConfig.lineWeight}
-                  stroke={highlighted && highlighted.has(node.id) ? "red" : "black"}
+                  stroke={
+                    highlighted && highlighted.has(node.id) ? "red" : "black"
+                  }
                 />
                 <text
                   x={node.pos.x}
@@ -622,8 +633,6 @@ export default function Canvas({
                 </text>
               </g>
             ))}
-
-
           </svg>
         ) : (
           <svg id="canvas" ref={canvasRef}>
@@ -634,7 +643,7 @@ export default function Canvas({
               dominantBaseline="middle"
               style={{ fontSize: "16px", fill: "black" }}
             >
-              select a graph to view it here
+              {!loading && "select a graph to view it here"}
             </text>
           </svg>
         )}

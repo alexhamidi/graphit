@@ -18,7 +18,7 @@ export function getPosRelRect(
   pos: Position,
   canvasDims: DOMRect | null,
 ): Position {
-  return {x:pos.x - canvasDims!.left, y:pos.y - canvasDims!.top};
+  return { x: pos.x - canvasDims!.left, y: pos.y - canvasDims!.top };
 }
 
 // Canvas
@@ -26,7 +26,7 @@ export function getPosRelParent(
   e: React.MouseEvent<SVGGElement, MouseEvent>,
 ): Position {
   const dim = e.currentTarget.getBoundingClientRect();
-  return {x:e.clientX - dim.left, y:e.clientY - dim.top};
+  return { x: e.clientX - dim.left, y: e.clientY - dim.top };
 }
 
 export function getNodeAt(
@@ -46,15 +46,20 @@ export function getNodeAt(
   return null;
 }
 
-export function getBoundedPosition(pos: Position, canvasRect: DOMRect | null): Position {
-  return  {
-    x:Math.min(Math.max(pos.x,
-      EDGE_BOUNDARY),
-      canvasRect!.width-EDGE_BOUNDARY),
-    y:Math.min(Math.max(pos.y,
-      EDGE_BOUNDARY),
-      canvasRect!.height-EDGE_BOUNDARY)
-    };
+export function getBoundedPosition(
+  pos: Position,
+  canvasRect: DOMRect | null,
+): Position {
+  return {
+    x: Math.min(
+      Math.max(pos.x, EDGE_BOUNDARY),
+      canvasRect!.width - EDGE_BOUNDARY,
+    ),
+    y: Math.min(
+      Math.max(pos.y, EDGE_BOUNDARY),
+      canvasRect!.height - EDGE_BOUNDARY,
+    ),
+  };
 }
 
 export function getDistance(pos1: Position, pos2: Position): number {
@@ -78,7 +83,6 @@ export async function fetchEmail(token: string): Promise<string | null> {
     return null;
   }
 }
-
 
 export function addPos(pos: Position, other: Position): Position {
   return { x: pos.x + other.x, y: pos.y + other.y };

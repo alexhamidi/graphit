@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export interface Graph {
   id: string;
@@ -24,7 +24,7 @@ export interface Edge {
 }
 
 export class Edge {
-  constructor(n1: string, n2: string, edgeValue?:string) {
+  constructor(n1: string, n2: string, edgeValue?: string) {
     this.id = uuidv4();
     this.value = edgeValue ?? "0";
     this.n1 = n1;
@@ -40,12 +40,17 @@ export interface Node {
 }
 
 export class Node {
-  constructor(canvasRect: DOMRect | null, currentChosenColor: string | null, cursorPos?: Position, newValue?: string) {
+  constructor(
+    canvasRect: DOMRect | null,
+    currentChosenColor: string | null,
+    cursorPos?: Position,
+    newValue?: string,
+  ) {
     this.id = uuidv4();
     this.value = newValue ?? "0";
     this.pos = cursorPos ?? {
-      x:Math.random() * (canvasRect?.width ?? 0),
-      y:Math.random() * (canvasRect?.height ?? 0),
+      x: Math.random() * (canvasRect?.width ?? 0),
+      y: Math.random() * (canvasRect?.height ?? 0),
     };
     this.customColor = currentChosenColor ?? "";
   }
@@ -54,9 +59,6 @@ export interface Position {
   x: number;
   y: number;
 }
-
-
-
 
 export interface Size {
   width: number;
@@ -76,8 +78,6 @@ export interface LocatedEdge {
   n2: string;
   pos: Position;
 }
-
-
 
 export interface Credentials {
   email: string;

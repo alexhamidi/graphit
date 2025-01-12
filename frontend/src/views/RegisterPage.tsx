@@ -7,7 +7,7 @@ import {
   DEFAULT_ERROR,
   INCOMPLETE_CREDENTIALS_ERROR,
   EMAIL_IN_USE_ERROR,
-  BASE_BACKEND_URL
+  BASE_BACKEND_URL,
 } from "../constants";
 import { isAxiosError } from "axios";
 import Error from "../components/Error";
@@ -18,6 +18,8 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,28 +55,31 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
     if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
     } else
+      setLoading(true)
       try {
         const response = await post("/register", credentials);
         localStorage.setItem("token", response.data.token);
         navigate("/");
         setAuthenticated(true);
+        setLoading(false)
       } catch (err) {
         let errorMessage: string = DEFAULT_ERROR;
         if (isAxiosError(err) && err.response?.status === 400) {
           errorMessage = EMAIL_IN_USE_ERROR;
         }
+        setLoading(false)
         setErrorMessage(errorMessage);
       }
     setCredentials({ email: "", password: "" });
   };
 
   const handleGoogleLogin = () => {
-    window.location.href =
-    `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
   };
 
   return (
     <>
+      {loading && <div id="loading"/>}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}

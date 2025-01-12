@@ -19,6 +19,7 @@ interface Props {
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
   graphSelectPopupRef: React.RefObject<HTMLDivElement>;
   handleSetError: (message: string) => void;
+  loading: boolean;
 }
 
 export default function Header({
@@ -35,6 +36,7 @@ export default function Header({
   graphPopupActive,
   setGraphPopupActive,
   graphSelectPopupRef,
+  loading,
 }: Props) {
   const [loadingMessage, setLoadingMessage] = useState<string>("saving");
 
@@ -75,12 +77,12 @@ export default function Header({
             className="plain-button"
             onClick={() => setGraphPopupActive((prev) => !prev)}
           >
-            <span id="select-text">
+            {!loading && <><span id="select-text">
               {currGraph === ""
                 ? "select a graph"
                 : graphs.get(currGraph)!.name}
             </span>
-            <i className="fa-solid fa-sort"></i>
+            <i className="fa-solid fa-sort"></i></>}
           </button>
           {graphPopupActive && (
             <div className="main-component popup" id="graph-popup">
@@ -100,39 +102,51 @@ export default function Header({
                 </button>
               ))}
               <hr />
-              {currGraph !== "" && <>
-                <button
-                  className="plain-button popup-item"
-                  onClick={handleDeleteGraphSubmit}
-                >
-                  <i className="fa-solid fa-trash fa-sm"></i>
-                  delete the current graph
-                </button>
-                <hr />
-                </>}
+              {currGraph !== "" && (
+                <>
+                  <button
+                    className="plain-button popup-item"
+                    onClick={handleDeleteGraphSubmit}
+                  >
+                    <i className="fa-solid fa-trash fa-sm"></i>
+                    delete the current graph
+                  </button>
+                  <hr />
+                </>
+              )}
 
               <button
                 className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE,  newBlankGraphBox :true})}
+                onClick={() =>
+                  setBoxActive({
+                    ...DEFAULT_BOX_ACTIVE,
+                    newBlankGraphBox: true,
+                  })
+                }
               >
                 <i className="fa-solid fa-plus fa-sm"></i>
                 add new empty graph
               </button>
               <button
                 className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, newTextGraphBox:true})}
+                onClick={() =>
+                  setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true })
+                }
               >
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
-             {AI_ACCESSIBLE && <button
-                className="plain-button popup-item"
-                onClick={() => setBoxActive({...DEFAULT_BOX_ACTIVE, aiBox:true})}
-              >
-                 <i className="fa-solid fa-wand-sparkles fa-sm"></i>
-                add new graph with ai
-              </button>}
-
+              {AI_ACCESSIBLE && (
+                <button
+                  className="plain-button popup-item"
+                  onClick={() =>
+                    setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true })
+                  }
+                >
+                  <i className="fa-solid fa-wand-sparkles fa-sm"></i>
+                  add new graph with ai
+                </button>
+              )}
             </div>
           )}
         </div>
