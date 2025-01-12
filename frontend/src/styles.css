@@ -80,6 +80,18 @@ main {
   align-items: center;
 }
 
+
+/* message */
+
+#message {
+  text-align:center;
+  width:20vw;
+  position:absolute;
+  padding:var(--box-padding);
+  left:40vw;
+}
+
+
 /* header */
 
 #main-header {

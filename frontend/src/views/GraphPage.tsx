@@ -353,7 +353,7 @@ export default function GraphPage({
   // UPDATE NODE COLOR or do others
   const handleBasicNodeClick = (id: string) => {
     if (selectingShortest) {
-      setHighlightedNodes(prev => new Set(prev).add(id));
+      setHighlighted(prev => new Set(prev).add(id));
       return;
     }
     if (!graphConfig.currentChosenColor) {
@@ -608,8 +608,9 @@ export default function GraphPage({
   // =================================================================
 
   const [selectingShortest, setSelectingShortest] = useState<boolean>(false)
-  const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set<string>())
+  const [highlighted, setHighlighted] = useState<Set<string>>(new Set<string>())
   const [message, setMessage] = useState<string>('');
+  const [shortestDisplayed, setShortestDisplayed] = useState<boolean>(false);
 
   const handleStartShortest = () => {
     if (currGraph == '') {
@@ -621,32 +622,43 @@ export default function GraphPage({
   }
 
   useEffect(()=>{
-    if (highlightedNodes.size === 1 && selectingShortest) {
+    if (highlighted.size === 1 && selectingShortest) {
       setMessage("select destination node...")
-    } else if (highlightedNodes.size === 2 && selectingShortest ) {
+    } else if (highlighted.size === 2 && selectingShortest ) {
       handleGetShortest();
       setMessage('');
     }
-  }, [highlightedNodes])
+  }, [highlighted])
 
   const handleGetShortest = async() => {
-    if (highlightedNodes.size !== 2) {
+    console.log("gettingshortest")
+    if (highlighted.size !== 2) {
       setErrorMessage("Need to select 2 nodes");
+      setHighlighted(new Set())
+      setSelectingShortest(false);
       return;
     }
     if (!graphs.has(currGraph)) {
       setErrorMessage(DEFAULT_ERROR)
+      setHighlighted(new Set())
+      setSelectingShortest(false);
       return;
     }
     try {
-      const [n1, n2] = highlightedNodes;
+      const [n1, n2] = highlighted;
       const graph: Graph = graphs.get(currGraph)!;
-      const response = await post("/algorithm/shortest", {n1:n1, n2:n2, graph:graph});
+      const response = await post(`/algorithm/shortest?n1=${n1}&n2=${n2}`, graph);
       const ids: string[] = response.data.visitedIds;
-      setHighlightedNodes(new Set(ids));
+      if (ids.length === 0) {
+        setErrorMessage("no path exists between these nodes")
+        setHighlighted(new Set());
+      } else {
+        setHighlighted(new Set(ids));
+        setShortestDisplayed(true)
+      }
       setSelectingShortest(false);
     } catch (err) {
-      setHighlightedNodes(new Set())
+      setHighlighted(new Set())
       setSelectingShortest(false);
       if (isAxiosError(err) && err.response?.status === 400) {
         setErrorMessage("Invalid graph for finding shortest path")
@@ -656,10 +668,14 @@ export default function GraphPage({
     }
   }
 
+  const handleDisableDisplayed = () => {
+    setShortestDisplayed(false);
+    setHighlighted(new Set())
+  }
 
 
   // =================================================================
-  // ======================= Returned Component =======================
+  // ======================= Refturned Component =======================
   // =================================================================
 
   return (
@@ -667,6 +683,18 @@ export default function GraphPage({
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}
+      {(message || shortestDisplayed)  && <div
+          id="message"
+          className="main-component"
+        >
+        {message && message}
+        {shortestDisplayed && <button
+        className="plain-button"
+        onClick={handleDisableDisplayed}
+        >
+          reset highlighting
+        </button>}
+      </div>}
       <Header
         unsaved={unsaved}
         authenticated={authenticated}
@@ -684,7 +712,6 @@ export default function GraphPage({
         graphSelectPopupRef={graphSelectPopupRef}
         handleSetError={handleSetError}
       />
-      {message && message}
       <main id="graphpage-main">
         {boxActive.newBlankGraphBox && (
           <NewBlankGraphBox
@@ -732,7 +759,7 @@ export default function GraphPage({
           handleSetError={handleSetError}
           graphConfig={graphConfig}
           setGraphs={setGraphs}
-          highlightedNodes={highlightedNodes}
+          highlighted={highlighted}
         />
         <Options
           graphConfig={graphConfig}

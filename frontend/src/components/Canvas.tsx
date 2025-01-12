@@ -54,7 +54,7 @@ interface Props {
   setEditingNode: React.Dispatch<React.SetStateAction<Node | null>>;
   graphConfig: GraphConfig;
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
-  highlightedNodes: Set<string>
+  highlighted: Set<string>
 }
 
 export default function Canvas({
@@ -78,7 +78,7 @@ export default function Canvas({
   setEditingNode,
   graphConfig,
   setGraphs,
-  highlightedNodes,
+  highlighted,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -489,6 +489,20 @@ export default function Canvas({
                 markerWidth={12 / graphConfig.lineWeight}
                 markerHeight={12 / graphConfig.lineWeight}
                 orient="auto-start-reverse"
+                fill="black"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+              <marker
+                id="this-arrow-head-red"
+                className="arrow-head"
+                viewBox="0 0 10 10"
+                refX={graphConfig.circleRadius + 4}
+                refY="5"
+                markerWidth={12 / graphConfig.lineWeight}
+                markerHeight={12 / graphConfig.lineWeight}
+                orient="auto-start-reverse"
+                fill="red"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" />
               </marker>
@@ -538,14 +552,14 @@ export default function Canvas({
                     strokeWidth={graphConfig.lineWeight * 5}
                   />
                   <line
-                    stroke="black"
                     x1={node1.pos.x}
                     y1={node1.pos.y}
                     x2={node2.pos.x}
                     y2={node2.pos.y}
+                    stroke={highlighted && highlighted.has(edge.id) ? "red" : "black"}
                     strokeWidth={graphConfig.lineWeight}
                     {...(graphConfig.directedMode && {
-                      markerEnd: "url(#this-arrow-head)",
+                      markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
                     })}
                   />
                   {graphConfig.edgeMode && (
@@ -586,8 +600,7 @@ export default function Canvas({
                   r={graphConfig.circleRadius}
                   fill={node.customColor ? node.customColor : MAIN_COLOR}
                   strokeWidth={graphConfig.lineWeight}
-                  stroke={highlightedNodes && highlightedNodes.has(node.id) ? "red" : "black"}
-
+                  stroke={highlighted && highlighted.has(node.id) ? "red" : "black"}
                 />
                 <text
                   x={node.pos.x}

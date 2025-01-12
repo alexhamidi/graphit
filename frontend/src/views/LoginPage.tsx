@@ -52,7 +52,7 @@ export default function LoginPage({ setAuthenticated }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     setErrorMessage(null);
     e.preventDefault();
-    if (credentials.email === "" || credentials.email === "") {
+    if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
     } else
       try {
