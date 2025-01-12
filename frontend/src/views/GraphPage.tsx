@@ -20,7 +20,7 @@ import {
   BoxActive,
   MiniEdge
 } from "../interfaces";
-import { authorizedFetch, authorizedPost } from "../networking";
+import { authorizedFetch, authorizedPost, post } from "../networking";
 import {
   fetchEmail,
   getNodeAt,
@@ -319,7 +319,6 @@ export default function GraphPage({
 
   // ADD NODE
   const handleAddNode = (cursorPos?: Position, newValue?: string) => {
-    console.log(graphs)
     const newNode: Node = new Node(canvasRect, graphConfig.currentChosenColor, cursorPos, newValue);
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
@@ -351,8 +350,12 @@ export default function GraphPage({
     });
   };
 
-  // UPDATE NODE COLOR
-  const handleChangeNodeColor = (id: string) => {
+  // UPDATE NODE COLOR or do others
+  const handleBasicNodeClick = (id: string) => {
+    if (selectingShortest) {
+      setHighlightedNodes(prev => new Set(prev).add(id));
+      return;
+    }
     if (!graphConfig.currentChosenColor) {
       return;
     }
@@ -551,6 +554,7 @@ export default function GraphPage({
         handleAddNode({x:posRelCanvas.x, y:posRelCanvas.y});
       }
     }
+
     setMouseDownStationary(false);
   };
 
@@ -600,12 +604,57 @@ export default function GraphPage({
 
 
   // =================================================================
-  // ============================ Physics ============================
+  // =========================== Algorithms ===========================
   // =================================================================
 
+  const [selectingShortest, setSelectingShortest] = useState<boolean>(false)
+  const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set<string>())
+  const [message, setMessage] = useState<string>('');
 
+  const handleStartShortest = () => {
+    if (currGraph == '') {
+      setErrorMessage("Need to select a graph before running algorithms");
+      return;
+    }
+    setSelectingShortest(true);
+    setMessage("select origin node...")
+  }
 
+  useEffect(()=>{
+    if (highlightedNodes.size === 1 && selectingShortest) {
+      setMessage("select destination node...")
+    } else if (highlightedNodes.size === 2 && selectingShortest ) {
+      handleGetShortest();
+      setMessage('');
+    }
+  }, [highlightedNodes])
 
+  const handleGetShortest = async() => {
+    if (highlightedNodes.size !== 2) {
+      setErrorMessage("Need to select 2 nodes");
+      return;
+    }
+    if (!graphs.has(currGraph)) {
+      setErrorMessage(DEFAULT_ERROR)
+      return;
+    }
+    try {
+      const [n1, n2] = highlightedNodes;
+      const graph: Graph = graphs.get(currGraph)!;
+      const response = await post("/algorithm/shortest", {n1:n1, n2:n2, graph:graph});
+      const ids: string[] = response.data.visitedIds;
+      setHighlightedNodes(new Set(ids));
+      setSelectingShortest(false);
+    } catch (err) {
+      setHighlightedNodes(new Set())
+      setSelectingShortest(false);
+      if (isAxiosError(err) && err.response?.status === 400) {
+        setErrorMessage("Invalid graph for finding shortest path")
+      } else {
+        setErrorMessage(DEFAULT_ERROR);
+      }
+    }
+  }
 
 
 
@@ -635,6 +684,7 @@ export default function GraphPage({
         graphSelectPopupRef={graphSelectPopupRef}
         handleSetError={handleSetError}
       />
+      {message && message}
       <main id="graphpage-main">
         {boxActive.newBlankGraphBox && (
           <NewBlankGraphBox
@@ -677,16 +727,18 @@ export default function GraphPage({
           editingNode={editingNode}
           setEditingNode={setEditingNode}
           editInputRef={editInputRef}
-          handleChangeNodeColor={handleChangeNodeColor}
+          handleBasicNodeClick={handleBasicNodeClick}
           canvasRef={canvasRef}
           handleSetError={handleSetError}
           graphConfig={graphConfig}
           setGraphs={setGraphs}
+          highlightedNodes={highlightedNodes}
         />
         <Options
           graphConfig={graphConfig}
           setGraphConfig={setGraphConfig}
           handleSaveGraphPng={handleSaveGraphPng}
+          handleStartShortest={handleStartShortest}
         />
       </main>
     </>

@@ -45,7 +45,7 @@ interface Props {
   handleEditEdge: (edge: Edge, newValue: string) => void;
   isBoxActive: () => boolean;
   editInputRef: React.RefObject<HTMLInputElement>;
-  handleChangeNodeColor: (id: string) => void;
+  handleBasicNodeClick: (id: string) => void;
   canvasRef: React.RefObject<SVGSVGElement>;
   handleSetError: (message: string) => void;
   editingEdge: LocatedEdge | null;
@@ -54,6 +54,7 @@ interface Props {
   setEditingNode: React.Dispatch<React.SetStateAction<Node | null>>;
   graphConfig: GraphConfig;
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
+  highlightedNodes: Set<string>
 }
 
 export default function Canvas({
@@ -69,7 +70,7 @@ export default function Canvas({
   handleEditEdge,
   isBoxActive,
   editInputRef,
-  handleChangeNodeColor,
+  handleBasicNodeClick,
   canvasRef,
   editingEdge,
   setEditingEdge,
@@ -77,6 +78,7 @@ export default function Canvas({
   setEditingNode,
   graphConfig,
   setGraphs,
+  highlightedNodes,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -113,6 +115,7 @@ export default function Canvas({
     const startingMousePosRelCircle: Position = getPosRelParent(e);
     if (shiftPressed) {
       setSelectedNode(node);
+      setEdgingBool(true);
       setEdging({
         n1: node.id,
         p1: node.pos,
@@ -181,7 +184,7 @@ export default function Canvas({
     setSelectedNode(null);
     setSelectedEdge(null);
   };
-
+  const [edgingBool, setEdgingBool] = useState<boolean>(false);
   const handleMouseUpElement = (
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
@@ -194,7 +197,7 @@ export default function Canvas({
       setSelectedNode(null);
       setEdging(null);
     } else if (dragging && !movedCurrNode) {
-      handleChangeNodeColor(dragging.id);
+      handleBasicNodeClick(dragging.id);
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
       const cursorNode = getNodeAt(
@@ -206,6 +209,7 @@ export default function Canvas({
         handleAddEdge(edging.n1, cursorNode.id);
       }
     }
+    setEdgingBool(false);
     setMovedCurrNode(false);
     setEdging(null);
     setDragging(null);
@@ -281,13 +285,15 @@ export default function Canvas({
 
   const graphRef = useRef(graph);
   const draggingRef = useRef(dragging);
+  const edgingRef = useRef(edging);
   const canvasRectRef = useRef(canvasRect);
 
   useEffect(() => {
     graphRef.current = graph;
     draggingRef.current = dragging;
+    edgingRef.current = edging
     canvasRectRef.current = canvasRect;
-  }, [graph, dragging, canvasRect]);
+  }, [graph, dragging, canvasRect, edging]);
 
 
 
@@ -328,7 +334,7 @@ export default function Canvas({
                     if (node.id !== otherNode.id) {
                         const diff = subtractPos(node.pos, otherNode.pos);
                         const distance = Math.max(k/2, lengthPos(diff));
-                        const repulsionForce = (k * k / (distance * distance)) * 0.3;
+                        const repulsionForce = (k * k / (distance * distance)) * .3;
                         force = addPos(
                             force,
                             multiplyPos(diff, repulsionForce / distance)
@@ -385,8 +391,17 @@ export default function Canvas({
 
                 const ITERS_PER_UPDATE : number = Math.round(20/REFRESH_RATE)
 
-                if (edging && edging.n1 == node.id && numTotalIters%ITERS_PER_UPDATE===0) {
-                  setEdging({...edging, p1:newPos})
+                if (edgingBool && edging && edging.n1 == node.id && numTotalIters%ITERS_PER_UPDATE===0) {
+                  setEdging(prevEdging => {
+                    if (prevEdging === null) {
+                      return null;
+                    }
+                    return {
+                      ...prevEdging,
+                      p1: newPos
+                    };
+                  });
+
                 }
 
                 return {
@@ -571,7 +586,8 @@ export default function Canvas({
                   r={graphConfig.circleRadius}
                   fill={node.customColor ? node.customColor : MAIN_COLOR}
                   strokeWidth={graphConfig.lineWeight}
-                  stroke="black"
+                  stroke={highlightedNodes && highlightedNodes.has(node.id) ? "red" : "black"}
+
                 />
                 <text
                   x={node.pos.x}

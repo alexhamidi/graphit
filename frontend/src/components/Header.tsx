@@ -134,7 +134,7 @@ export default function Header({
               </button>}
 
             </div>
-          )}s
+          )}
         </div>
       </div>
       <div className="header-section">
