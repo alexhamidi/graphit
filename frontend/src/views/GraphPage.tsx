@@ -699,6 +699,9 @@ export default function GraphPage({
   const [loading, setLoading] = useState(true);
   return (
     <>
+      <div id = "gh">
+      https://github.com/alexhamidi/graphit
+      </div>
       {loading && <div id="loading"/>}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
@@ -788,6 +791,7 @@ export default function GraphPage({
           handleStartShortest={handleStartShortest}
         />
       </main>
+
     </>
   );
 }
