@@ -153,12 +153,12 @@ export default function Header({
       </div>
       <div  id="middle-icons">
         <a href="https://github.com/alexhamidi/graphit">
-          <img className="icon" src=".vercel/static/output/images/github.png"></img>
+          <img className="icon" src="/assets/github.png"></img>
         </a>
         <button className="plain-button" onClick={() =>
                   setBoxActive({ ...DEFAULT_BOX_ACTIVE, infoBox: true })
                 }>
-          <img className="icon" src="src/assets/info.png"></img>
+          <img className="icon" src="/assets/info.png"></img>
         </button>
       </div>
       <div className="header-section">
