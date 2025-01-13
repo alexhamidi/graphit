@@ -34,6 +34,7 @@ export default function InfoBox({
             <ul>
               <li>click to place a node</li>
               <li>drag nodes with your cursor</li>
+              <li>right-click on a node or edge to delete it</li>
               <li>shift-click on a node or edge to edit its value</li>
               <li>shift-drag a node to create an edge</li>
               <li>once you've selected a color, color nodes by clicking existing nodes or adding new nodes</li>
