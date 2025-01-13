@@ -1,1 +1,1 @@
-# Graphit - A Multipurpose, AI-Powered Graph Editor.
+# Graphit - A Versatile, AI-Powered Graph Editor.
