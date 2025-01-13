@@ -575,8 +575,6 @@ export default function Canvas({
                   {graphConfig.edgeMode && (
                     <>
                       <text
-                                        style={{userSelect:"none"}}
-
                         x={labelPos.x}
                         y={labelPos.y}
                         dy="0.35em"
@@ -587,8 +585,6 @@ export default function Canvas({
                         {INVISIBLE_CHAR.repeat(edge.value.length)}
                       </text>
                       <text
-                                        style={{userSelect:"none"}}
-
                         textAnchor="middle"
                         x={labelPos.x}
                         y={labelPos.y}
@@ -620,8 +616,6 @@ export default function Canvas({
                   }
                 />
                 <text
-                                  style={{userSelect:"none"}}
-
                   x={node.pos.x}
                   y={node.pos.y}
                   dy="0.35em"
@@ -632,8 +626,6 @@ export default function Canvas({
                   {INVISIBLE_CHAR.repeat(node.value.length)}
                 </text>
                 <text
-                                  style={{userSelect:"none"}}
-
                   textAnchor="middle"
                   x={node.pos.x}
                   y={node.pos.y}

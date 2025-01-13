@@ -30,7 +30,7 @@ export default function InfoBox({
         <>
           {/* welcome to graphit. This is an all in one ... */}
           <div className = "info">
-            <h4>graph editing:</h4>
+            <h3>graph editing</h3>
             <ul>
               <li>click to place a node</li>
               <li>drag nodes with your cursor</li>
@@ -41,7 +41,7 @@ export default function InfoBox({
             </ul>
           </div>
           <div className = "info">
-            <h4>keyboard commands:</h4>
+            <h3>keyboard commands</h3>
             <ul>
               <li>[cmd]+[i] to create a blank graph </li>
               <li>[cmd]+[u] to create a graph from text</li>
