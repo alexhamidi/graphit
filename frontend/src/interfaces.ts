@@ -103,6 +103,7 @@ export interface BoxActive {
   aiBox: boolean;
   newBlankGraphBox: boolean;
   newTextGraphBox: boolean;
+  infoBox: boolean;
 }
 
 export type MiniEdge = [string, string, string?];

@@ -33,6 +33,7 @@ export const DEFAULT_BOX_ACTIVE: BoxActive = {
   aiBox: false,
   newBlankGraphBox: false,
   newTextGraphBox: false,
+  infoBox:false
 };
 
 export const PIXELS_PER_FONT_SIZE_UNIT = 0.6;

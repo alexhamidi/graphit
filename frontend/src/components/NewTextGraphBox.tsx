@@ -88,6 +88,7 @@ export default function NewTextGraphBox({
       error={null}
       loading={null}
       loadingMessage={null}
+      containsPrimaryInput={true}
       children={
         <>
           <textarea

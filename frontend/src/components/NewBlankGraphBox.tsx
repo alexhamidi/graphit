@@ -40,6 +40,7 @@ export default function NewBlankGraphBox({
       loading={null}
       loadingMessage={null}
       children={null}
+      containsPrimaryInput={true}
     />
   );
 }

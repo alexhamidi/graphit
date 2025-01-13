@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Canvas from "../components/Canvas";
 import Options from "../components/Options";
 import AiBox from "../components/AiBox";
+import InfoBox from "../components/InfoBox";
 import NewBlankGraphBox from "../components/NewBlankGraphBox";
 import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
@@ -696,12 +697,11 @@ export default function GraphPage({
   // ======================= Refurned Component =======================
   // =================================================================
 
+
   const [loading, setLoading] = useState(true);
   return (
     <>
-      <div id = "gh">
-      https://github.com/alexhamidi/graphit
-      </div>
+
       {loading && <div id="loading"/>}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
@@ -735,30 +735,35 @@ export default function GraphPage({
         loading={loading}
       />
       <main id="graphpage-main">
-        {boxActive.newBlankGraphBox && (
+        {boxActive.infoBox &&
+          <InfoBox
+            setBoxActive={setBoxActive}
+            handleSetError={handleSetError}
+        />}
+        {boxActive.newBlankGraphBox &&
           <NewBlankGraphBox
             setBoxActive={setBoxActive}
             handleNewGraph={handleNewGraph}
             setGraphPopupActive={setGraphPopupActive}
             handleSetError={handleSetError}
           />
-        )}
-        {boxActive.newTextGraphBox && (
+        }
+        {boxActive.newTextGraphBox &&
           <NewTextGraphBox
             setBoxActive={setBoxActive}
             setGraphPopupActive={setGraphPopupActive}
             handleSetError={handleSetError}
             handleNewGraphFromInput={handleNewGraphFromInput}
           />
-        )}
-        {boxActive.aiBox && (
+        }
+        {boxActive.aiBox &&
           <AiBox
             setBoxActive={setBoxActive}
             handleAddGraph={handleAddGraph}
             canvasRect={canvasRect}
             handleSetError={handleSetError}
           />
-        )}
+        }
         <Canvas
           graph={currGraph === "" ? null : graphs.get(currGraph)!}
           handleAddEdge={handleAddEdge}

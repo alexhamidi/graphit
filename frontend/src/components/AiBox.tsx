@@ -131,6 +131,7 @@ export default function AiBox({
       error={error}
       loading={loading}
       loadingMessage={loadingMessage}
+      containsPrimaryInput={true}
       children={loading ? <div className="quote">
         {displayed}
       </div> : null}
