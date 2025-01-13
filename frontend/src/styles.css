@@ -91,6 +91,7 @@ main {
 /* message */
 
 #message {
+  z-index:1000;
   text-align: center;
   width: 20vw;
   position: absolute;
@@ -393,6 +394,7 @@ input[type="checkbox"] {
 }
 
 #error {
+  z-index:1000;
   position: fixed;
   top: 1em;
   left: 25vw;
