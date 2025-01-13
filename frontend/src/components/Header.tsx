@@ -152,7 +152,7 @@ export default function Header({
         </div>
       </div>
       <div  id="middle-icons">
-        <a href="https://github.com/alexhamidi/graphit">
+        <a href="https://github.com/alexhamidi/graphit"target="_blank" rel="noopener noreferrer">
           <img className="icon" src="/assets/github.png"></img>
         </a>
         <button className="plain-button" onClick={() =>
