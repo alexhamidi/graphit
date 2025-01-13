@@ -48,6 +48,9 @@ export default function InfoBox({
               <li>[cmd]+[k] to create a graph with ai</li>
             </ul>
           </div>
+          <p id="love">
+            this project was made with love by <a href="https://alexhamidi.github.io/">alex hamidi</a>
+          </p>
           </>
       }
     />

@@ -295,6 +295,9 @@ input[type="checkbox"] {
 .info {
   width:40vw;
 }
+#love {
+  font-style:italic;
+}
 
 #box {
   z-index: 1000;
