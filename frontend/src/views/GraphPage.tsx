@@ -29,6 +29,7 @@ import {
   outOfBounds,
   getBoundedPosition,
 } from "../utils/utils";
+import { generateCPP } from "../utils/code";
 import { debounce } from "lodash";
 import {
   DEFAULT_ERROR,
@@ -102,7 +103,7 @@ export default function GraphPage({
       const currToken = localStorage.getItem("token");
       if (!currToken) {
         setAuthenticated(false);
-        setLoading(false)
+        setLoading(false);
         return;
       }
       const email: string | null = await fetchEmail(currToken);
@@ -230,7 +231,7 @@ export default function GraphPage({
 
   // FETCH GRAPHS FROM CLOUD
   useEffect(() => {
-    console.log("running fetch")
+    console.log("running fetch");
     const handleFetchGraphs = async () => {
       if (!authenticated || !token) {
         return;
@@ -241,7 +242,7 @@ export default function GraphPage({
           Object.entries(response.data.graphs),
         );
         setGraphs(graphs);
-        setLoading(false)
+        setLoading(false);
       } catch (err) {
         setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
         if (isAxiosError(err) && err.response?.status === 400) {
@@ -688,21 +689,42 @@ export default function GraphPage({
     }
   };
 
+  // =================================================================
+  // ============================ Code Gen ============================
+  // =================================================================
+
   const handleDisableDisplayed = () => {
     setShortestDisplayed(false);
     setHighlighted(new Set());
   };
 
-  // =================================================================
-  // ======================= Refurned Component =======================
-  // =================================================================
+  const handleGenCPP = () => {
+    if (currGraph == "") {
+      setErrorMessage("Need to select a graph before generating code");
+      return;
+    }
 
+    const cpp: string = generateCPP(graphs.get(currGraph)!);
+
+    const blob = new Blob([cpp], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const element = document.createElement("a");
+    element.download = `${graphs.get(currGraph)!.name}.cpp`;
+    element.href = url;
+    element.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  // =================================================================
+  // ======================= Returned Component =======================
+  // =================================================================
 
   const [loading, setLoading] = useState(true);
   return (
     <>
-
-      {loading && <div id="loading"/>}
+      {loading && <div id="loading" />}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}
@@ -735,35 +757,36 @@ export default function GraphPage({
         loading={loading}
       />
       <main id="graphpage-main">
-        {boxActive.infoBox &&
+        {boxActive.infoBox && (
           <InfoBox
             setBoxActive={setBoxActive}
             handleSetError={handleSetError}
-        />}
-        {boxActive.newBlankGraphBox &&
+          />
+        )}
+        {boxActive.newBlankGraphBox && (
           <NewBlankGraphBox
             setBoxActive={setBoxActive}
             handleNewGraph={handleNewGraph}
             setGraphPopupActive={setGraphPopupActive}
             handleSetError={handleSetError}
           />
-        }
-        {boxActive.newTextGraphBox &&
+        )}
+        {boxActive.newTextGraphBox && (
           <NewTextGraphBox
             setBoxActive={setBoxActive}
             setGraphPopupActive={setGraphPopupActive}
             handleSetError={handleSetError}
             handleNewGraphFromInput={handleNewGraphFromInput}
           />
-        }
-        {boxActive.aiBox &&
+        )}
+        {boxActive.aiBox && (
           <AiBox
             setBoxActive={setBoxActive}
             handleAddGraph={handleAddGraph}
             canvasRect={canvasRect}
             handleSetError={handleSetError}
           />
-        }
+        )}
         <Canvas
           graph={currGraph === "" ? null : graphs.get(currGraph)!}
           handleAddEdge={handleAddEdge}
@@ -794,9 +817,9 @@ export default function GraphPage({
           setGraphConfig={setGraphConfig}
           handleSaveGraphPng={handleSaveGraphPng}
           handleStartShortest={handleStartShortest}
+          handleGenCPP={handleGenCPP}
         />
       </main>
-
     </>
   );
 }

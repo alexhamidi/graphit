@@ -55,25 +55,23 @@ export default function LoginPage({ setAuthenticated }: PageProps) {
     e.preventDefault();
     if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
-    } else
-      setLoading(true)
-      try {
-        const response = await post("/login", credentials);
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
-        setAuthenticated(true);
-        setLoading(false)
-      } catch (err) {
-        let errorMessage: string = DEFAULT_ERROR;
-        if (isAxiosError(err) && err.response?.status === 404) {
-          errorMessage = USER_NOT_FOUND_ERROR;
-        } else if (isAxiosError(err) && err.response?.status === 401) {
-          errorMessage = INCORRECT_PASSWORD_ERROR;
-        }
-        setLoading(false)
-        setErrorMessage(errorMessage);
-
+    } else setLoading(true);
+    try {
+      const response = await post("/login", credentials);
+      localStorage.setItem("token", response.data.token);
+      navigate("/");
+      setAuthenticated(true);
+      setLoading(false);
+    } catch (err) {
+      let errorMessage: string = DEFAULT_ERROR;
+      if (isAxiosError(err) && err.response?.status === 404) {
+        errorMessage = USER_NOT_FOUND_ERROR;
+      } else if (isAxiosError(err) && err.response?.status === 401) {
+        errorMessage = INCORRECT_PASSWORD_ERROR;
       }
+      setLoading(false);
+      setErrorMessage(errorMessage);
+    }
     setCredentials({ email: "", password: "" });
   };
 
@@ -81,10 +79,9 @@ export default function LoginPage({ setAuthenticated }: PageProps) {
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
   };
 
-
   return (
     <>
-      {loading && <div id="loading"/>}
+      {loading && <div id="loading" />}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}

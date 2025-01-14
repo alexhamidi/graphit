@@ -54,22 +54,21 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
     e.preventDefault();
     if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
-    } else
-      setLoading(true)
-      try {
-        const response = await post("/register", credentials);
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
-        setAuthenticated(true);
-        setLoading(false)
-      } catch (err) {
-        let errorMessage: string = DEFAULT_ERROR;
-        if (isAxiosError(err) && err.response?.status === 400) {
-          errorMessage = EMAIL_IN_USE_ERROR;
-        }
-        setLoading(false)
-        setErrorMessage(errorMessage);
+    } else setLoading(true);
+    try {
+      const response = await post("/register", credentials);
+      localStorage.setItem("token", response.data.token);
+      navigate("/");
+      setAuthenticated(true);
+      setLoading(false);
+    } catch (err) {
+      let errorMessage: string = DEFAULT_ERROR;
+      if (isAxiosError(err) && err.response?.status === 400) {
+        errorMessage = EMAIL_IN_USE_ERROR;
       }
+      setLoading(false);
+      setErrorMessage(errorMessage);
+    }
     setCredentials({ email: "", password: "" });
   };
 
@@ -79,7 +78,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
 
   return (
     <>
-      {loading && <div id="loading"/>}
+      {loading && <div id="loading" />}
       {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
       )}

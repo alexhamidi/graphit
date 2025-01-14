@@ -3,19 +3,15 @@ import { DEFAULT_BOX_ACTIVE } from "../constants";
 import { BoxActive } from "../interfaces";
 
 interface Props {
-    setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
-    handleSetError: (message: string) => void;
+  setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
+  handleSetError: (message: string) => void;
 }
 
-export default function InfoBox({
-    setBoxActive,
-    handleSetError,
-}: Props) {
-
+export default function InfoBox({ setBoxActive, handleSetError }: Props) {
   return (
     <Box //use children to render the other stuff
       mainText={"Basics"}
-      placeholderText={''}
+      placeholderText={""}
       closeFunction={() =>
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, infoBox: false })
       }
@@ -29,7 +25,7 @@ export default function InfoBox({
       children={
         <>
           {/* welcome to graphit. This is an all in one ... */}
-          <div className = "info">
+          <div className="info">
             <h3>graph editing</h3>
             <ul>
               <li>click to place a node</li>
@@ -37,11 +33,17 @@ export default function InfoBox({
               <li>right-click on a node or edge to delete it</li>
               <li>shift-click on a node or edge to edit its value</li>
               <li>shift-drag a node to create an edge</li>
-              <li>once you've selected a color, color nodes by clicking existing nodes or adding new nodes</li>
-              <li>note: for mouse events to be considered a "click", the mouse must remain stationary.</li>
+              <li>
+                once you've selected a color, color nodes by clicking existing
+                nodes or adding new nodes
+              </li>
+              <li>
+                note: for mouse events to be considered a "click", the mouse
+                must remain stationary.
+              </li>
             </ul>
           </div>
-          <div className = "info">
+          <div className="info">
             <h3>keyboard commands</h3>
             <ul>
               <li>[cmd]+[i] to create a blank graph </li>
@@ -50,9 +52,10 @@ export default function InfoBox({
             </ul>
           </div>
           <p id="love">
-            this project was made with love by <a href="https://alexhamidi.github.io/">alex hamidi</a>
+            this project was made with love by{" "}
+            <a href="https://alexhamidi.github.io/">alex hamidi</a>
           </p>
-          </>
+        </>
       }
     />
   );

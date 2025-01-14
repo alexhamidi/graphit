@@ -543,7 +543,7 @@ export default function Canvas({
 
               return (
                 <g
-                  style={{userSelect:"none"}}
+                  style={{ userSelect: "none" }}
                   key={edge.id}
                   onMouseDown={(e) =>
                     handleMouseDownEdge(e, { ...edge, pos: labelPos })
@@ -605,7 +605,6 @@ export default function Canvas({
                 onContextMenu={(e) => handleRightClickNode(e, node)}
               >
                 <circle
-
                   cx={node.pos.x}
                   cy={node.pos.y}
                   r={graphConfig.circleRadius}

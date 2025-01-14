@@ -72,9 +72,8 @@ export default function AiBox({
     "Good people do not need laws to tell them to act responsibly, while bad people will find a way around the laws. - Plato",
     "In politics we presume that everyone who knows how to get votes knows how to administer a city or a state. When we are ill... we do not ask for the handsomest physician, or the most eloquent one. - Plato",
     "The biggest risk is not taking any risk... In a world that changing really quickly, the only strategy that is guaranteed to fail is not taking risks. - Mark Zuckerberg",
-    "Move fast and break things. Unless you are breaking stuff, you are not moving fast enough. - Mark Zuckerberg"
-  ]
-
+    "Move fast and break things. Unless you are breaking stuff, you are not moving fast enough. - Mark Zuckerberg",
+  ];
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -89,7 +88,7 @@ export default function AiBox({
     return () => clearInterval(interval);
   }, [loading]);
 
-  const [displayed, setDisplayed] = useState<string | null>(null)
+  const [displayed, setDisplayed] = useState<string | null>(null);
   const handleAiSubmit = async (e: React.FormEvent) => {
     setError("");
     e.preventDefault();
@@ -101,7 +100,7 @@ export default function AiBox({
     }
     try {
       setLoading(true);
-      setDisplayed(quotes[Math.floor(Math.random() * quotes.length)])
+      setDisplayed(quotes[Math.floor(Math.random() * quotes.length)]);
       const response = await post("/ai", {
         prompt: currPrompt,
         width: canvasRect!.width,
@@ -132,9 +131,7 @@ export default function AiBox({
       loading={loading}
       loadingMessage={loadingMessage}
       containsPrimaryInput={true}
-      children={loading ? <div className="quote">
-        {displayed}
-      </div> : null}
+      children={loading ? <div className="quote">{displayed}</div> : null}
     />
   );
 }

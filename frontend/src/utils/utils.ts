@@ -1,4 +1,4 @@
-import { Position, Node } from "../interfaces";
+import { Position, Node, Graph, AdjEdge } from "../interfaces";
 import { EDGE_BOUNDARY } from "../constants";
 import { authorizedFetch } from "../networking";
 // App
@@ -102,6 +102,18 @@ export function dividePos(pos: Position, num: number): Position {
 
 export function lengthPos(pos: Position): number {
   return Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+}
+
+export function getAdj(graph: Graph): Map<string, AdjEdge[]> {
+  //maps ?
+  let adj: Map<string, AdjEdge[]> = new Map<string, AdjEdge[]>();
+  graph.edges.forEach((edge) => {
+    if (!adj.has(edge.n1)) {
+      adj.set(edge.n1, []);
+    }
+    adj.get(edge.n1)!.push({ n2: edge.n2, value: edge.value });
+  });
+  return adj;
 }
 
 // export function minPos(pos: Position, num: number): Position {

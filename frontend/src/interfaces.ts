@@ -71,6 +71,11 @@ export interface TempEdge {
   p2: Position;
 }
 
+export interface AdjEdge {
+  n2: string;
+  value: string;
+}
+
 export interface LocatedEdge {
   id: string;
   value: string;

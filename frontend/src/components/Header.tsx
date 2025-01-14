@@ -77,12 +77,16 @@ export default function Header({
             className="plain-button"
             onClick={() => setGraphPopupActive((prev) => !prev)}
           >
-            {!loading && <><span id="select-text">
-              {currGraph === ""
-                ? "select a graph"
-                : graphs.get(currGraph)!.name}
-            </span>
-            <i className="fa-solid fa-sort"></i></>}
+            {!loading && (
+              <>
+                <span id="select-text">
+                  {currGraph === ""
+                    ? "select a graph"
+                    : graphs.get(currGraph)!.name}
+                </span>
+                <i className="fa-solid fa-sort"></i>
+              </>
+            )}
           </button>
           {graphPopupActive && (
             <div className="main-component popup" id="graph-popup">
@@ -151,15 +155,23 @@ export default function Header({
           )}
         </div>
       </div>
-      <div  id="middle-icons">
-        <a href="https://github.com/alexhamidi/graphit"target="_blank" rel="noopener noreferrer">
+      <div id="middle-icons">
+        <a
+          href="https://github.com/alexhamidi/graphit"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <img className="icon" src="/assets/github.png"></img>
         </a>
-        <button className="plain-button" onClick={() =>
-                  setBoxActive({ ...DEFAULT_BOX_ACTIVE, infoBox: true })
-                }>
+        <button
+          className="plain-button"
+          onClick={() => setBoxActive({ ...DEFAULT_BOX_ACTIVE, infoBox: true })}
+        >
           <img className="icon" src="/assets/info.png"></img>
         </button>
+        {/* <button onClick={() => {document.body.classList.toggle('dark-mode')}}>
+          toggle mode
+        </button> */}
       </div>
       <div className="header-section">
         <p id="savestate">
