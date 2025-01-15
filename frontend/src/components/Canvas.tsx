@@ -588,7 +588,7 @@ export default function Canvas({
               <line
                 className="graph-element"
                 strokeWidth={graphConfig.lineWeight}
-                stroke="black"
+                stroke={GRAPH_COLORS[+darkMode].line}
                 x1={edging.p1.x}
                 y1={edging.p1.y}
                 x2={edging.p2.x}
