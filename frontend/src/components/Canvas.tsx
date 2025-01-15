@@ -566,7 +566,7 @@ export default function Canvas({
                 markerWidth={12 / graphConfig.lineWeight}
                 markerHeight={12 / graphConfig.lineWeight}
                 orient="auto-start-reverse"
-                fill="black"
+                fill={GRAPH_COLORS[+darkMode].line}
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" />
               </marker>
