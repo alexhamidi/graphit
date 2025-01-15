@@ -92,6 +92,8 @@ export interface Credentials {
 export interface PageProps {
   setAuthenticated: (auth: boolean) => void;
   authenticated: boolean;
+  darkMode: boolean;
+  toggleDarkMode: ()=>void;
 }
 
 export interface GraphConfig {
@@ -109,6 +111,12 @@ export interface BoxActive {
   newBlankGraphBox: boolean;
   newTextGraphBox: boolean;
   infoBox: boolean;
+}
+
+export interface Colors {
+  line:string,
+  main:string,
+  text:string
 }
 
 export type MiniEdge = [string, string, string?];

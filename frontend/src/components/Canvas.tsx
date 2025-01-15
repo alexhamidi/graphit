@@ -10,7 +10,7 @@ import {
 } from "../interfaces";
 import {
   INVISIBLE_CHAR,
-  MAIN_COLOR,
+  GRAPH_COLORS,
   PIXELS_PER_FONT_SIZE_UNIT,
   GRAVITATIONAL_CONSTANT,
   NUM_MAX_PHYSICS_ITERS,
@@ -18,6 +18,7 @@ import {
   DELTA_TIME,
   MOVEMENT_THRESHOLD,
   REFRESH_RATE,
+  PERP_LEN,
 } from "../constants";
 import {
   getPosRelParent,
@@ -56,6 +57,7 @@ interface Props {
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
   highlighted: Set<string>;
   loading: boolean;
+  darkMode:boolean;
 }
 
 export default function Canvas({
@@ -81,6 +83,7 @@ export default function Canvas({
   setGraphs,
   highlighted,
   loading,
+  darkMode
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -445,11 +448,75 @@ export default function Canvas({
     }, REFRESH_RATE);
 
     return () => clearInterval(intervalId);
-  }, [graph, graphConfig]);
+  }, [graph, graphConfig, editingEdge, editingNode]);
+
+
+
+  // =================================================================
+  // ================== Checking bidirectional Edges =================
+  // =================================================================
+
+  const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!graph) return;
+    setBidirectional(new Set())
+    const existingEdges = new Set<string>();
+    graph.edges.forEach((edge) => {
+      const edgeKey = JSON.stringify([edge.n1, edge.n2].sort()); // Ensure bidirectional equivalence
+      if (existingEdges.has(edgeKey)) {
+        setBidirectional((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(edgeKey);
+          return newSet;
+        });
+      } else {
+        existingEdges.add(edgeKey);
+      }
+    });
+  }, [graph]);
+
+
+  // =================================================================
+  // ======================== Gesture/Movement =======================
+  // =================================================================
+
+
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+
+
+
+
+    // const handleTouchMove = (e: WheelEvent) => {
+    //   e.preventDefault();
+    //   console.log("wheeel")
+    // };
+
+
+
+
+
+    // useEffect(() => {
+    //   const element = wrapperRef.current;
+    //   if (!element) return;
+    //   console.log("found")
+
+
+    //   element.addEventListener('wheel', handleTouchMove, { passive: false });
+
+    //   return () => {
+
+    //     element.removeEventListener('wheel', (e) => e.preventDefault());
+    //   };
+    // }, [wrapperRef]);
+
 
   // =================================================================
   // ======================= Returned Component ======================
   // =================================================================
+
+
   return (
     <>
       {editingEdge && (
@@ -475,11 +542,14 @@ export default function Canvas({
       <div
         className="main-component main-graphpage-section"
         id="canvas-wrapper"
+        ref={wrapperRef}
+
       >
         {graph !== null ? (
           <svg
             fontFamily="monospace"
             id="canvas"
+
             ref={canvasRef}
             onContextMenu={(e) => e.preventDefault()}
             onMouseMove={handleMouseMoveElement}
@@ -535,11 +605,26 @@ export default function Canvas({
               if (!node1 || !node2) {
                 return;
               }
+              const yNeg: boolean = node2.pos.y - node1.pos.y < 0;
+              let dx = 0;
+              let dy = 0;
 
+              if (bidirectional.has(JSON.stringify([edge.n1, edge.n2].sort()))) {
+                if (Math.abs(node1.pos.y - node2.pos.y) < .00001) {
+                  dx = 0;
+                  dy = node2.pos.x > node1.pos.x ? PERP_LEN : -PERP_LEN;
+                } else {
+                  const slope = (node2.pos.y - node1.pos.y) / (node2.pos.x - node1.pos.x);
+                  const p_slope = -(1 / (slope + 0.0000001));
+                  dx = -Math.sqrt((PERP_LEN * PERP_LEN) / (1 + p_slope * p_slope));
+                  dy = p_slope * dx;
+                }
+              }
               const labelPos: Position = {
-                x: getMidpoint(node1.pos.x, node2.pos.x),
-                y: getMidpoint(node1.pos.y, node2.pos.y),
+                x: getMidpoint(node1.pos.x, node2.pos.x) + (yNeg ? -1 : 1) * dx,
+                y: getMidpoint(node1.pos.y, node2.pos.y) + (yNeg ? -1 : 1) * dy,
               };
+
 
               return (
                 <g
@@ -556,7 +641,7 @@ export default function Canvas({
                     x2={node2.pos.x}
                     y2={node2.pos.y}
                     opacity={0}
-                    stroke={"black"}
+                    stroke={GRAPH_COLORS[+darkMode].line}
                     strokeWidth={graphConfig.lineWeight * 5}
                   />
                   <line
@@ -565,7 +650,7 @@ export default function Canvas({
                     x2={node2.pos.x}
                     y2={node2.pos.y}
                     stroke={
-                      highlighted && highlighted.has(edge.id) ? "red" : "black"
+                      highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line
                     }
                     strokeWidth={graphConfig.lineWeight}
                     {...(graphConfig.directedMode && {
@@ -608,10 +693,10 @@ export default function Canvas({
                   cx={node.pos.x}
                   cy={node.pos.y}
                   r={graphConfig.circleRadius}
-                  fill={node.customColor ? node.customColor : MAIN_COLOR}
+                  fill={node.customColor ? node.customColor : GRAPH_COLORS[+darkMode].main}
                   strokeWidth={graphConfig.lineWeight}
                   stroke={
-                    highlighted && highlighted.has(node.id) ? "red" : "black"
+                    highlighted && highlighted.has(node.id) ? "red" : GRAPH_COLORS[+darkMode].line
                   }
                 />
                 <text
@@ -619,7 +704,7 @@ export default function Canvas({
                   y={node.pos.y}
                   dy="0.35em"
                   strokeWidth={0.4 * graphConfig.fontSize}
-                  stroke={node.customColor ? node.customColor : MAIN_COLOR}
+                  stroke={node.customColor ? node.customColor : GRAPH_COLORS[+darkMode].main}
                   textAnchor="middle"
                 >
                   {INVISIBLE_CHAR.repeat(node.value.length)}
@@ -642,12 +727,13 @@ export default function Canvas({
               y="50%"
               textAnchor="middle"
               dominantBaseline="middle"
-              style={{ fontSize: "16px", fill: "black" }}
+              style={{ fontSize: "16px" }}
             >
               {!loading && "select a graph to view it here"}
             </text>
           </svg>
         )}
+
       </div>
     </>
   );

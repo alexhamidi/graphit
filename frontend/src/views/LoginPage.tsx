@@ -13,7 +13,7 @@ import {
 import { isAxiosError } from "axios";
 import Error from "../components/Error";
 
-export default function LoginPage({ setAuthenticated }: PageProps) {
+export default function LoginPage({ setAuthenticated, darkMode }: PageProps) {
   const [credentials, setCredentials] = useState<Credentials>({
     email: "",
     password: "",

@@ -1,16 +1,18 @@
-import { COLORS } from "../constants";
+import { COLORS, GRAPH_COLORS} from "../constants";
 import { GraphConfig } from "../interfaces";
 
 interface Props {
   handleSaveGraphPng: () => void;
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
+  darkMode: boolean
 }
 
 export default function Appearance({
   graphConfig,
   setGraphConfig,
   handleSaveGraphPng,
+  darkMode,
 }: Props) {
   const updateGraphConfig = <K extends keyof GraphConfig>(
     key: K,
@@ -94,6 +96,7 @@ export default function Appearance({
           }
         />
       </div>
+
       <div className="toggle-item">
         <label htmlFor="gravity-mode" className="toggle-label">
           Gravity Mode
@@ -110,6 +113,14 @@ export default function Appearance({
       <div>
         Colors
         <div id="colors">
+          <button
+              onClick={() => updateGraphConfig("currentChosenColor", GRAPH_COLORS[+darkMode].main)} //not actually setting to this color- auxillary to reset
+              className="color-option"
+              id={
+                graphConfig.currentChosenColor === GRAPH_COLORS[+darkMode].main ? "selected-color" : ""
+              }
+              style={{ backgroundColor: GRAPH_COLORS[+darkMode].main }}
+            ></button>
           {COLORS.map((color, idx) => (
             <button
               onClick={() => updateGraphConfig("currentChosenColor", color)}

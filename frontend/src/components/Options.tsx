@@ -12,6 +12,7 @@ interface Props {
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
   handleStartShortest: () => void;
   handleGenCPP: () => void;
+  darkMode:boolean;
 }
 
 export default function Options({
@@ -20,6 +21,7 @@ export default function Options({
   setGraphConfig,
   handleStartShortest,
   handleGenCPP,
+  darkMode,
 }: Props) {
   const [chosenPage, setChosenPage] = useState<string>(OPTIONS_PAGES[0]);
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -54,6 +56,7 @@ export default function Options({
                 handleSaveGraphPng={handleSaveGraphPng}
                 graphConfig={graphConfig}
                 setGraphConfig={setGraphConfig}
+                darkMode={darkMode}
               />
             )}
             {chosenPage == OPTIONS_PAGES[1] && (

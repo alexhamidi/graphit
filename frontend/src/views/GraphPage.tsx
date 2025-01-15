@@ -37,11 +37,14 @@ import {
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
+  GRAPH_COLORS
 } from "../constants";
 
 export default function GraphPage({
   setAuthenticated,
   authenticated,
+  darkMode,
+  toggleDarkMode,
 }: PageProps) {
   // =================================================================
   // ========================== Declarations ==========================
@@ -138,6 +141,9 @@ export default function GraphPage({
   // ============================ Caching ============================
   // =================================================================
 
+
+
+
   //cache all options under one object - store as one object too? would condense stuff
 
   // CACHE CURRGRAPH
@@ -231,7 +237,6 @@ export default function GraphPage({
 
   // FETCH GRAPHS FROM CLOUD
   useEffect(() => {
-    console.log("running fetch");
     const handleFetchGraphs = async () => {
       if (!authenticated || !token) {
         return;
@@ -275,12 +280,6 @@ export default function GraphPage({
     }, 1000),
     [handleSaveGraphToCloud],
   );
-
-  useEffect(() => {
-    if (!unsaved && graphs.size > 0) {
-      setUnsaved(true);
-    }
-  }, [graphs]);
 
   useEffect(() => {
     if (authenticated && token) {
@@ -375,11 +374,12 @@ export default function GraphPage({
     setGraphs((prevGraphs) => {
       const updatedGraphs = new Map(prevGraphs);
       const prevGraph = prevGraphs.get(currGraph)!;
+      const newColor = graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main ? "": graphConfig.currentChosenColor!
       updatedGraphs.set(currGraph, {
         ...prevGraph,
         nodes: prevGraph.nodes.map((node) =>
           node.id === id
-            ? { ...node, customColor: graphConfig.currentChosenColor! }
+            ? { ...node, customColor: newColor }
             : node,
         ),
       });
@@ -573,6 +573,18 @@ export default function GraphPage({
 
     setMouseDownStationary(false);
   };
+// Prevent pinch-to-zoom on touch devices
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function (e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
 
   useEffect(() => {
     window.addEventListener("mousedown", handleMouseDown);
@@ -631,6 +643,7 @@ export default function GraphPage({
   const [shortestDisplayed, setShortestDisplayed] = useState<boolean>(false);
 
   const handleStartShortest = () => {
+    handleDisableDisplayed();
     if (currGraph == "") {
       setErrorMessage("Need to select a graph before running algorithms");
       return;
@@ -640,16 +653,16 @@ export default function GraphPage({
   };
 
   useEffect(() => {
-    if (highlighted.size === 1 && selectingShortest) {
+    if (!selectingShortest || shortestDisplayed) return;
+    if (highlighted.size === 1) {
       setMessage("select destination node...");
-    } else if (highlighted.size === 2 && selectingShortest) {
+    } else if (highlighted.size === 2) {
       handleGetShortest();
       setMessage("");
     }
   }, [highlighted]);
 
   const handleGetShortest = async () => {
-    console.log("gettingshortest");
     if (highlighted.size !== 2) {
       setErrorMessage("Need to select 2 nodes");
       setHighlighted(new Set());
@@ -670,12 +683,19 @@ export default function GraphPage({
         graph,
       );
       const ids: string[] = response.data.visitedIds;
+      console.log(ids)
       if (ids.length === 0) {
         setErrorMessage("no path exists between these nodes");
         setHighlighted(new Set());
       } else {
-        setHighlighted(new Set(ids));
+        setHighlighted(new Set())
         setShortestDisplayed(true);
+        let currHighlighted: string[] = [];
+        for (let id of ids) {
+          currHighlighted = [...currHighlighted, id];
+          setHighlighted(new Set(currHighlighted)); //rerunning
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
       }
       setSelectingShortest(false);
     } catch (err) {
@@ -755,6 +775,8 @@ export default function GraphPage({
         graphSelectPopupRef={graphSelectPopupRef}
         handleSetError={handleSetError}
         loading={loading}
+        toggleDarkMode={toggleDarkMode}
+        darkMode={darkMode}
       />
       <main id="graphpage-main">
         {boxActive.infoBox && (
@@ -811,6 +833,7 @@ export default function GraphPage({
           setGraphs={setGraphs}
           highlighted={highlighted}
           loading={loading}
+          darkMode={darkMode}
         />
         <Options
           graphConfig={graphConfig}
@@ -818,6 +841,7 @@ export default function GraphPage({
           handleSaveGraphPng={handleSaveGraphPng}
           handleStartShortest={handleStartShortest}
           handleGenCPP={handleGenCPP}
+          darkMode={darkMode}
         />
       </main>
     </>

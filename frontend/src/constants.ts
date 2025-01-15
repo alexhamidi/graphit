@@ -1,4 +1,4 @@
-import { Size, GraphConfig, BoxActive } from "./interfaces";
+import { Size, GraphConfig, BoxActive, Colors } from "./interfaces";
 
 export const MODE: string = import.meta.env.VITE_MODE!;
 export const AI_ACCESSIBLE: boolean =
@@ -16,10 +16,22 @@ export const MOVEMENT_THRESHOLD = 0.03;
 export const REFRESH_RATE = 5;
 
 //graph stuff
+export const PERP_LEN: number =20;
 export const INITIAL_CIRCLE_RADIUS: number = 30;
 export const INITIAL_FONT_SIZE: number = 15;
 export const INITIAL_LINE_WEIGHT: number = 2;
-export const MAIN_COLOR: string = "rgb(248, 249, 250)";
+export const GRAPH_COLORS: Colors[]= [
+  {
+    line: "black",
+    main: "rgb(248, 249, 250)",
+    text: "#141414",
+  },
+  {
+    line: "white",
+    main:"rgb(40, 40, 40)",
+    text:"#f0f0f0"
+  }
+]
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeMode: false,
   directedMode: false,
@@ -75,7 +87,7 @@ export const INCOMPLETE_CREDENTIALS_ERROR: string =
   "Please fill out all fields";
 
 export const COLORS: string[] = [
-  MAIN_COLOR,
+
   "#DEDE7E",
   "#7ECD63",
   "#8ECE9E",
