@@ -7,7 +7,6 @@ interface Props {
   submitFunction: null | ((event: React.FormEvent) => void);
   inputValue: null | string;
   inputChangeFunction: null | ((value: string) => void);
-  error: string | null;
   loading: boolean | null;
   loadingMessage: string | null;
   children: React.ReactNode;

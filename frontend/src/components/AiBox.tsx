@@ -15,9 +15,9 @@ export default function AiBox({
   setBoxActive,
   handleAddGraph,
   canvasRect,
+  handleSetError
 }: Props) {
   const [prompt, setPrompt] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>("loading");
   const quotes = [
@@ -90,12 +90,11 @@ export default function AiBox({
 
   const [displayed, setDisplayed] = useState<string | null>(null);
   const handleAiSubmit = async (e: React.FormEvent) => {
-    setError("");
     e.preventDefault();
     const currPrompt: string = prompt;
     setPrompt("");
     if (currPrompt === "") {
-      setError("Please provide a prompt");
+      handleSetError("Please provide a prompt");
       return;
     }
     try {
@@ -112,7 +111,7 @@ export default function AiBox({
       setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: false });
     } catch (err) {
       setLoading(false);
-      setError(AI_ERROR);
+      handleSetError(AI_ERROR)
     }
     setPrompt("");
   };
@@ -127,7 +126,6 @@ export default function AiBox({
       submitFunction={handleAiSubmit}
       inputValue={prompt}
       inputChangeFunction={setPrompt}
-      error={error}
       loading={loading}
       loadingMessage={loadingMessage}
       containsPrimaryInput={true}

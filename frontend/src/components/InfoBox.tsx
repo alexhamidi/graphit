@@ -18,7 +18,6 @@ export default function InfoBox({ setBoxActive, handleSetError }: Props) {
       submitFunction={null}
       inputValue={null}
       inputChangeFunction={null}
-      error={null}
       loading={null}
       loadingMessage={null}
       containsPrimaryInput={false}

@@ -14,11 +14,17 @@ export default function NewBlankGraphBox({
   setBoxActive,
   handleNewGraph,
   setGraphPopupActive,
+  handleSetError,
 }: Props) {
   const [newGraphName, setNewGraphName] = useState("");
 
   const handleNewGraphSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(newGraphName)
+    if (newGraphName === "") {
+      handleSetError("Please provide a name");
+      return;
+    }
     const newName: string = newGraphName;
     setNewGraphName("");
     handleNewGraph(newName);
@@ -36,7 +42,6 @@ export default function NewBlankGraphBox({
       submitFunction={handleNewGraphSubmit}
       inputValue={newGraphName}
       inputChangeFunction={setNewGraphName}
-      error={null}
       loading={null}
       loadingMessage={null}
       children={null}

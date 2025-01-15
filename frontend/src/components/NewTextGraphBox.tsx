@@ -26,9 +26,11 @@ export default function NewTextGraphBox({
 
   const handleNewGraphSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (newGraphName === "") {
+      handleSetError("Please provide a name");
+      return;
+    }
 
-    // we just have values
-    //make a constructor
     let invalidInput = false;
 
     const nodeValues: string[] = nodeInput
@@ -85,7 +87,6 @@ export default function NewTextGraphBox({
       submitFunction={handleNewGraphSubmit}
       inputValue={newGraphName}
       inputChangeFunction={setNewGraphName}
-      error={null}
       loading={null}
       loadingMessage={null}
       containsPrimaryInput={true}
