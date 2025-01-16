@@ -261,7 +261,7 @@ hr {
 }
 
 #collapse {
-  z-index: 1000;
+  z-index: 500;
   background-color: var(--main-color);
   top: 4.2em;
   right:0em;
@@ -466,14 +466,14 @@ input[type="checkbox"] {
 }
 
 #error {
-  z-index: 1000;
+  z-index: 1001;
   position: fixed;
   top: 1em;
   left: 25vw;
   width: 50vw;
   padding: var(--box-padding);
   background-color: var(--error-color);
-  color: var(--main-color);
+  color: var(--text-color);
   box-shadow: var(--simple-shadow);
   align-items: center;
   animation:

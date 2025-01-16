@@ -13,6 +13,8 @@ interface Props {
   handleStartShortest: () => void;
   handleGenCPP: () => void;
   darkMode:boolean;
+  collapsed: boolean;
+  setCollapsed:React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function Options({
@@ -22,9 +24,10 @@ export default function Options({
   handleStartShortest,
   handleGenCPP,
   darkMode,
+  collapsed,
+  setCollapsed
 }: Props) {
   const [chosenPage, setChosenPage] = useState<string>(OPTIONS_PAGES[0]);
-  const [collapsed, setCollapsed] = useState<boolean>(false);
   return (
     <>
       <button

@@ -87,6 +87,15 @@ export default function GraphPage({
   const [boxActive, setBoxActive] = useState<BoxActive>(DEFAULT_BOX_ACTIVE);
   const [graphPopupActive, setGraphPopupActive] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    const stored = localStorage.getItem("collapsed");
+    console.log(stored)
+    if (stored) {
+      return stored == "1";
+    }
+    return false;
+  });
+
 
   // REFS
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -129,11 +138,11 @@ export default function GraphPage({
     setEmail(null);
     setGraphConfig(DEFAULT_GRAPH_CONFIG);
     localStorage.clear();
+    localStorage.setItem('darkMode', (+darkMode).toString());
   };
 
   // LOGIN
   const handleLogin = () => {
-    localStorage.clear();
     navigate("/login");
   };
 
@@ -154,9 +163,12 @@ export default function GraphPage({
 
   // CACHE GRAPH OPTIONS
   useEffect(() => {
-    if (authenticated)
-      localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
+    localStorage.setItem("graphConfig", JSON.stringify(graphConfig));
   }, [graphConfig]);
+
+  useEffect(() => {
+    localStorage.setItem("collapsed", (+collapsed).toString());
+  }, [collapsed]);
 
   // FETCH CURRGRAPH - need to wait for graphs
   useEffect(() => {
@@ -235,9 +247,14 @@ export default function GraphPage({
     }
   }, [graphs]);
 
-  // FETCH GRAPHS FROM CLOUD
+  // FETCH GRAPHS FROM CLOUD OR LOCALLY
   useEffect(() => {
     const handleFetchGraphs = async () => {
+      // const cachedGraphs: string | null = localStorage.getItem("graphs");
+      // if (cachedGraphs) {
+      //   setGraphs(JSON.parse(cachedGraphs))
+      // }
+      // console.log(cachedGraphs)
       if (!authenticated || !token) {
         return;
       }
@@ -258,8 +275,11 @@ export default function GraphPage({
     handleFetchGraphs();
   }, [token, authenticated]);
 
-  // SAVE GRAPH STATE TO CLOUD
-  const handleSaveGraphToCloud = async () => {
+  // SAVE GRAPH STATE TO CLOUD AND LOCALLY
+  const handleSaveGraph = async () => {
+    // console.log((graphs))
+    // console.log(JSON.stringify(Object.fromEntries(graphs)));
+    // localStorage.setItem("graphs", JSON.stringify(graphs))
     if (!authenticated || !token) return;
     try {
       await authorizedPost("/graphs", Object.fromEntries(graphs), token);
@@ -275,10 +295,10 @@ export default function GraphPage({
   const debouncedSaveGraph = useCallback(
     debounce(() => {
       //debounce - waits till no changes in 1000ms
-      handleSaveGraphToCloud();
+      handleSaveGraph();
       setUnsaved(false);
     }, 1000),
-    [handleSaveGraphToCloud],
+    [handleSaveGraph],
   );
 
   useEffect(() => {
@@ -842,6 +862,8 @@ export default function GraphPage({
           handleStartShortest={handleStartShortest}
           handleGenCPP={handleGenCPP}
           darkMode={darkMode}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
         />
       </main>
     </>

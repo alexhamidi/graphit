@@ -24,7 +24,7 @@ node_modules
 .prettierrc
 notes.txt
 physics.txt
-
+test.cpp
 ### STS ###
 .apt_generated
 .classpath

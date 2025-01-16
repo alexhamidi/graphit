@@ -63,6 +63,7 @@ export const BASE_BACKEND_URL: string =
   import.meta.env.VITE_BASE_BACKEND_URL! + "/api";
 
 //errors
+export const SERVER_ERROR: string = "An error occured with the server"
 
 export const DEFAULT_ERROR: string = "An unknown error occured";
 

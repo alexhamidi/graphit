@@ -8,6 +8,7 @@ import {
   INCOMPLETE_CREDENTIALS_ERROR,
   EMAIL_IN_USE_ERROR,
   BASE_BACKEND_URL,
+  SERVER_ERROR,
 } from "../constants";
 import { isAxiosError } from "axios";
 import Error from "../components/Error";
@@ -25,15 +26,20 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
   useEffect(() => {
     const checkAuth = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get("token");
+      let token = urlParams.get("token");
       const error = urlParams.get("error");
       if (error) {
         setErrorMessage(error);
         return;
       }
       if (!token) {
-        setAuthenticated(false);
-        return;
+        const local: string | null = localStorage.getItem("token");
+        if (local !== null) {
+          token = local;
+        } else {
+          setAuthenticated(false);
+          return;
+        }
       }
       const email = await fetchEmail(token);
       const isAuthenticated = email !== null;
@@ -65,6 +71,8 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
       let errorMessage: string = DEFAULT_ERROR;
       if (isAxiosError(err) && err.response?.status === 400) {
         errorMessage = EMAIL_IN_USE_ERROR;
+      } else if (isAxiosError(err) && err.response?.status === 500) {
+        errorMessage = SERVER_ERROR;
       }
       setLoading(false);
       setErrorMessage(errorMessage);

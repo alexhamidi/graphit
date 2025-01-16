@@ -11,11 +11,12 @@ spring:
   application:
     name: graphit
   data:
-    mongodb: # this should be where the info is derived from
+    mongodb:
       uri: ${MONGODB_URI}
       sslEnabled: true
       sslInvalidHostNameAllowed: true
       database: graphit
+      appname: Cluster0
   profiles:
     active: dev
   security:
@@ -36,7 +37,7 @@ spring:
         prompt:
         # expiriment with telling it to do nodes first
           first: |
-            You are tasked with generating a graph G (formally, $G=(U, V)$) that best and most accurately matches a given prompt. The origin (0,0) is defined as the top left of the canvas, and the bottom right is defined as (%s,%s). All nodes should have a poasition within this space. x and y are in pixels. Assign a unique string id to each graph, edge, and node. Edges are referred to by their id, value, and the ids of the two nodes they connect, with n1 representing the edge origin and n2 representing the edge destination. If there is no appropriate value for an edge or node, default to 0. Set customColor to the empty string always. Values can be strings/words representing diverse types of relationships (not just numbers). Structure all graphs logically. Ensure that everything is spread sparsely throughout the space and avoid edge/node intersections if possible.
+            Generate a graph G=(U, V) matching the given prompt. The canvas spans from origin (0,0) at the top-left to (%s, %s) at the bottom-right, with all nodes positioned within this space (x, y in pixels). Assign unique string IDs to each graph, edge, and node. Define edges by their ID, value, and the IDs of their connected nodes (n1: origin, n2: destination). Default values for nodes and edges are 0, and customColor is always an empty string. Values can represent diverse relationships (e.g., strings, words). Distribute graph elements sparsely across the space, ensuring logical structure and avoiding intersections where possible.
             ===========================PROMPT BELOW====================
           schema: |
                 {
