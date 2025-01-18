@@ -116,6 +116,11 @@ export function getAdj(graph: Graph): Map<string, AdjEdge[]> {
   return adj;
 }
 
+
+export function getNodeMap(nodes: Node[]) : Map<string,Node>  {
+  return new  Map<string,Node>()
+}
+
 // export function minPos(pos: Position, num: number): Position {
 //   return { x: Math.min(pos.x, num), y: Math.min(pos.y, num) };
 // }

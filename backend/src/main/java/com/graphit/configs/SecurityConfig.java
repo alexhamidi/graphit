@@ -27,7 +27,9 @@ public class SecurityConfig {
                     "/api/ai",
                     "/api/algorithm/shortest",
                     "/api/algorithm/bfs",
-                    "/api/algorithm/dfs"
+                    "/api/algorithm/dfs",
+                    "/api/algorithm/toposort",
+                    "/api/algorithm/mst"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

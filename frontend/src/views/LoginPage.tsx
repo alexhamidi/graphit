@@ -61,6 +61,7 @@ export default function LoginPage({ setAuthenticated, darkMode }: PageProps) {
     e.preventDefault();
     if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
+      return;
     } else setLoading(true);
     try {
       const response = await post("/login", credentials); //should get a server error

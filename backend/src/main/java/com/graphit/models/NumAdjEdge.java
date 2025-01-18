@@ -1,18 +1,18 @@
 package com.graphit.models;
 
 
-public class AdjEdge {
+public class NumAdjEdge {
 
-    private String value;
+    private Integer value;
     private String id;
 
 
-    public AdjEdge() {
+    public NumAdjEdge() {
         this.id = "";
-        this.value = "";
+        this.value = 0;
     }
 
-    public AdjEdge(String value, String id) {
+    public NumAdjEdge(Integer value, String id) {
         this.value = value;
         this.id = id;
 
@@ -27,11 +27,11 @@ public class AdjEdge {
         return id;
     }
 
-    public void setValue(String value) {
+    public void setValue(Integer value) {
         this.value = value;
     }
 
-    public String getValue() {
+    public int getValue() {
         return value;
     }
 }

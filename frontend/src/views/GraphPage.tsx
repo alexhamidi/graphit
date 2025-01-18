@@ -194,9 +194,21 @@ export default function GraphPage({
   // ========================= Graph Actions =========================
   // =================================================================
 
-  // CREATE AND SAVE GRAPH INITIALIZED WITH INPUTS
+
   const graphActions = {
-    // CREATE GRAPH FROM INPUT
+    handleOrderNodes: (ids: string[]) => {
+      const midPoint: number = canvasRect!.height/2;
+      const distForEach: number = canvasRect!.width/ids.length;
+      ids.forEach((nodeID, idx) => {
+        nodeActions.handleUpdateNodePos(nodeID, {x:idx*distForEach+distForEach/2,y:midPoint});
+      })
+    },
+
+    handleReplaceCurrGraph: (graph: Graph) => {
+      graphActions.handleDeleteGraph();
+      graphActions.handleAddGraph(graph);
+    },
+
     handleNewGraphFromInput: (
       name: string,
       nodeValues: string[],
@@ -647,16 +659,19 @@ export default function GraphPage({
       algoActions.handleEndAlgorithm();
       if (currGraph === "") {
         setErrorMessage("Need to select a graph before running algorithms");
+      } else if (graphs.get(currGraph)!.nodes.length <= 1) {
+        setErrorMessage("Must have at least two nodes to run an algorithm");
       } else if (type === "toposort") {
-        //topo sort not a selection one
-        algoActions.handleGetTopo();
+        algoActions.handleGetToposort();
+      } else if (type === "mst") {
+        algoActions.handleGetMST();
       } else {
         setSelectingAlgo({
           ...DEFAULT_SELECTING_ALGO,
           [type]: true,
         });
+        setMessage("select origin node...");
       }
-      setMessage("select origin node...");
     },
 
     // DETECT CHANGE IN HIGHLIGHTED (SELECTED)
@@ -689,13 +704,24 @@ export default function GraphPage({
       }
     },
 
-    handleGetTopo: async () => {
-      /* not really any frontend validation that needs to be done. the only questionable thing is whether or not it can happen, which we can return by some flag. We will need to modify the graph, but just the edges, not the nodes. We can return a new graph, and throw an error if its not a valid graph for the given operation.
-
-
-      */
-      // try {
-      // }
+    handleGetToposort: async () => {
+      try {
+        const response = await post(
+          `/algorithm/toposort`,
+          graphs.get(currGraph)!,
+        );
+        const ids: string[] = response.data.orderedIds;
+        console.log(ids);
+        algoActions.handleEndAlgorithm();
+        graphActions.handleOrderNodes(ids)
+        algoActions.displayAnimation(ids, false);
+      } catch (err) {
+        if (isAxiosError(err) && err.response?.status === 422) {
+          setErrorMessage("No valid topological ordering for this graph");
+        } else {
+          setErrorMessage(DEFAULT_ERROR);
+        }
+      }
     },
 
     // GET TRAVERSAL (BFS/DFS)
@@ -708,12 +734,9 @@ export default function GraphPage({
         );
         const ids: string[] = response.data.visitedIds;
         algoActions.handleEndAlgorithm();
-        algoActions.displayAnimation(ids);
-        setResetShown(true);
+        algoActions.displayAnimation(ids, true);
       } catch (err) {
-        console.log("here");
         algoActions.handleEndAlgorithm();
-        setSearchValueInputShown(false);
         setErrorMessage(DEFAULT_ERROR);
       }
     },
@@ -731,13 +754,31 @@ export default function GraphPage({
         if (ids.length === 0) {
           setErrorMessage("no path exists between these nodes");
         } else {
-          algoActions.displayAnimation(ids);
+          algoActions.displayAnimation(ids, true);
         }
-        setResetShown(true);
       } catch (err) {
         algoActions.handleEndAlgorithm();
-        if (isAxiosError(err) && err.response?.status === 400) {
-          setErrorMessage("Invalid graph for finding shortest path");
+        if (isAxiosError(err) && err.response?.status === 422) {
+          setErrorMessage(err.message);
+        } else {
+          setErrorMessage(DEFAULT_ERROR);
+        }
+      }
+    },
+
+    handleGetMST: async () => {
+      try {
+        const response = await post(
+          `/algorithm/mst`,
+          graphs.get(currGraph)!,
+        );
+        const ids: string[] = response.data.visitedIds;
+        console.log(ids);
+        algoActions.handleEndAlgorithm();
+        algoActions.displayAnimation(ids, true);
+      } catch (err) {
+        if (isAxiosError(err) && err.response?.status === 422) {
+          setErrorMessage(err.response.data.error);
         } else {
           setErrorMessage(DEFAULT_ERROR);
         }
@@ -745,10 +786,17 @@ export default function GraphPage({
     },
 
     // DISPLAY ANIMATION
-    displayAnimation: async (ids: string[]) => {
+    displayAnimation: async (ids: string[], cumulative:boolean) => {
       for (let id of ids) {
-        setHighlighted((prev) => new Set([...prev, id]));
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        setHighlighted((prev) => new Set(cumulative?[...prev, id]:[id]));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 250)
+        });
+      }
+      if (!cumulative) {
+        setHighlighted(new Set());
+      } else {
+        setResetShown(true);
       }
     },
 

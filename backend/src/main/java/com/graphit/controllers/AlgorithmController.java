@@ -33,8 +33,9 @@ public class AlgorithmController {
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request for the given algorithm"));
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Invalid request for the given algorithm"));
         } catch (Exception e) {
             System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred")); //actually etting here
@@ -53,11 +54,12 @@ public class AlgorithmController {
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request for the given algorithm"));
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Invalid request for the given algorithm"));
         } catch (Exception e) {
             System.out.println(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred")); //actually etting here
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
         }
     }
 
@@ -72,11 +74,48 @@ public class AlgorithmController {
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request for the given algorithm"));
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Graph must have numbered edges"));
         } catch (Exception e) {
             System.out.println(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred")); //actually etting here
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
+        }
+    }
+
+
+    @PostMapping("/toposort")
+    public ResponseEntity<Map<String, Object>> getToposort( //basically need to return a linked list
+            @RequestBody Graph graph) {
+        try {
+
+            ArrayList<String> orderedIds = algorithmService.toposort(graph); //modifies graph internally
+            return ResponseEntity.ok(Map.of("orderedIds", orderedIds));
+        } catch (IllegalArgumentException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Graph has no Topological Ordering"));
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
+        }
+    }
+
+    @PostMapping("/mst")
+    public ResponseEntity<Map<String, Object>> getMST( //basically need to return a linked list
+            @RequestBody Graph graph) {
+        try {
+
+            ArrayList<String> visitedIds = algorithmService.mst(graph); //modifies graph internally
+            return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error",  "Graph must have numbered edges"));
+        } catch (IllegalArgumentException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Graph has no MST"));
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
         }
     }
 }

@@ -9,19 +9,25 @@ export default function Appearance({ handleStartAlgo }: Props) {
         onClick={() => handleStartAlgo("shortest")}
         className="basic-button"
       >
-        Run shortest path
+        Djikstra's
       </button>
       <button onClick={() => handleStartAlgo("bfs")} className="basic-button">
-        Run BFS
+        BFS
       </button>
       <button onClick={() => handleStartAlgo("dfs")} className="basic-button">
-        Run DFS
+        DFS
       </button>
       <button
         onClick={() => handleStartAlgo("toposort")}
         className="basic-button"
       >
-        Run Topological Sort
+        Topological Sort
+      </button>
+      <button
+        onClick={() => handleStartAlgo("mst")}
+        className="basic-button"
+      >
+        MST
       </button>
     </>
   );

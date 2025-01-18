@@ -60,6 +60,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
     e.preventDefault();
     if (credentials.email === "" || credentials.password === "") {
       setErrorMessage(INCOMPLETE_CREDENTIALS_ERROR);
+      return;
     } else setLoading(true);
     try {
       const response = await post("/register", credentials);

@@ -1,8 +1,9 @@
 package com.graphit.services;
 
-import com.graphit.models.AdjEdge;
+import com.graphit.models.Edge;
 import com.graphit.models.Graph;
 import com.graphit.models.NodeEdgeID;
+import com.graphit.models.NumEdge;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,11 +15,12 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Stack;
 import org.springframework.stereotype.Service;
+
 @Service
 public class AlgorithmService {
 
     public ArrayList<String> shortestPath(String n1, String n2, Graph graph) { //just need to make pq and predeccessors altedges
-        HashMap<String, HashMap<String, AdjEdge>> adjList = graph.toAdj();
+        HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj();
 
         PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>(
             (a, b) -> Integer.compare(a.getValue(), b.getValue())
@@ -39,9 +41,9 @@ public class AlgorithmService {
             }
 
             if (adjList.get(u) != null) {
-                for (Map.Entry<String, AdjEdge> ent : adjList.get(u).entrySet()) {
+                for (Map.Entry<String, NumEdge> ent : adjList.get(u).entrySet()) {
                     String v = ent.getKey();
-                    AdjEdge edge = ent.getValue();
+                    NumEdge edge = ent.getValue();
                     int weight = edge.getValue();
                     int alt = distances.get(u) + weight;
                     if (!distances.containsKey(v) || alt < distances.get(v)) {
@@ -75,7 +77,7 @@ public class AlgorithmService {
     }
 
     public ArrayList<String> bfs(String origin, String targetValue, Graph graph) {
-        HashMap<String, HashMap<String, AdjEdge>> adjList = graph.toAdj();
+        HashMap<String, HashMap<String, Edge>> adjList = graph.toAdj();
         ArrayList<String> path = new ArrayList<>();
         HashSet<String> visited = new HashSet<>();
         HashMap<String, String> nodeValues = graph.getNodeValues();
@@ -100,9 +102,9 @@ public class AlgorithmService {
                 return path;
             }
 
-            for (Map.Entry<String, AdjEdge> ent : adjList.get(nodeID).entrySet()) { //doesnt work
+            for (Map.Entry<String, Edge> ent : adjList.get(nodeID).entrySet()) { //doesnt work
                 String neighbor = ent.getKey();
-                AdjEdge edge = ent.getValue();
+                Edge edge = ent.getValue();
                 if (!visited.contains(neighbor)) {
                     q.add(new NodeEdgeID(neighbor, edge.getID()));
                 }
@@ -112,16 +114,16 @@ public class AlgorithmService {
     }
 
     public ArrayList<String> dfs(String origin, String targetValue, Graph graph) {
-        HashMap<String, HashMap<String, AdjEdge>> adjList = graph.toAdj();
+        HashMap<String, HashMap<String, Edge>> adjList = graph.toAdj();
         ArrayList<String> path = new ArrayList<>();
         HashSet<String> visited = new HashSet<>();
         HashMap<String, String> nodeValues = graph.getNodeValues();
 
-        Stack<NodeEdgeID> stack = new Stack<>();
-        stack.push(new NodeEdgeID(origin, ""));
+        Stack<NodeEdgeID> s = new Stack<>();
+        s.push(new NodeEdgeID(origin, ""));
 
-        while (!stack.isEmpty()) {
-            NodeEdgeID pair = stack.pop();
+        while (!s.isEmpty()) {
+            NodeEdgeID pair = s.pop();
             String nodeID = pair.getNodeID();
             String edgeID = pair.getEdgeID();
 
@@ -137,14 +139,90 @@ public class AlgorithmService {
                 return path;
             }
 
-            for (Map.Entry<String, AdjEdge> ent : adjList.get(nodeID).entrySet()) {
+            for (Map.Entry<String, Edge> ent : adjList.get(nodeID).entrySet()) {
                 String neighbor = ent.getKey();
-                AdjEdge edge = ent.getValue();
+                Edge edge = ent.getValue();
                 if (!visited.contains(neighbor)) {
-                    stack.push(new NodeEdgeID(neighbor, edge.getID())); // Push onto stack for DFS
+                    s.push(new NodeEdgeID(neighbor, edge.getID())); // Push onto stack for DFS
                 }
             }
         }
+        return path;
+    }
+
+    public ArrayList<String> toposort(Graph graph) {
+        ArrayList<String> nodeIDs = graph.getNodeIDs();
+        HashMap<String, ArrayList<String>> adjList = graph.toBasicAdj();
+        ArrayList<String> nodeOrdering = new ArrayList<>();
+        HashSet<String> visited = new HashSet<>();
+        HashSet<String> inProgress = new HashSet<>();
+
+        for (String node : nodeIDs) {
+            if (!visited.contains(node)) {
+                topoDFS(node, adjList, visited, inProgress, nodeOrdering);
+            }
+        }
+
+        Collections.reverse(nodeOrdering);
+        return nodeOrdering;
+        }private void topoDFS(
+            String curr,
+            HashMap<String, ArrayList<String>> adjList,
+            HashSet<String> visited,
+            HashSet<String> inProgress,
+            ArrayList<String> nodeOrdering
+        ) {
+        if (inProgress.contains(curr)) {
+            throw new IllegalArgumentException("Graph contains a cycle");
+        }
+        if (visited.contains(curr)) return;
+
+        inProgress.add(curr);
+        for (String neighbor : adjList.get(curr)) {
+            topoDFS(neighbor, adjList, visited, inProgress, nodeOrdering);
+        }
+        inProgress.remove(curr);
+        visited.add(curr);
+        nodeOrdering.add(curr);
+    }
+
+    public ArrayList<String> mst(Graph graph) {
+        HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj();
+        ArrayList<String> path = new ArrayList<>();
+        HashSet<String> visited = new HashSet<>();
+        PriorityQueue<NumEdge> pq = new PriorityQueue<>(
+            (a, b) -> Integer.compare(a.getValue(), b.getValue())
+        );
+
+        String startNode = adjList.keySet().iterator().next();
+        visited.add(startNode);
+        path.add(startNode);
+
+        for (Map.Entry<String, NumEdge> entry : adjList.get(startNode).entrySet()) {
+            pq.add(entry.getValue());
+        }
+
+        while (!pq.isEmpty()) {
+            NumEdge edge = pq.poll();
+            String v = edge.getN2();
+
+            if (visited.contains(v)) continue;
+
+            visited.add(v);
+            path.add(edge.getID());
+            path.add(v);
+
+            for (Map.Entry<String, NumEdge> entry : adjList.get(v).entrySet()) {
+                if (!visited.contains(entry.getKey())) {
+                    pq.add(entry.getValue());
+                }
+            }
+        }
+
+        if (visited.size() != adjList.size()) {
+            throw new IllegalArgumentException();
+        }
+
         return path;
     }
 

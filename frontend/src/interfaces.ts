@@ -131,6 +131,7 @@ export type MiniEdge = [string, string, string?];
 
 // Graph Actions
 export interface GraphActions {
+  handleReplaceCurrGraph: (graph: Graph) => void;
   handleNewGraphFromInput: (
     name: string,
     nodeValues: string[],

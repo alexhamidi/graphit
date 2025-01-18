@@ -40,33 +40,62 @@ public class Graph {
     public ArrayList<Edge> getEdges() {
         return edges;
     }
-
     public void setEdges(ArrayList<Edge> edges) {
         this.edges = edges;
     }
 
-    public HashMap<String, HashMap<String, AdjEdge>> toAdj() {
-        HashMap<String, HashMap<String, AdjEdge>> adj = new HashMap<String, HashMap<String, AdjEdge>>();
+    public HashMap<String, HashMap<String, Edge>> toAdj() {
+        HashMap<String, HashMap<String, Edge>> adj = new HashMap<String, HashMap<String, Edge>>();
         for (Node node : nodes) {
-            adj.put(node.getID(), new HashMap<String, AdjEdge>());
+            adj.put(node.getID(), new HashMap<String, Edge>());
         }
         for (Edge edge : edges) {
-            Integer edgeVal = 0;
+            adj.get(edge.getN1()).put(edge.getN2(), edge);
+        }
+        return adj;
+    }
+
+    public HashMap<String, HashMap<String, NumEdge>> toNumAdj() {
+        HashMap<String, HashMap<String, NumEdge>> adj = new HashMap<>();
+        for (Node node : nodes) {
+            adj.put(node.getID(), new HashMap<String, NumEdge>());
+        }
+        for (Edge edge : edges) {
+            int edgeVal = 0;
             try {
-                edgeVal = Integer.parseInt(edge.getValue());
+                edgeVal = Integer.parseInt(edge.getValue()); //here
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(e);
+                throw e;
             }
-            adj.get(edge.getN1()).put(edge.getN2(), new AdjEdge(edgeVal, edge.getID()));
+            adj.get(edge.getN1()).put(edge.getN2(), new NumEdge(edge.getID(), edgeVal, edge.getN1(), edge.getN2()));
+        }
+        return adj;
+    }
+
+    public HashMap<String, ArrayList<String>> toBasicAdj() {
+        HashMap<String, ArrayList<String>> adj = new HashMap<>();
+        for (Node node : nodes) {
+            adj.put(node.getID(), new ArrayList<>());
+        }
+        for (Edge edge : edges) {
+            adj.get(edge.getN1()).add(edge.getN2());
         }
         return adj;
     }
 
     public HashMap<String, String> getNodeValues() {
-        HashMap<String, String> nodeValues = new HashMap<String, String>();
+        HashMap<String, String> nodeValues = new HashMap<>();
         for (Node node : nodes) {
             nodeValues.put(node.getID(), node.getValue());
         }
         return nodeValues;
+    }
+
+    public ArrayList<String> getNodeIDs() {
+        ArrayList<String> nodeIDs = new ArrayList<>();
+        for (Node node : nodes) {
+            nodeIDs.add(node.getID());
+        }
+        return nodeIDs;
     }
 }

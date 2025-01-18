@@ -21,6 +21,8 @@ export default function AiBox({
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>("loading");
   const quotes = [
+    "If a man will begin with certainties, he shall end in doubts; but if he will be content to begin with doubts, he shall end in certainties. - Sir Francis Bacon",
+    "Reading maketh a full man; and writing an axact man. And, therefore, if a man write little, he need have a present wit; and if he read little, he need have much cunning to seem to know which he doth not. - Sir Francis Bacon",
     "If a man'’'s mind becomes pure, his surroundings will also become pure. - Buddha",
     "Life is a series of natural and spontaneous changes. Don't resist them; that only creates sorrow. Let reality be reality. Let things flow naturally forward in whatever way they like. - Lao-Tzu",
     "The only true wisdom is in knowing you know nothing. - Socrates",
