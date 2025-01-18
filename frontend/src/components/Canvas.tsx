@@ -26,15 +26,13 @@ import {
   getMidpoint,
 } from "../utils/utils";
 
-import {
-  updateNodePositions
-} from "../utils/physics"
+import { updateNodePositions } from "../utils/physics";
 import EditBox from "../components/EditBox";
 
 interface Props {
   graph: Graph | null;
-  nodeActions:NodeActions;
-  edgeActions:EdgeActions;
+  nodeActions: NodeActions;
+  edgeActions: EdgeActions;
   shiftPressed: boolean;
   setCanvasRect: React.Dispatch<React.SetStateAction<DOMRect | null>>;
   canvasRect: DOMRect | null;
@@ -50,7 +48,7 @@ interface Props {
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>;
   highlighted: Set<string>;
   loading: boolean;
-  darkMode:boolean;
+  darkMode: boolean;
 }
 
 export default function Canvas({
@@ -71,7 +69,7 @@ export default function Canvas({
   setGraphs,
   highlighted,
   loading,
-  darkMode
+  darkMode,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -87,7 +85,6 @@ export default function Canvas({
 
   // Bidirectional
   const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
-
 
   // =================================================================
   // ======================== Mouse Handlers ==========================
@@ -182,7 +179,6 @@ export default function Canvas({
     setSelectedEdge(null);
   };
   const [edgingBool, setEdgingBool] = useState<boolean>(false);
-
 
   const handleMouseUpElement = (
     e: React.MouseEvent<SVGGElement, MouseEvent>,
@@ -306,14 +302,12 @@ export default function Canvas({
           setNumTotalIters,
           edgingBool,
           setEdging,
-          setGraphs
+          setGraphs,
         );
     }, REFRESH_RATE);
 
     return () => clearInterval(intervalId);
   }, [graph, graphConfig, editingEdge, editingNode]);
-
-
 
   // =================================================================
   // ================== Checking bidirectional Edges =================
@@ -321,7 +315,7 @@ export default function Canvas({
 
   const handleUpdateBidirectional = () => {
     if (!graph) return;
-    setBidirectional(new Set())
+    setBidirectional(new Set());
     const existingEdges = new Set<string>();
     graph.edges.forEach((edge) => {
       const edgeKey = JSON.stringify([edge.n1, edge.n2].sort()); // Ensure bidirectional equivalence
@@ -335,11 +329,9 @@ export default function Canvas({
         existingEdges.add(edgeKey);
       }
     });
-  }
-
+  };
 
   useEffect(handleUpdateBidirectional, [graph]);
-
 
   // =================================================================
   // ======================= Returned Component ======================
@@ -370,13 +362,11 @@ export default function Canvas({
       <div
         className="main-component main-graphpage-section"
         id="canvas-wrapper"
-
       >
         {graph !== null ? (
           <svg
             fontFamily="monospace"
             id="canvas"
-
             ref={canvasRef}
             onContextMenu={(e) => e.preventDefault()}
             onMouseMove={handleMouseMoveElement}
@@ -438,26 +428,26 @@ export default function Canvas({
                 y2={edging.p2.y}
               ></line>
             )}
-          {graph!.edges.map((edge) => {
-          const node1: Node | undefined = graph!.nodes.find(
-            (node) => node.id === edge.n1,
-          );
-          const node2: Node | undefined = graph!.nodes.find(
-            (node) => node.id === edge.n2,
-          );
-          if (!node1 || !node2) {
-            return;
-          }
+            {graph!.edges.map((edge) => {
+              const node1: Node | undefined = graph!.nodes.find(
+                (node) => node.id === edge.n1,
+              );
+              const node2: Node | undefined = graph!.nodes.find(
+                (node) => node.id === edge.n2,
+              );
+              if (!node1 || !node2) {
+                return;
+              }
 
-          if (node1.id === node2.id) {
-            const SELF_EDGE_HEIGHT = graphConfig.circleRadius * 2.5;  // Reduced height for tighter loop
-            const SELF_EDGE_WIDTH = graphConfig.circleRadius * 1.5;   // Adjusted width for teardrop shape
+              if (node1.id === node2.id) {
+                const SELF_EDGE_HEIGHT = graphConfig.circleRadius * 2.5; // Reduced height for tighter loop
+                const SELF_EDGE_WIDTH = graphConfig.circleRadius * 1.5; // Adjusted width for teardrop shape
 
-            const startX = node1.pos.x;
-            const startY = node1.pos.y - graphConfig.circleRadius*.75;
+                const startX = node1.pos.x;
+                const startY = node1.pos.y - graphConfig.circleRadius * 0.75;
 
-            // Create a teardrop shape with sharper bottom point
-            const pathData = `
+                // Create a teardrop shape with sharper bottom point
+                const pathData = `
               M ${startX} ${startY}
               C ${startX + SELF_EDGE_WIDTH} ${startY},
                 ${startX + SELF_EDGE_WIDTH} ${startY - SELF_EDGE_HEIGHT * 0.8},
@@ -467,130 +457,162 @@ export default function Canvas({
                 ${startX} ${startY}
             `; // ${startX - SELF_EDGE_WIDTH * 0.5} ${startY + SELF_EDGE_HEIGHT * 0.3}
 
+                const labelPos: Position = {
+                  x: startX,
+                  y: startY - SELF_EDGE_HEIGHT,
+                };
 
-            const labelPos: Position = {
-              x: startX,
-              y: startY - SELF_EDGE_HEIGHT
-            };
+                return (
+                  <g
+                    style={{ userSelect: "none" }}
+                    key={edge.id}
+                    onMouseDown={(e) =>
+                      handleMouseDownEdge(e, { ...edge, pos: labelPos })
+                    }
+                    onContextMenu={(e) => handleRightClickEdge(e, edge)}
+                  >
+                    <path
+                      d={pathData}
+                      fill="none"
+                      stroke={GRAPH_COLORS[+darkMode].line}
+                      strokeWidth={graphConfig.lineWeight * 5}
+                      opacity={0}
+                    />
 
-            return (
-              <g
-                style={{ userSelect: "none" }}
-                key={edge.id}
-                onMouseDown={(e) => handleMouseDownEdge(e, { ...edge, pos: labelPos })}
-                onContextMenu={(e) => handleRightClickEdge(e, edge)}
-              >
-                <path
-                  d={pathData}
-                  fill="none"
-                  stroke={GRAPH_COLORS[+darkMode].line}
-                  strokeWidth={graphConfig.lineWeight * 5}
-                  opacity={0}
-                />
+                    <path
+                      d={pathData}
+                      fill="none"
+                      stroke={
+                        highlighted && highlighted.has(edge.id)
+                          ? "red"
+                          : GRAPH_COLORS[+darkMode].line
+                      }
+                      strokeWidth={graphConfig.lineWeight}
+                      {...(graphConfig.directedMode && {
+                        markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : "-self"})`,
+                      })}
+                    />
 
-                <path
-                  d={pathData}
-                  fill="none"
-                  stroke={highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line}
-                  strokeWidth={graphConfig.lineWeight}
-                  {...(graphConfig.directedMode && {
-                    markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : "-self"})`
-                  })}
-                />
+                    {graphConfig.edgeMode && (
+                      <>
+                        <text
+                          x={labelPos.x}
+                          y={labelPos.y}
+                          dy="0.35em"
+                          strokeWidth={0.4 * graphConfig.fontSize}
+                          className="invisible-edge-text"
+                          textAnchor="middle"
+                        >
+                          {INVISIBLE_CHAR.repeat(edge.value.length)}
+                        </text>
+                        <text
+                          textAnchor="middle"
+                          x={labelPos.x}
+                          y={labelPos.y}
+                          dy="0.35em"
+                          className="edge-text"
+                        >
+                          {edge.value}
+                        </text>
+                      </>
+                    )}
+                  </g>
+                );
+              } else {
+                const offsets: Position = bidirectional.has(
+                  JSON.stringify([edge.n1, edge.n2].sort()),
+                )
+                  ? getBidirectionalOffsets(node1.pos, node2.pos)
+                  : { x: 0, y: 0 };
+                const labelPos: Position = {
+                  x: getMidpoint(node1.pos.x, node2.pos.x) + offsets.x,
+                  y: getMidpoint(node1.pos.y, node2.pos.y) + offsets.y,
+                };
 
-                {graphConfig.edgeMode && (
-                  <>
-                    <text
-                      x={labelPos.x}
-                      y={labelPos.y}
-                      dy="0.35em"
-                      strokeWidth={0.4 * graphConfig.fontSize}
-                      className="invisible-edge-text"
-                      textAnchor="middle"
-                    >
-                      {INVISIBLE_CHAR.repeat(edge.value.length)}
-                    </text>
-                    <text
-                      textAnchor="middle"
-                      x={labelPos.x}
-                      y={labelPos.y}
-                      dy="0.35em"
-                      className="edge-text"
-                    >
-                      {edge.value}
-                    </text>
-                  </>
-                )}
-              </g>
-            );
-          } else {
-            const offsets : Position = (bidirectional.has(JSON.stringify([edge.n1, edge.n2].sort()))) ?
-              getBidirectionalOffsets(node1.pos, node2.pos)
-              :
-              {x:0,y:0};
-            const labelPos: Position = {
-              x: getMidpoint(node1.pos.x, node2.pos.x) + offsets.x,
-              y: getMidpoint(node1.pos.y, node2.pos.y) + offsets.y,
-            };
-
-            return (
-              <g
-                style={{ userSelect: "none" }}
-                key={edge.id}
-                onMouseDown={(e) =>
-                  handleMouseDownEdge(e, { ...edge, pos: labelPos })
-                }
-                onContextMenu={(e) => handleRightClickEdge(e, edge)}
-              >
-                <line
-                  x1={node1.pos.x}
-                  y1={node1.pos.y}
-                  x2={node2.pos.x}
-                  y2={node2.pos.y}
-                  opacity={0}
-                  stroke={GRAPH_COLORS[+darkMode].line}
-                  strokeWidth={graphConfig.lineWeight * 5}
-                />
-                <line
-                  x1={adjustEndpoint(node2.pos, node1.pos, graphConfig.circleRadius).x}
-                  y1={adjustEndpoint(node2.pos, node1.pos, graphConfig.circleRadius).y}
-                  x2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).x}
-                  y2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).y}
-                  stroke={
-                    highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line
-                  }
-                  strokeWidth={graphConfig.lineWeight}
-                  {...(graphConfig.directedMode && {
-                    markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
-                  })}
-                />
-                {graphConfig.edgeMode && (
-                  <>
-                    <text
-                      x={labelPos.x}
-                      y={labelPos.y}
-                      dy="0.35em"
-                      strokeWidth={0.4 * graphConfig.fontSize}
-                      className="invisible-edge-text"
-                      textAnchor="middle"
-                    >
-                      {INVISIBLE_CHAR.repeat(edge.value.length)}
-                    </text>
-                    <text
-                      textAnchor="middle"
-                      x={labelPos.x}
-                      y={labelPos.y}
-                      dy="0.35em"
-                      className="edge-text"
-                    >
-                      {edge.value}
-                    </text>
-                  </>
-                )}
-              </g>
-            );
-          }
-        })}
+                return (
+                  <g
+                    style={{ userSelect: "none" }}
+                    key={edge.id}
+                    onMouseDown={(e) =>
+                      handleMouseDownEdge(e, { ...edge, pos: labelPos })
+                    }
+                    onContextMenu={(e) => handleRightClickEdge(e, edge)}
+                  >
+                    <line
+                      x1={node1.pos.x}
+                      y1={node1.pos.y}
+                      x2={node2.pos.x}
+                      y2={node2.pos.y}
+                      opacity={0}
+                      stroke={GRAPH_COLORS[+darkMode].line}
+                      strokeWidth={graphConfig.lineWeight * 5}
+                    />
+                    <line
+                      x1={
+                        adjustEndpoint(
+                          node2.pos,
+                          node1.pos,
+                          graphConfig.circleRadius,
+                        ).x
+                      }
+                      y1={
+                        adjustEndpoint(
+                          node2.pos,
+                          node1.pos,
+                          graphConfig.circleRadius,
+                        ).y
+                      }
+                      x2={
+                        adjustEndpoint(
+                          node1.pos,
+                          node2.pos,
+                          graphConfig.circleRadius,
+                        ).x
+                      }
+                      y2={
+                        adjustEndpoint(
+                          node1.pos,
+                          node2.pos,
+                          graphConfig.circleRadius,
+                        ).y
+                      }
+                      stroke={
+                        highlighted && highlighted.has(edge.id)
+                          ? "red"
+                          : GRAPH_COLORS[+darkMode].line
+                      }
+                      strokeWidth={graphConfig.lineWeight}
+                      {...(graphConfig.directedMode && {
+                        markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
+                      })}
+                    />
+                    {graphConfig.edgeMode && (
+                      <>
+                        <text
+                          x={labelPos.x}
+                          y={labelPos.y}
+                          dy="0.35em"
+                          strokeWidth={0.4 * graphConfig.fontSize}
+                          className="invisible-edge-text"
+                          textAnchor="middle"
+                        >
+                          {INVISIBLE_CHAR.repeat(edge.value.length)}
+                        </text>
+                        <text
+                          textAnchor="middle"
+                          x={labelPos.x}
+                          y={labelPos.y}
+                          dy="0.35em"
+                          className="edge-text"
+                        >
+                          {edge.value}
+                        </text>
+                      </>
+                    )}
+                  </g>
+                );
+              }
+            })}
 
             {graph!.nodes.map((node) => (
               <g
@@ -602,10 +624,16 @@ export default function Canvas({
                   cx={node.pos.x}
                   cy={node.pos.y}
                   r={graphConfig.circleRadius}
-                  fill={node.customColor ? node.customColor : GRAPH_COLORS[+darkMode].main}
+                  fill={
+                    node.customColor
+                      ? node.customColor
+                      : GRAPH_COLORS[+darkMode].main
+                  }
                   strokeWidth={graphConfig.lineWeight}
                   stroke={
-                    highlighted && highlighted.has(node.id) ? "red" : GRAPH_COLORS[+darkMode].line
+                    highlighted && highlighted.has(node.id)
+                      ? "red"
+                      : GRAPH_COLORS[+darkMode].line
                   }
                 />
                 <text
@@ -613,7 +641,11 @@ export default function Canvas({
                   y={node.pos.y}
                   dy="0.35em"
                   strokeWidth={0.4 * graphConfig.fontSize}
-                  stroke={node.customColor ? node.customColor : GRAPH_COLORS[+darkMode].main}
+                  stroke={
+                    node.customColor
+                      ? node.customColor
+                      : GRAPH_COLORS[+darkMode].main
+                  }
                   textAnchor="middle"
                 >
                   {INVISIBLE_CHAR.repeat(node.value.length)}
@@ -642,7 +674,6 @@ export default function Canvas({
             </text>
           </svg>
         )}
-
       </div>
     </>
   );

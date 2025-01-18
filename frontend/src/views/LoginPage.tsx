@@ -9,7 +9,7 @@ import {
   USER_NOT_FOUND_ERROR,
   INCORRECT_PASSWORD_ERROR,
   BASE_BACKEND_URL,
-  SERVER_ERROR
+  SERVER_ERROR,
 } from "../constants";
 import { isAxiosError } from "axios";
 import Error from "../components/Error";

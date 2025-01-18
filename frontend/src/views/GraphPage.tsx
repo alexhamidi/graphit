@@ -10,7 +10,7 @@ import NewBlankGraphBox from "../components/NewBlankGraphBox";
 import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
 import Error from "../components/Error";
-import TopBox from "../components/TopBox"
+import TopBox from "../components/TopBox";
 import {
   Graph,
   Position,
@@ -31,10 +31,7 @@ import {
   outOfBounds,
   getBoundedPosition,
 } from "../utils/utils";
-import {
-  saveGraphCPP,
-  saveGraphPNG,
-} from "../utils/saving";
+import { saveGraphCPP, saveGraphPNG } from "../utils/saving";
 import { debounce } from "lodash";
 import {
   DEFAULT_ERROR,
@@ -43,7 +40,7 @@ import {
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
   GRAPH_COLORS,
-  DEFAULT_SELECTING_ALGO
+  DEFAULT_SELECTING_ALGO,
 } from "../constants";
 
 export default function GraphPage({
@@ -96,7 +93,7 @@ export default function GraphPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     const stored = localStorage.getItem("collapsed");
-    console.log(stored)
+    console.log(stored);
     if (stored) {
       return stored == "1";
     }
@@ -104,16 +101,18 @@ export default function GraphPage({
   });
 
   // ALGORITHMS
-  const [selectingAlgo, setSelectingAlgo] = useState<SelectingAlgo>(DEFAULT_SELECTING_ALGO)
+  const [selectingAlgo, setSelectingAlgo] = useState<SelectingAlgo>(
+    DEFAULT_SELECTING_ALGO,
+  );
   const [highlighted, setHighlighted] = useState<Set<string>>(
     new Set<string>(),
   );
   const [message, setMessage] = useState<string>("");
   const [resetShown, setResetShown] = useState<boolean>(false);
 
-  const [searchValueInputShown, setSearchValueInputShown] = useState<boolean>(false);
-  const [searchValueInput, setSearchValueInput] = useState<string>('')
-
+  const [searchValueInputShown, setSearchValueInputShown] =
+    useState<boolean>(false);
+  const [searchValueInput, setSearchValueInput] = useState<string>("");
 
   // REFS
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -127,16 +126,14 @@ export default function GraphPage({
   // ========================== Auth Actions ==========================
   // =================================================================
 
-
   // VALIDATE USER
   useEffect(() => {
     authActions.checkAuth();
   }, [setAuthenticated]);
 
-
   const authActions = {
     // check auth
-    checkAuth: async() => {
+    checkAuth: async () => {
       const currToken = localStorage.getItem("token");
       if (!currToken) {
         setAuthenticated(false);
@@ -162,7 +159,7 @@ export default function GraphPage({
       setEmail(null);
       setGraphConfig(DEFAULT_GRAPH_CONFIG);
       localStorage.clear();
-      localStorage.setItem('darkMode', (+darkMode).toString());
+      localStorage.setItem("darkMode", (+darkMode).toString());
     },
 
     // LOGIN
@@ -171,11 +168,9 @@ export default function GraphPage({
     },
   };
 
-
   // =================================================================
   // ============================ Caching ============================
   // =================================================================
-
 
   // CACHE GRAPH OPTIONS
   useEffect(() => {
@@ -278,7 +273,6 @@ export default function GraphPage({
       if (authenticated) localStorage.setItem("currGraph", id);
     },
 
-
     // FETCH GRAPHS
     handleFetchGraphs: async () => {
       if (!authenticated || !token) {
@@ -309,7 +303,6 @@ export default function GraphPage({
   useEffect(() => {
     graphActions.handleFetchGraphs();
   }, [token, authenticated]);
-
 
   // SAVE GRAPH TO CLOUD REGULARLY
   const debouncedSaveGraph = useCallback(
@@ -384,13 +377,14 @@ export default function GraphPage({
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-        const newColor = graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main ? "": graphConfig.currentChosenColor!
+        const newColor =
+          graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main
+            ? ""
+            : graphConfig.currentChosenColor!;
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
-            node.id === id
-              ? { ...node, customColor: newColor }
-              : node,
+            node.id === id ? { ...node, customColor: newColor } : node,
           ),
         });
 
@@ -450,8 +444,9 @@ export default function GraphPage({
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-        const edgeExists = prevGraph.edges.some(edge => (
-          edge.n1 === n1 && edge.n2 === n2));
+        const edgeExists = prevGraph.edges.some(
+          (edge) => edge.n1 === n1 && edge.n2 === n2,
+        );
 
         if (edgeExists) {
           return prevGraphs;
@@ -497,7 +492,6 @@ export default function GraphPage({
     },
   };
 
-
   // =================================================================
   // ========================== Key Handling ==========================
   // =================================================================
@@ -523,7 +517,7 @@ export default function GraphPage({
       setShiftPressed(false);
       setMetaPressed(false);
     },
-  }
+  };
 
   useEffect(() => {
     window.addEventListener("keydown", keyHandlers.handleKeyDown);
@@ -601,7 +595,6 @@ export default function GraphPage({
     },
   };
 
-
   useEffect(() => {
     window.addEventListener("mousedown", mouseActions.handleMouseDown);
     window.addEventListener("mousemove", mouseActions.handleMouseMove);
@@ -641,16 +634,16 @@ export default function GraphPage({
     // CHECK IF BOX IS ACTIVE
     isBoxActive: () => {
       return (
-        boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox
+        boxActive.aiBox ||
+        boxActive.newBlankGraphBox ||
+        boxActive.newTextGraphBox
       );
     },
   };
 
-
   // =================================================================
   // =========================== Algorithms ===========================
   // =================================================================
-
 
   const algoActions = {
     // START ALGORITHM
@@ -658,7 +651,8 @@ export default function GraphPage({
       algoActions.handleEndAlgorithm();
       if (currGraph === "") {
         setErrorMessage("Need to select a graph before running algorithms");
-      } else if (type === "toposort") {  //topo sort not a selection one
+      } else if (type === "toposort") {
+        //topo sort not a selection one
         algoActions.handleGetTopo();
       } else {
         setSelectingAlgo({
@@ -700,18 +694,11 @@ export default function GraphPage({
     },
 
     handleGetTopo: async () => {
-
       /* not really any frontend validation that needs to be done. the only questionable thing is whether or not it can happen, which we can return by some flag. We will need to modify the graph, but just the edges, not the nodes. We can return a new graph, and throw an error if its not a valid graph for the given operation.
 
 
       */
-
-
-
       // try {
-
-
-
       // }
     },
 
@@ -721,7 +708,7 @@ export default function GraphPage({
         const [n1] = highlighted;
         const response = await post(
           `/algorithm/${type}?origin=${n1}&value=${searchValueInput}`,
-          graphs.get(currGraph)!
+          graphs.get(currGraph)!,
         );
         const ids: string[] = response.data.visitedIds;
         algoActions.handleEndAlgorithm();
@@ -741,7 +728,7 @@ export default function GraphPage({
         const [n1, n2] = highlighted;
         const response = await post(
           `/algorithm/shortest?n1=${n1}&n2=${n2}`,
-          graphs.get(currGraph)!
+          graphs.get(currGraph)!,
         );
         const ids: string[] = response.data.visitedIds;
         algoActions.handleEndAlgorithm();
@@ -782,15 +769,14 @@ export default function GraphPage({
 
   useEffect(algoActions.handleHighlightedChange, [highlighted]);
 
-
   // =================================================================
   // ============================= Saving =============================
   // =================================================================
 
   const saveActions = {
     handleSaveGraphPNG: () => saveGraphPNG(canvasRef, graphs.get(currGraph)!),
-    handleSaveGraphCPP: () => saveGraphCPP(graphs.get(currGraph)!)
-  }
+    handleSaveGraphCPP: () => saveGraphCPP(graphs.get(currGraph)!),
+  };
 
   // =================================================================
   // ======================= Returned Component =======================
@@ -800,38 +786,46 @@ export default function GraphPage({
   return (
     <>
       {loading && <div id="loading" />}
-      {errorMessage &&
+      {errorMessage && (
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
-      }
+      )}
 
       {/* need to add cancel */}
-      {message && <TopBox
-          children={message}
-          onClose={algoActions.handleEndAlgorithm}
-        />
-      }
-      {resetShown && <TopBox
+      {message && (
+        <TopBox children={message} onClose={algoActions.handleEndAlgorithm} />
+      )}
+      {resetShown && (
+        <TopBox
           children={
-            <button className="plain-button" onClick={algoActions.handleEndAlgorithm}>
+            <button
+              className="plain-button"
+              onClick={algoActions.handleEndAlgorithm}
+            >
               reset highlighting
             </button>
           }
           onClose={algoActions.handleEndAlgorithm}
         />
-      }
-      {searchValueInputShown && <TopBox
-          children={<>
-            <div id="searching-for">
-              value searching for:
-            </div>
-            <form onSubmit = {algoActions.handleSearchValueSubmit} >
-                <input className="basic-button" type="text" value={searchValueInput} onChange={(e)=>setSearchValueInput(e.target.value)}/>
-                <input className="basic-button" type="submit"/>
-            </form>
-          </>}
+      )}
+      {searchValueInputShown && (
+        <TopBox
+          children={
+            <>
+              <div id="searching-for">value searching for:</div>
+              <form onSubmit={algoActions.handleSearchValueSubmit}>
+                <input
+                  className="basic-button"
+                  type="text"
+                  value={searchValueInput}
+                  onChange={(e) => setSearchValueInput(e.target.value)}
+                />
+                <input className="basic-button" type="submit" />
+              </form>
+            </>
+          }
           onClose={algoActions.handleEndAlgorithm}
         />
-      }
+      )}
       <Header
         unsaved={unsaved}
         authenticated={authenticated}

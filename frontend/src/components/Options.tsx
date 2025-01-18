@@ -8,10 +8,10 @@ import { OPTIONS_PAGES } from "../constants";
 interface Props {
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
-  darkMode:boolean;
+  darkMode: boolean;
   collapsed: boolean;
-  setCollapsed:React.Dispatch<React.SetStateAction<boolean>>;
-  handleStartAlgo: (type:string)=>void;
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  handleStartAlgo: (type: string) => void;
 }
 
 export default function Options({
@@ -20,7 +20,7 @@ export default function Options({
   handleStartAlgo,
   darkMode,
   collapsed,
-  setCollapsed
+  setCollapsed,
 }: Props) {
   const [chosenPage, setChosenPage] = useState<string>(OPTIONS_PAGES[0]);
   return (
@@ -57,9 +57,7 @@ export default function Options({
               />
             )}
             {chosenPage == OPTIONS_PAGES[1] && (
-              <Algorithms
-                handleStartAlgo={handleStartAlgo}
-              />
+              <Algorithms handleStartAlgo={handleStartAlgo} />
             )}
           </section>
         </div>

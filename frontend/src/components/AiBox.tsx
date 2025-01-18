@@ -15,7 +15,7 @@ export default function AiBox({
   setBoxActive,
   handleAddGraph,
   canvasRect,
-  handleSetError
+  handleSetError,
 }: Props) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -111,7 +111,7 @@ export default function AiBox({
       setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: false });
     } catch (err) {
       setLoading(false);
-      handleSetError(AI_ERROR)
+      handleSetError(AI_ERROR);
     }
     setPrompt("");
   };

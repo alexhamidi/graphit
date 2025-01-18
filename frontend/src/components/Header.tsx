@@ -1,4 +1,10 @@
-import { Graph, BoxActive ,GraphActions, AuthActions, SaveActions} from "../interfaces";
+import {
+  Graph,
+  BoxActive,
+  GraphActions,
+  AuthActions,
+  SaveActions,
+} from "../interfaces";
 import { useState, useEffect } from "react";
 import Close from "../components/Close";
 import { DEFAULT_BOX_ACTIVE, AI_ACCESSIBLE } from "../constants";
@@ -17,9 +23,9 @@ interface Props {
   graphSelectPopupRef: React.RefObject<HTMLDivElement>;
   handleSetError: (message: string) => void;
   loading: boolean;
-  darkMode:boolean;
-  toggleDarkMode: ()=>void;
-  saveActions:SaveActions;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+  saveActions: SaveActions;
 }
 
 export default function Header({
@@ -37,7 +43,7 @@ export default function Header({
   loading,
   darkMode,
   toggleDarkMode,
-  saveActions
+  saveActions,
 }: Props) {
   const [loadingMessage, setLoadingMessage] = useState<string>("saving");
 
@@ -137,7 +143,7 @@ export default function Header({
                 </>
               )}
 
-              {currGraph !== "" &&  <hr />}
+              {currGraph !== "" && <hr />}
 
               <button
                 className="plain-button popup-item"
@@ -176,34 +182,36 @@ export default function Header({
         </div>
       </div>
 
-
       <div id="middle-icons">
         <a
           href="https://github.com/alexhamidi/graphit"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <img className="icon" src={`/assets/github-${darkMode?"light":"dark"}.png`}></img>
+          <img
+            className="icon"
+            src={`/assets/github-${darkMode ? "light" : "dark"}.png`}
+          ></img>
         </a>
         <button
           className="plain-button"
           onClick={() => setBoxActive({ ...DEFAULT_BOX_ACTIVE, infoBox: true })}
         >
-          <img className="icon" src={`/assets/info-${darkMode?"light":"dark"}.png`}></img>
+          <img
+            className="icon"
+            src={`/assets/info-${darkMode ? "light" : "dark"}.png`}
+          ></img>
         </button>
-        <label className='mode-toggle'>
-                {darkMode ?
-                    <i className="fa-regular fa-sun fa-lg"/> :
-                    <i className="fa-solid fa-moon fa-lg"/>}
-                <input
-                    type="checkbox"
-                    checked={darkMode}
-                    onChange={toggleDarkMode}
-                />
-                <span className="slider"></span>
-            </label>
+        <label className="mode-toggle">
+          {darkMode ? (
+            <i className="fa-regular fa-sun fa-lg" />
+          ) : (
+            <i className="fa-solid fa-moon fa-lg" />
+          )}
+          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+          <span className="slider"></span>
+        </label>
       </div>
-
 
       <div className="header-section">
         <p id="savestate">

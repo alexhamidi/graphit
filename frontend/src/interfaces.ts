@@ -93,7 +93,7 @@ export interface PageProps {
   setAuthenticated: (auth: boolean) => void;
   authenticated: boolean;
   darkMode: boolean;
-  toggleDarkMode: ()=>void;
+  toggleDarkMode: () => void;
 }
 
 export interface GraphConfig {
@@ -114,17 +114,16 @@ export interface BoxActive {
 }
 
 export interface Colors {
-  line:string,
-  main:string,
-  text:string
+  line: string;
+  main: string;
+  text: string;
 }
 
 export interface SelectingAlgo {
-  dfs: boolean,
-  bfs: boolean,
-  shortest: boolean,
+  dfs: boolean;
+  bfs: boolean;
+  shortest: boolean;
 }
-
 
 export type MiniEdge = [string, string, string?];
 
@@ -135,7 +134,7 @@ export interface GraphActions {
   handleNewGraphFromInput: (
     name: string,
     nodeValues: string[],
-    edgeValues: MiniEdge[]
+    edgeValues: MiniEdge[],
   ) => void;
   handleNewGraph: (name: string) => void;
   handleAddGraph: (graph: Graph) => void;
@@ -191,8 +190,7 @@ export interface MouseEventActions {
   handleMouseUp: (e: MouseEvent) => void;
 }
 
-
-export interface SaveActions{
-  handleSaveGraphPNG: ()=>void,
-  handleSaveGraphCPP: ()=>void,
+export interface SaveActions {
+  handleSaveGraphPNG: () => void;
+  handleSaveGraphCPP: () => void;
 }

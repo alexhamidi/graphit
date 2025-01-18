@@ -1,10 +1,10 @@
-import { COLORS, GRAPH_COLORS} from "../constants";
+import { COLORS, GRAPH_COLORS } from "../constants";
 import { GraphConfig } from "../interfaces";
 
 interface Props {
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
-  darkMode: boolean
+  darkMode: boolean;
 }
 
 export default function Appearance({
@@ -112,13 +112,20 @@ export default function Appearance({
         Colors
         <div id="colors">
           <button
-              onClick={() => updateGraphConfig("currentChosenColor", GRAPH_COLORS[+darkMode].main)} //not actually setting to this color- auxillary to reset
-              className="color-option"
-              id={
-                graphConfig.currentChosenColor === GRAPH_COLORS[+darkMode].main ? "selected-color" : ""
-              }
-              style={{ backgroundColor: GRAPH_COLORS[+darkMode].main }}
-            ></button>
+            onClick={() =>
+              updateGraphConfig(
+                "currentChosenColor",
+                GRAPH_COLORS[+darkMode].main,
+              )
+            } //not actually setting to this color- auxillary to reset
+            className="color-option"
+            id={
+              graphConfig.currentChosenColor === GRAPH_COLORS[+darkMode].main
+                ? "selected-color"
+                : ""
+            }
+            style={{ backgroundColor: GRAPH_COLORS[+darkMode].main }}
+          ></button>
           {COLORS.map((color, idx) => (
             <button
               onClick={() => updateGraphConfig("currentChosenColor", color)}

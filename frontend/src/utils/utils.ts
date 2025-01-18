@@ -120,7 +120,11 @@ export function getAdj(graph: Graph): Map<string, AdjEdge[]> {
 //   return { x: Math.min(pos.x, num), y: Math.min(pos.y, num) };
 // }
 
-export function adjustEndpoint(p1: Position, p2 : Position, circleRadius:number) : Position {
+export function adjustEndpoint(
+  p1: Position,
+  p2: Position,
+  circleRadius: number,
+): Position {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
@@ -130,14 +134,14 @@ export function adjustEndpoint(p1: Position, p2 : Position, circleRadius:number)
 
   return {
     x: p1.x + dx * t,
-    y: p1.y + dy * t
+    y: p1.y + dy * t,
   };
 }
 
-export function getBidirectionalOffsets(p1: Position, p2: Position) : Position {
+export function getBidirectionalOffsets(p1: Position, p2: Position): Position {
   const yNeg: boolean = p2.y - p1.y < 0;
-  let dx,dy;
-  if (Math.abs(p1.y - p2.y) < .00001) {
+  let dx, dy;
+  if (Math.abs(p1.y - p2.y) < 0.00001) {
     dx = 0;
     dy = p2.x > p1.x ? PERP_LEN : -PERP_LEN;
   } else {
@@ -147,11 +151,11 @@ export function getBidirectionalOffsets(p1: Position, p2: Position) : Position {
     dy = p_slope * dx;
   }
   if (yNeg) {
-    dx*=-1;
-    dy*=-1;
+    dx *= -1;
+    dy *= -1;
   }
   return {
-    x:dx,
-    y:dy,
-  }
+    x: dx,
+    y: dy,
+  };
 }

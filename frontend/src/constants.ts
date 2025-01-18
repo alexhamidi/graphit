@@ -1,4 +1,10 @@
-import { Size, GraphConfig, BoxActive, Colors,SelectingAlgo } from "./interfaces";
+import {
+  Size,
+  GraphConfig,
+  BoxActive,
+  Colors,
+  SelectingAlgo,
+} from "./interfaces";
 
 export const MODE: string = import.meta.env.VITE_MODE!;
 export const AI_ACCESSIBLE: boolean =
@@ -14,15 +20,15 @@ export const DELTA_TIME = 1.2;
 export const DAMPING = 0.6;
 export const MOVEMENT_THRESHOLD = 0.03;
 export const REFRESH_RATE = 10;
-export const SPRING_FORCE = .075
+export const SPRING_FORCE = 0.075;
 
 //graph stuff
 
-export const PERP_LEN: number =20;
+export const PERP_LEN: number = 20;
 export const INITIAL_CIRCLE_RADIUS: number = 30;
 export const INITIAL_FONT_SIZE: number = 15;
 export const INITIAL_LINE_WEIGHT: number = 2;
-export const GRAPH_COLORS: Colors[]= [
+export const GRAPH_COLORS: Colors[] = [
   {
     line: "black",
     main: "rgb(248, 249, 250)",
@@ -30,10 +36,10 @@ export const GRAPH_COLORS: Colors[]= [
   },
   {
     line: "white",
-    main:"rgb(40, 40, 40)",
-    text:"#f0f0f0"
-  }
-]
+    main: "rgb(40, 40, 40)",
+    text: "#f0f0f0",
+  },
+];
 
 // defaults
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
@@ -52,10 +58,10 @@ export const DEFAULT_BOX_ACTIVE: BoxActive = {
   infoBox: false,
 };
 export const DEFAULT_SELECTING_ALGO: SelectingAlgo = {
-  bfs:false,
-  dfs:false,
-  shortest:false
-}
+  bfs: false,
+  dfs: false,
+  shortest: false,
+};
 
 export const PIXELS_PER_FONT_SIZE_UNIT = 0.6;
 
@@ -72,7 +78,7 @@ export const BASE_BACKEND_URL: string =
   import.meta.env.VITE_BASE_BACKEND_URL! + "/api";
 
 //errors
-export const SERVER_ERROR: string = "An error occured with the server"
+export const SERVER_ERROR: string = "An error occured with the server";
 
 export const DEFAULT_ERROR: string = "An unknown error occured";
 
@@ -97,7 +103,6 @@ export const INCOMPLETE_CREDENTIALS_ERROR: string =
   "Please fill out all fields";
 
 export const COLORS: string[] = [
-
   "#DEDE7E",
   "#7ECD63",
   "#8ECE9E",

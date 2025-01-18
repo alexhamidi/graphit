@@ -10,16 +10,16 @@ export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
 
   useEffect(() => {
-      const isDarkMode = localStorage.getItem('darkMode') === '1';
-      setDarkMode(isDarkMode);
-      document.body.classList.toggle('dark-mode', isDarkMode);
+    const isDarkMode = localStorage.getItem("darkMode") === "1";
+    setDarkMode(isDarkMode);
+    document.body.classList.toggle("dark-mode", isDarkMode);
   }, []);
 
-  const toggleDarkMode = () =>  {
-      const newDarkMode = !darkMode;
-      setDarkMode(newDarkMode);
-      localStorage.setItem('darkMode', (+newDarkMode).toString());
-      document.body.classList.toggle('dark-mode', newDarkMode);
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", (+newDarkMode).toString());
+    document.body.classList.toggle("dark-mode", newDarkMode);
   };
 
   return (

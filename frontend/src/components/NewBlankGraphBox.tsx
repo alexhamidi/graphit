@@ -20,7 +20,7 @@ export default function NewBlankGraphBox({
 
   const handleNewGraphSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(newGraphName)
+    console.log(newGraphName);
     if (newGraphName === "") {
       handleSetError("Please provide a name");
       return;
