@@ -24,12 +24,51 @@ public class AlgorithmController {
     }
 
     @PostMapping("/shortest")
-    public ResponseEntity<Map<String, Object>> resetGraphs(
+    public ResponseEntity<Map<String, Object>> getShortest(
             @RequestParam String n1,
             @RequestParam String n2,
             @RequestBody Graph graph) {
         try {
             ArrayList<String> visitedIds = algorithmService.shortestPath(n1, n2, graph);
+
+            return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request for the given algorithm"));
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred")); //actually etting here
+        }
+    }
+
+
+    @PostMapping("/bfs")
+    public ResponseEntity<Map<String, Object>> getBFS(
+            @RequestParam String origin,
+            @RequestParam String value,
+            @RequestBody Graph graph) {
+        try {
+
+            ArrayList<String> visitedIds = algorithmService.bfs(origin, value, graph);
+
+            return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request for the given algorithm"));
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred")); //actually etting here
+        }
+    }
+
+    @PostMapping("/dfs")
+    public ResponseEntity<Map<String, Object>> getDFS(
+            @RequestParam String origin,
+            @RequestParam String value,
+            @RequestBody Graph graph) {
+        try {
+
+            ArrayList<String> visitedIds = algorithmService.dfs(origin, value, graph);
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 

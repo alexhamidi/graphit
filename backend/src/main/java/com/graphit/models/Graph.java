@@ -13,11 +13,11 @@ public class Graph {
 
 
 
-    public String getId() {
+    public String getID() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setID(String id) {
         this.id = id;
     }
 
@@ -47,21 +47,26 @@ public class Graph {
 
     public HashMap<String, HashMap<String, AdjEdge>> toAdj() {
         HashMap<String, HashMap<String, AdjEdge>> adj = new HashMap<String, HashMap<String, AdjEdge>>();
+        for (Node node : nodes) {
+            adj.put(node.getID(), new HashMap<String, AdjEdge>());
+        }
         for (Edge edge : edges) {
-            if (!adj.containsKey(edge.getN1())) {
-                adj.put(edge.getN1(), new HashMap<String, AdjEdge>());
-            }
-
             Integer edgeVal = 0;
             try {
                 edgeVal = Integer.parseInt(edge.getValue());
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(e);
             }
-
             adj.get(edge.getN1()).put(edge.getN2(), new AdjEdge(edgeVal, edge.getID()));
         }
         return adj;
     }
 
+    public HashMap<String, String> getNodeValues() {
+        HashMap<String, String> nodeValues = new HashMap<String, String>();
+        for (Node node : nodes) {
+            nodeValues.put(node.getID(), node.getValue());
+        }
+        return nodeValues;
+    }
 }

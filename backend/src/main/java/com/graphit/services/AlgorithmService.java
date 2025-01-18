@@ -2,12 +2,17 @@ package com.graphit.services;
 
 import com.graphit.models.AdjEdge;
 import com.graphit.models.Graph;
+import com.graphit.models.NodeEdgeID;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Stack;
 import org.springframework.stereotype.Service;
 @Service
 public class AlgorithmService {
@@ -48,7 +53,6 @@ public class AlgorithmService {
             }
         }
 
-
         if (!distances.containsKey(n2)) {
             return new ArrayList<>();
         }
@@ -69,4 +73,79 @@ public class AlgorithmService {
         System.out.println(path);
         return path;
     }
+
+    public ArrayList<String> bfs(String origin, String targetValue, Graph graph) {
+        HashMap<String, HashMap<String, AdjEdge>> adjList = graph.toAdj();
+        ArrayList<String> path = new ArrayList<>();
+        HashSet<String> visited = new HashSet<>();
+        HashMap<String, String> nodeValues = graph.getNodeValues();
+
+        Queue<NodeEdgeID> q = new LinkedList<>();
+        q.add(new NodeEdgeID(origin, ""));
+
+        while (!q.isEmpty()) {
+            NodeEdgeID pair = q.poll();
+            String nodeID = pair.getNodeID();
+            String edgeID = pair.getEdgeID();
+
+            if (visited.contains(nodeID)) {
+                continue;
+            }
+            visited.add(nodeID);
+            if (!edgeID.isEmpty()) {
+                path.add(edgeID);
+            }
+            path.add(nodeID);
+            if (nodeValues.get(nodeID).equals(targetValue)) { //probably
+                return path;
+            }
+
+            for (Map.Entry<String, AdjEdge> ent : adjList.get(nodeID).entrySet()) { //doesnt work
+                String neighbor = ent.getKey();
+                AdjEdge edge = ent.getValue();
+                if (!visited.contains(neighbor)) {
+                    q.add(new NodeEdgeID(neighbor, edge.getID()));
+                }
+            }
+        }
+        return path;
+    }
+
+    public ArrayList<String> dfs(String origin, String targetValue, Graph graph) {
+        HashMap<String, HashMap<String, AdjEdge>> adjList = graph.toAdj();
+        ArrayList<String> path = new ArrayList<>();
+        HashSet<String> visited = new HashSet<>();
+        HashMap<String, String> nodeValues = graph.getNodeValues();
+
+        Stack<NodeEdgeID> stack = new Stack<>();
+        stack.push(new NodeEdgeID(origin, ""));
+
+        while (!stack.isEmpty()) {
+            NodeEdgeID pair = stack.pop();
+            String nodeID = pair.getNodeID();
+            String edgeID = pair.getEdgeID();
+
+            if (visited.contains(nodeID)) {
+                continue;
+            }
+            visited.add(nodeID);
+            if (!edgeID.isEmpty()) {
+                path.add(edgeID);
+            }
+            path.add(nodeID);
+            if (nodeValues.get(nodeID).equals(targetValue)) {
+                return path;
+            }
+
+            for (Map.Entry<String, AdjEdge> ent : adjList.get(nodeID).entrySet()) {
+                String neighbor = ent.getKey();
+                AdjEdge edge = ent.getValue();
+                if (!visited.contains(neighbor)) {
+                    stack.push(new NodeEdgeID(neighbor, edge.getID())); // Push onto stack for DFS
+                }
+            }
+        }
+        return path;
+    }
+
 }

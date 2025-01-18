@@ -65,7 +65,7 @@ public class AiController {
                     .getContent();
             Gson gson = new Gson();
             Graph graph = gson.fromJson(result, Graph.class);
-            graph.setId(aiUtil.getUuid());
+            graph.setID(aiUtil.getUuid());
 
             System.out.println(graph);
 
