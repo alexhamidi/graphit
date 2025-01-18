@@ -112,18 +112,9 @@ export default function Appearance({
         Colors
         <div id="colors">
           <button
-            onClick={() =>
-              updateGraphConfig(
-                "currentChosenColor",
-                GRAPH_COLORS[+darkMode].main,
-              )
-            } //not actually setting to this color- auxillary to reset
+            onClick={() => updateGraphConfig("currentChosenColor", "")} //not actually setting to this color- auxillary to reset
             className="color-option"
-            id={
-              graphConfig.currentChosenColor === GRAPH_COLORS[+darkMode].main
-                ? "selected-color"
-                : ""
-            }
+            id={graphConfig.currentChosenColor === "" ? "selected-color" : ""}
             style={{ backgroundColor: GRAPH_COLORS[+darkMode].main }}
           ></button>
           {COLORS.map((color, idx) => (

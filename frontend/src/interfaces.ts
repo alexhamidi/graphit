@@ -194,3 +194,28 @@ export interface SaveActions {
   handleSaveGraphPNG: () => void;
   handleSaveGraphCPP: () => void;
 }
+
+// canvas
+
+// Node Click Actions Interface
+export interface NodeClickActions {
+  handleRightClickNode: (
+    e: React.MouseEvent<SVGGElement, MouseEvent>,
+    node: Node,
+  ) => void;
+  handleMouseDownNode: (
+    e: React.MouseEvent<SVGGElement, MouseEvent>,
+    node: Node,
+  ) => void;
+}
+
+export interface EdgeClickActions {
+  handleMouseDownEdge: (
+    e: React.MouseEvent<SVGElement, MouseEvent>,
+    edge: LocatedEdge,
+  ) => void;
+  handleRightClickEdge: (
+    e: React.MouseEvent<SVGGElement, MouseEvent>,
+    edge: Edge,
+  ) => void;
+}

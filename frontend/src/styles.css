@@ -39,7 +39,7 @@
   --box-padding: 0.8em;
 }
 
-input[type="text"] {
+#editing-box {
   background-color: var(--main-color);
 }
 

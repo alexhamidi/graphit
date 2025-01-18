@@ -39,7 +39,6 @@ import {
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
-  GRAPH_COLORS,
   DEFAULT_SELECTING_ALGO,
 } from "../constants";
 
@@ -371,16 +370,13 @@ export default function GraphPage({
         setHighlighted((prev) => new Set(prev).add(id));
         return;
       }
-      if (!graphConfig.currentChosenColor) {
+      if (graphConfig.currentChosenColor === null) {
         return;
       }
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-        const newColor =
-          graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main
-            ? ""
-            : graphConfig.currentChosenColor!;
+        const newColor = graphConfig.currentChosenColor!;
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
