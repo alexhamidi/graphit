@@ -2,7 +2,6 @@ import { COLORS, GRAPH_COLORS} from "../constants";
 import { GraphConfig } from "../interfaces";
 
 interface Props {
-  handleSaveGraphPng: () => void;
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
   darkMode: boolean
@@ -11,7 +10,6 @@ interface Props {
 export default function Appearance({
   graphConfig,
   setGraphConfig,
-  handleSaveGraphPng,
   darkMode,
 }: Props) {
   const updateGraphConfig = <K extends keyof GraphConfig>(
@@ -142,9 +140,6 @@ export default function Appearance({
           </button>
         </div>
       </div>
-      <button onClick={handleSaveGraphPng} className="basic-button">
-        Download Graph (.png)
-      </button>
     </>
   );
 }

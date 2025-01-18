@@ -1,17 +1,14 @@
-import { Graph, BoxActive } from "../interfaces";
+import { Graph, BoxActive ,GraphActions, AuthActions, SaveActions} from "../interfaces";
 import { useState, useEffect } from "react";
 import Close from "../components/Close";
 import { DEFAULT_BOX_ACTIVE, AI_ACCESSIBLE } from "../constants";
 
 interface Props {
-  handleLogout: () => void;
-  handleLogin: () => void;
+  authActions: AuthActions;
+  graphActions: GraphActions;
   authenticated: boolean;
   unsaved: boolean;
-  handleNewGraph: (name: string) => void;
-  handleDeleteGraph: () => void;
   graphs: Map<string, Graph>;
-  setAndCacheCurrGraph: (id: string) => void;
   currGraph: string;
   email: string | null;
   setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
@@ -22,17 +19,16 @@ interface Props {
   loading: boolean;
   darkMode:boolean;
   toggleDarkMode: ()=>void;
+  saveActions:SaveActions;
 }
 
 export default function Header({
-  handleLogout,
-  handleLogin,
+  authActions,
   authenticated,
+  graphActions,
   unsaved,
   graphs,
-  setAndCacheCurrGraph,
   currGraph,
-  handleDeleteGraph,
   email,
   setBoxActive,
   graphPopupActive,
@@ -41,17 +37,17 @@ export default function Header({
   loading,
   darkMode,
   toggleDarkMode,
-
+  saveActions
 }: Props) {
   const [loadingMessage, setLoadingMessage] = useState<string>("saving");
 
   const handleSelectChange = (id: string) => {
-    setAndCacheCurrGraph(id);
+    graphActions.setAndCacheCurrGraph(id);
     setGraphPopupActive(false);
   };
 
   const handleDeleteGraphSubmit = () => {
-    handleDeleteGraph();
+    graphActions.handleDeleteGraph();
     setGraphPopupActive(false);
   };
 
@@ -97,7 +93,9 @@ export default function Header({
             <div className="main-component popup" id="graph-popup">
               <Close onClose={() => setGraphPopupActive(false)} />
               <header className="popup-item">graphs</header>
+
               {graphs.size !== 0 && <hr />}
+
               {Array.from(graphs.entries()).map(([id, graph]) => (
                 <button
                   key={id}
@@ -110,7 +108,9 @@ export default function Header({
                   {graph.name}
                 </button>
               ))}
+
               <hr />
+
               {currGraph !== "" && (
                 <>
                   <button
@@ -118,11 +118,26 @@ export default function Header({
                     onClick={handleDeleteGraphSubmit}
                   >
                     <i className="fa-solid fa-trash fa-sm"></i>
-                    delete the current graph
+                    delete this graph
                   </button>
-                  <hr />
+                  <button
+                    className="plain-button popup-item"
+                    onClick={saveActions.handleSaveGraphPNG}
+                  >
+                    <i className="fa-solid fa-image fa-sm"></i>
+                    save this graph (.png)
+                  </button>
+                  <button
+                    className="plain-button popup-item"
+                    onClick={saveActions.handleSaveGraphCPP}
+                  >
+                    <i className="fa-solid fa-code fa-sm"></i>
+                    save this graph (.cpp)
+                  </button>
                 </>
               )}
+
+              {currGraph !== "" &&  <hr />}
 
               <button
                 className="plain-button popup-item"
@@ -195,11 +210,11 @@ export default function Header({
           {authenticated && (unsaved ? loadingMessage : "saved")}
         </p>
         {authenticated ? (
-          <button className="plain-button" onClick={handleLogout}>
+          <button className="plain-button" onClick={authActions.handleLogout}>
             logout
           </button>
         ) : (
-          <button className="plain-button" onClick={handleLogin}>
+          <button className="plain-button" onClick={authActions.handleLogin}>
             login
           </button>
         )}

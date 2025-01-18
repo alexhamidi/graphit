@@ -10,6 +10,7 @@ import NewBlankGraphBox from "../components/NewBlankGraphBox";
 import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
 import Error from "../components/Error";
+import TopBox from "../components/TopBox"
 import {
   Graph,
   Position,
@@ -20,6 +21,7 @@ import {
   GraphConfig,
   BoxActive,
   MiniEdge,
+  SelectingAlgo,
 } from "../interfaces";
 import { authorizedFetch, authorizedPost, post } from "../networking";
 import {
@@ -29,7 +31,10 @@ import {
   outOfBounds,
   getBoundedPosition,
 } from "../utils/utils";
-import { generateCPP } from "../utils/code";
+import {
+  saveGraphCPP,
+  saveGraphPNG,
+} from "../utils/saving";
 import { debounce } from "lodash";
 import {
   DEFAULT_ERROR,
@@ -37,7 +42,8 @@ import {
   CLOUD_FETCH_FAIL_ERROR,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
-  GRAPH_COLORS
+  GRAPH_COLORS,
+  DEFAULT_SELECTING_ALGO
 } from "../constants";
 
 export default function GraphPage({
@@ -77,6 +83,7 @@ export default function GraphPage({
 
   // KEYS
   const [shiftPressed, setShiftPressed] = useState<boolean>(false);
+
   const [metaPressed, setMetaPressed] = useState<boolean>(false);
 
   // MOUSE
@@ -96,6 +103,17 @@ export default function GraphPage({
     return false;
   });
 
+  // ALGORITHMS
+  const [selectingAlgo, setSelectingAlgo] = useState<SelectingAlgo>(DEFAULT_SELECTING_ALGO)
+  const [highlighted, setHighlighted] = useState<Set<string>>(
+    new Set<string>(),
+  );
+  const [message, setMessage] = useState<string>("");
+  const [resetShown, setResetShown] = useState<boolean>(false);
+
+  const [searchValueInputShown, setSearchValueInputShown] = useState<boolean>(false);
+  const [searchValueInput, setSearchValueInput] = useState<string>('')
+
 
   // REFS
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -109,9 +127,16 @@ export default function GraphPage({
   // ========================== Auth Actions ==========================
   // =================================================================
 
+
   // VALIDATE USER
   useEffect(() => {
-    const checkAuth = async () => {
+    authActions.checkAuth();
+  }, [setAuthenticated]);
+
+
+  const authActions = {
+    // check auth
+    checkAuth: async() => {
       const currToken = localStorage.getItem("token");
       if (!currToken) {
         setAuthenticated(false);
@@ -120,46 +145,37 @@ export default function GraphPage({
       }
       const email: string | null = await fetchEmail(currToken);
       if (!email) {
-        handleLogout();
+        authActions.handleLogout();
+        setLoading(false);
       } else {
         setAuthenticated(true);
         setEmail(email);
         setToken(currToken);
       }
-    };
-    checkAuth();
-  }, [setAuthenticated]);
+    },
 
-  // LOGOUT
-  const handleLogout = () => {
-    setAuthenticated(false);
-    setGraphs(new Map()); //need to store everything here
-    setCurrGraph("");
-    setEmail(null);
-    setGraphConfig(DEFAULT_GRAPH_CONFIG);
-    localStorage.clear();
-    localStorage.setItem('darkMode', (+darkMode).toString());
+    // LOGOUT
+    handleLogout: () => {
+      setAuthenticated(false);
+      setGraphs(new Map()); // need to store everything here
+      setCurrGraph("");
+      setEmail(null);
+      setGraphConfig(DEFAULT_GRAPH_CONFIG);
+      localStorage.clear();
+      localStorage.setItem('darkMode', (+darkMode).toString());
+    },
+
+    // LOGIN
+    handleLogin: () => {
+      navigate("/login");
+    },
   };
 
-  // LOGIN
-  const handleLogin = () => {
-    navigate("/login");
-  };
 
   // =================================================================
   // ============================ Caching ============================
   // =================================================================
 
-
-
-
-  //cache all options under one object - store as one object too? would condense stuff
-
-  // CACHE CURRGRAPH
-  const setAndCacheCurrGraph = (id: string) => {
-    setCurrGraph(id);
-    if (authenticated) localStorage.setItem("currGraph", id);
-  };
 
   // CACHE GRAPH OPTIONS
   useEffect(() => {
@@ -185,76 +201,86 @@ export default function GraphPage({
   // =================================================================
 
   // CREATE AND SAVE GRAPH INITIALIZED WITH INPUTS
-  const handleNewGraphFromInput = (
-    name: string,
-    nodeValues: string[],
-    edgeValues: MiniEdge[],
-  ) => {
-    const newGraph: Graph = new Graph(name);
-    const nodeIdMap = new Map<string, string>();
-    nodeValues.forEach((value) => {
-      const newNode: Node = new Node(
-        canvasRect,
-        graphConfig.currentChosenColor,
-        undefined,
-        value,
-      );
-      nodeIdMap.set(value, newNode.id);
-      newGraph.nodes.push(newNode);
-    });
-    edgeValues.forEach(([node1Value, node2Value, edgeValue]) => {
-      const n1Id = nodeIdMap.get(node1Value);
-      const n2Id = nodeIdMap.get(node2Value);
-      if (n1Id && n2Id && n1Id !== n2Id) {
-        const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue);
-        newGraph.edges.push(newEdge);
+  const graphActions = {
+    // CREATE GRAPH FROM INPUT
+    handleNewGraphFromInput: (
+      name: string,
+      nodeValues: string[],
+      edgeValues: MiniEdge[],
+    ) => {
+      const newGraph: Graph = new Graph(name);
+      const nodeIdMap = new Map<string, string>();
+      nodeValues.forEach((value) => {
+        const newNode: Node = new Node(
+          canvasRect,
+          graphConfig.currentChosenColor,
+          undefined,
+          value,
+        );
+        nodeIdMap.set(value, newNode.id);
+        newGraph.nodes.push(newNode);
+      });
+      edgeValues.forEach(([node1Value, node2Value, edgeValue]) => {
+        const n1Id = nodeIdMap.get(node1Value);
+        const n2Id = nodeIdMap.get(node2Value);
+        if (n1Id && n2Id && n1Id !== n2Id) {
+          const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue);
+          newGraph.edges.push(newEdge);
+        }
+      });
+      graphActions.handleAddGraph(newGraph);
+    },
+
+    // CREATE AND SAVE EMPTY GRAPH
+    handleNewGraph: (name: string) => {
+      const newGraph: Graph = new Graph(name);
+      graphActions.handleAddGraph(newGraph);
+    },
+
+    // ADD GRAPH
+    handleAddGraph: (graph: Graph) => {
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        updatedGraphs.set(graph.id, graph);
+        return updatedGraphs;
+      });
+      graphActions.setAndCacheCurrGraph(graph.id);
+    },
+
+    // DELETE GRAPH
+    handleDeleteGraph: () => {
+      algoActions.handleEndAlgorithm();
+      setGraphs((prevGraphs) => {
+        const newGraphs = new Map(prevGraphs);
+        newGraphs.delete(currGraph);
+        return newGraphs;
+      });
+      localStorage.removeItem("currGraph");
+      setCurrGraph("");
+    },
+
+    // SAVE GRAPH
+    handleSaveGraph: async () => {
+      if (!authenticated || !token) return;
+      try {
+        await authorizedPost("/graphs", Object.fromEntries(graphs), token);
+      } catch (err) {
+        console.error(CLOUD_SAVE_FAIL_ERROR);
+        if (isAxiosError(err) && err.response?.status === 400) {
+          authActions.handleLogout();
+        }
       }
-    });
-    handleAddGraph(newGraph);
-  };
+    },
 
-  // CREATE AND SAVE EMPTY GRAPH
-  const handleNewGraph = (name: string) => {
-    const newGraph: Graph = new Graph(name);
-    handleAddGraph(newGraph);
-  };
+    // SET AND CACHE GRAPHS
+    setAndCacheCurrGraph: (id: string) => {
+      setCurrGraph(id);
+      if (authenticated) localStorage.setItem("currGraph", id);
+    },
 
-  // ADD GRAPH
-  const handleAddGraph = (graph: Graph) => {
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      updatedGraphs.set(graph.id, graph);
-      return updatedGraphs;
-    });
-    setAndCacheCurrGraph(graph.id);
-  };
 
-  // DELETE GRAPH
-  const handleDeleteGraph = () => {
-    setGraphs((prevGraphs) => {
-      const newGraphs = new Map(prevGraphs);
-      newGraphs.delete(currGraph);
-      return newGraphs;
-    });
-    localStorage.removeItem("currGraph");
-    setCurrGraph("");
-  };
-
-  // UPDATE UNSAVED IF CHANGES MADE TO GRAPH
-  useEffect(() => {
-    if (!unsaved && graphs.size > 0) {
-      setUnsaved(true);
-    }
-  }, [graphs]);
-
-  // FETCH GRAPHS FROM CLOUD OR LOCALLY
-  useEffect(() => {
-    const handleFetchGraphs = async () => {
-      // const cachedGraphs: string | null = localStorage.getItem("graphs");
-      // if (cachedGraphs) {
-      //   setGraphs(JSON.parse(cachedGraphs))
-      // }
-      // console.log(cachedGraphs)
+    // FETCH GRAPHS
+    handleFetchGraphs: async () => {
       if (!authenticated || !token) {
         return;
       }
@@ -268,37 +294,30 @@ export default function GraphPage({
       } catch (err) {
         setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
         if (isAxiosError(err) && err.response?.status === 400) {
-          handleLogout();
+          authActions.handleLogout();
         }
       }
-    };
-    handleFetchGraphs();
+    },
+  };
+
+  useEffect(() => {
+    if (!unsaved && graphs.size > 0) {
+      setUnsaved(true);
+    }
+  }, [graphs]);
+
+  useEffect(() => {
+    graphActions.handleFetchGraphs();
   }, [token, authenticated]);
 
-  // SAVE GRAPH STATE TO CLOUD AND LOCALLY
-  const handleSaveGraph = async () => {
-    // console.log((graphs))
-    // console.log(JSON.stringify(Object.fromEntries(graphs)));
-    // localStorage.setItem("graphs", JSON.stringify(graphs))
-    if (!authenticated || !token) return;
-    try {
-      await authorizedPost("/graphs", Object.fromEntries(graphs), token);
-    } catch (err) {
-      console.error(CLOUD_SAVE_FAIL_ERROR);
-      if (isAxiosError(err) && err.response?.status === 400) {
-        handleLogout();
-      }
-    }
-  };
 
   // SAVE GRAPH TO CLOUD REGULARLY
   const debouncedSaveGraph = useCallback(
     debounce(() => {
-      //debounce - waits till no changes in 1000ms
-      handleSaveGraph();
+      graphActions.handleSaveGraph();
       setUnsaved(false);
     }, 1000),
-    [handleSaveGraph],
+    [graphActions.handleSaveGraph],
   );
 
   useEffect(() => {
@@ -308,454 +327,470 @@ export default function GraphPage({
     return () => debouncedSaveGraph.cancel();
   }, [graphs, authenticated, token]);
 
-  // SAVE GRAPH AS PNG
-  const handleSaveGraphPng = async () => {
-    if (!currGraph) {
-      setErrorMessage("Must select a graph first");
-      return;
-    }
-    const svg = canvasRef.current!;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = svg.clientWidth;
-      canvas.height = svg.clientHeight;
-
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(img, 0, 0);
-
-        const pngDataUrl = canvas.toDataURL("image/png");
-
-        const element = document.createElement("a");
-        element.download = `${graphs.get(currGraph)?.name || "graph"}.png`;
-        element.href = pngDataUrl;
-        element.click();
-      }
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
-  };
-
   // =================================================================
   // ========================== Node Actions ==========================
   // =================================================================
 
-  // ADD NODE
-  const handleAddNode = (cursorPos?: Position, newValue?: string) => {
-    const newNode: Node = new Node(
-      canvasRect,
-      graphConfig.currentChosenColor,
-      cursorPos,
-      newValue,
-    );
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        nodes: [...prevGraph.nodes, newNode],
+  const nodeActions = {
+    // ADD NODE
+    handleAddNode: (cursorPos?: Position, newValue?: string) => {
+      const newNode: Node = new Node(
+        canvasRect,
+        graphConfig.currentChosenColor,
+        cursorPos,
+        newValue,
+      );
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: [...prevGraph.nodes, newNode],
+        });
+        return updatedGraphs;
       });
-      return updatedGraphs;
-    });
-  };
+    },
 
-  // DELETE NODE
-  const handleDeleteNode = (id: string) => {
-    handleCancelEditing();
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
+    // DELETE NODE
+    handleDeleteNode: (id: string) => {
+      if (highlighted.has(id) && Object.values(selectingAlgo).includes(true)) {
+        algoActions.handleEndAlgorithm();
+      }
+      miscActions.handleCancelEditing();
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
 
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        nodes: prevGraph.nodes.filter((node) => node.id !== id),
-        edges: prevGraph.edges.filter(
-          (edge) => edge.n1 !== id && edge.n2 !== id,
-        ),
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: prevGraph.nodes.filter((node) => node.id !== id),
+          edges: prevGraph.edges.filter(
+            (edge) => edge.n1 !== id && edge.n2 !== id,
+          ),
+        });
+        return updatedGraphs;
       });
-      return updatedGraphs;
-    });
-  };
+    },
 
-  // UPDATE NODE COLOR or do others
-  const handleBasicNodeClick = (id: string) => {
-    if (selectingShortest) {
-      setHighlighted((prev) => new Set(prev).add(id));
-      return;
-    }
-    if (!graphConfig.currentChosenColor) {
-      return;
-    }
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-      const newColor = graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main ? "": graphConfig.currentChosenColor!
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        nodes: prevGraph.nodes.map((node) =>
-          node.id === id
-            ? { ...node, customColor: newColor }
-            : node,
-        ),
+    // UPDATE NODE COLOR or do others
+    handleBasicNodeClick: (id: string) => {
+      if (Object.values(selectingAlgo).includes(true)) {
+        setHighlighted((prev) => new Set(prev).add(id));
+        return;
+      }
+      if (!graphConfig.currentChosenColor) {
+        return;
+      }
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        const newColor = graphConfig.currentChosenColor! == GRAPH_COLORS[+darkMode].main ? "": graphConfig.currentChosenColor!
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: prevGraph.nodes.map((node) =>
+            node.id === id
+              ? { ...node, customColor: newColor }
+              : node,
+          ),
+        });
+
+        return updatedGraphs;
       });
+    },
 
-      return updatedGraphs;
-    });
-  };
+    // UPDATE NODE POSITION
+    handleUpdateNodePos: (id: string, pos: Position) => {
+      // Need to min canvasrect
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
 
-  //Math.min(Math.max(pos.x, 0), canvasRect!.width)
+        const newPos: Position = getBoundedPosition(pos, canvasRect);
 
-  // UPDATE NODE POSITION
-  const handleUpdateNodePos = (id: string, pos: Position) => {
-    //need to min canvasrect
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-
-      const newPos: Position = getBoundedPosition(pos, canvasRect);
-
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        nodes: prevGraph.nodes.map((node) =>
-          node.id === id ? { ...node, pos: newPos } : node,
-        ),
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: prevGraph.nodes.map((node) =>
+            node.id === id ? { ...node, pos: newPos } : node,
+          ),
+        });
+        return updatedGraphs;
       });
-      return updatedGraphs;
-    });
-  };
+    },
 
-  //needs to be fixed
-
-  const handleEditNode = (editNode: Node, newValue: string) => {
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        nodes: prevGraph.nodes.map((node) =>
-          node.id === editNode.id ? { ...node, value: newValue } : node,
-        ),
+    // EDIT NODE
+    handleEditNode: (editNode: Node, newValue: string) => {
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: prevGraph.nodes.map((node) =>
+            node.id === editNode.id ? { ...node, value: newValue } : node,
+          ),
+        });
+        return updatedGraphs;
       });
-      return updatedGraphs;
-    });
-  };
-
-  const handleEditEdge = (editEdge: Edge, newValue: string) => {
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        edges: prevGraph.edges.map((edge) =>
-          edge.id === editEdge.id ? { ...edge, value: newValue } : edge,
-        ),
-      });
-      return updatedGraphs;
-    });
+    },
   };
 
   // =================================================================
   // ========================== Edge Actions ==========================
   // =================================================================
 
-  // ADD EDGE
-  const handleAddEdge = (n1: string, n2: string) => {
-    if (n1 === n2) return;
-    const newEdge: Edge = {
-      id: uuidv4(),
-      value: "0",
-      n1: n1,
-      n2: n2,
-    };
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        edges: [...prevGraph.edges, newEdge],
+  const edgeActions = {
+    // ADD EDGE
+    handleAddEdge: (n1: string, n2: string) => {
+      // if (n1 === n2) return;//allow
+      const newEdge: Edge = {
+        id: uuidv4(),
+        value: "0",
+        n1: n1,
+        n2: n2,
+      };
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        const edgeExists = prevGraph.edges.some(edge => (
+          edge.n1 === n1 && edge.n2 === n2));
+
+        if (edgeExists) {
+          return prevGraphs;
+        }
+
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          edges: [...prevGraph.edges, newEdge],
+        });
+
+        return updatedGraphs;
       });
-      return updatedGraphs;
-    });
+    },
+
+    // DELETE EDGE
+    handleDeleteEdge: (id: string) => {
+      miscActions.handleCancelEditing();
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          edges: prevGraph.edges.filter((edge) => edge.id !== id),
+        });
+        return updatedGraphs;
+      });
+    },
+
+    // EDIT EDGE
+    handleEditEdge: (editEdge: Edge, newValue: string) => {
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          edges: prevGraph.edges.map((edge) =>
+            edge.id === editEdge.id ? { ...edge, value: newValue } : edge,
+          ),
+        });
+        return updatedGraphs;
+      });
+    },
   };
 
-  // DELETE EDGE
-  const handleDeleteEdge = (id: string) => {
-    handleCancelEditing();
-    setGraphs((prevGraphs) => {
-      const updatedGraphs = new Map(prevGraphs);
-      const prevGraph = prevGraphs.get(currGraph)!;
-
-      updatedGraphs.set(currGraph, {
-        ...prevGraph,
-        edges: prevGraph.edges.filter((edge) => edge.id !== id),
-      });
-      return updatedGraphs;
-    });
-  };
 
   // =================================================================
   // ========================== Key Handling ==========================
   // =================================================================
 
   // UPDATE
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Shift") {
-      setShiftPressed(true);
-    } else if (e.key === "Meta") {
-      setMetaPressed(true);
-    } else if (e.key === "k" && metaPressed) {
-      setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
-    } else if (e.key === "i" && metaPressed) {
-      setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
-    } else if (e.key === "u" && metaPressed) {
-      setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
-    } else if (e.key == "Escape") {
-      handleCancelAllActive();
-    }
-  };
-
-  const handleKeyUp = () => {
-    setShiftPressed(false);
-    setMetaPressed(false);
-  };
+  const keyHandlers = {
+    handleKeyDown: (e: KeyboardEvent) => {
+      if (e.key === "Shift") {
+        setShiftPressed(true);
+      } else if (e.key === "Meta") {
+        setMetaPressed(true);
+      } else if (e.key === "k" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
+      } else if (e.key === "i" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
+      } else if (e.key === "u" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
+      } else if (e.key == "Escape") {
+        miscActions.handleCancelAllActive();
+      }
+    },
+    handleKeyUp: () => {
+      setShiftPressed(false);
+      setMetaPressed(false);
+    },
+  }
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", keyHandlers.handleKeyDown);
+    window.addEventListener("keyup", keyHandlers.handleKeyUp);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("keydown", keyHandlers.handleKeyDown);
+      window.removeEventListener("keyup", keyHandlers.handleKeyUp);
     };
   }, [metaPressed]);
 
   // =================================================================
   // ========================= Mouse Handling =========================
   // =================================================================
-
-  const handleMouseDown = (e: MouseEvent) => {
-    if (
-      editInputRef.current &&
-      !editInputRef.current.contains(e.target as globalThis.Node)
-    ) {
-      setEditingNode(null);
-      setEditingEdge(null);
-      return;
-    }
-    if (graphPopupActive) {
+  const mouseActions = {
+    // MOUSE DOWN
+    handleMouseDown: (e: MouseEvent) => {
       if (
-        graphSelectPopupRef.current &&
-        !graphSelectPopupRef.current.contains(e.target as globalThis.Node)
+        editInputRef.current &&
+        !editInputRef.current.contains(e.target as globalThis.Node)
       ) {
-        setGraphPopupActive(false);
+        setEditingNode(null);
+        setEditingEdge(null);
+        return;
       }
-      return;
-    }
+      if (graphPopupActive) {
+        if (
+          graphSelectPopupRef.current &&
+          !graphSelectPopupRef.current.contains(e.target as globalThis.Node)
+        ) {
+          setGraphPopupActive(false);
+        }
+        return;
+      }
+      if (e.button === 0) {
+        setMouseDownStationary(true);
+      }
+    },
 
-    if (e.button === 0) {
-      setMouseDownStationary(true);
-    }
-  };
+    // MOUSE MOVE
+    handleMouseMove: (e: MouseEvent) => {
+      if (!e.shiftKey) {
+        setShiftPressed(false);
+      }
+      setMouseDownStationary(false);
+    },
 
-  const handleMouseMove = () => {
-    setMouseDownStationary(false);
-  };
-
-  const handleMouseUp = (e: MouseEvent) => {
-    if (
-      !shiftPressed &&
-      mouseDownStationary &&
-      currGraph !== "" &&
-      !editingEdge &&
-      !editingNode &&
-      !isBoxActive() &&
-      canvasRect
-    ) {
-      const posRelCanvas: Position = getPosRelRect(
-        { x: e.clientX, y: e.clientY },
-        canvasRect,
-      );
+    // MOUSE UP
+    handleMouseUp: (e: MouseEvent) => {
       if (
-        !outOfBounds(posRelCanvas, canvasRect) &&
-        !getNodeAt(
-          posRelCanvas,
-          graphs.get(currGraph)!.nodes,
-          graphConfig.circleRadius,
-        )
+        !shiftPressed &&
+        mouseDownStationary &&
+        currGraph !== "" &&
+        !editingEdge &&
+        !editingNode &&
+        !miscActions.isBoxActive() &&
+        canvasRect
       ) {
-        handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
+        const posRelCanvas: Position = getPosRelRect(
+          { x: e.clientX, y: e.clientY },
+          canvasRect,
+        );
+        if (
+          !outOfBounds(posRelCanvas, canvasRect) &&
+          !getNodeAt(
+            posRelCanvas,
+            graphs.get(currGraph)!.nodes,
+            graphConfig.circleRadius,
+          )
+        ) {
+          nodeActions.handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
+        }
       }
-    }
 
-    setMouseDownStationary(false);
+      setMouseDownStationary(false);
+    },
   };
-// Prevent pinch-to-zoom on touch devices
-  document.addEventListener('touchstart', function (e) {
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
-  }, { passive: false });
 
-  document.addEventListener('touchmove', function (e) {
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
-  }, { passive: false });
 
   useEffect(() => {
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousedown", mouseActions.handleMouseDown);
+    window.addEventListener("mousemove", mouseActions.handleMouseMove);
+    window.addEventListener("mouseup", mouseActions.handleMouseUp);
     return () => {
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousedown", mouseActions.handleMouseDown);
+      window.removeEventListener("mousemove", mouseActions.handleMouseMove);
+      window.removeEventListener("mouseup", mouseActions.handleMouseUp);
     };
   }, [mouseDownStationary, canvasRect, currGraph, shiftPressed]);
 
   // =================================================================
   // ========================== Misc Actions ==========================
   // =================================================================
+  const miscActions = {
+    // CANCEL ALL ACTIVE DISPLAYS
+    handleCancelAllActive: () => {
+      setEditingEdge(null);
+      setEditingNode(null);
+      setBoxActive(DEFAULT_BOX_ACTIVE);
+      setGraphPopupActive(false);
+      setErrorMessage(null);
+    },
 
-  // CANCEL ALL ACTIVE DISPLAYS
-  const handleCancelAllActive = () => {
-    setEditingEdge(null);
-    setEditingNode(null);
-    setBoxActive(DEFAULT_BOX_ACTIVE);
-    setGraphPopupActive(false);
-    setErrorMessage(null);
+    // CANCEL ALL ACTIVE DISPLAYS (editing)
+    handleCancelEditing: () => {
+      setEditingEdge(null);
+      setEditingNode(null);
+    },
+
+    // UPDATE ERROR MESSAGE
+    handleSetError: (message?: string) => {
+      if (!message) message = DEFAULT_ERROR;
+      setErrorMessage(message);
+    },
+
+    // CHECK IF BOX IS ACTIVE
+    isBoxActive: () => {
+      return (
+        boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox
+      );
+    },
   };
 
-  // CANCEL ALL ACTIVE DISPLAYS
-  const handleCancelEditing = () => {
-    setEditingEdge(null);
-    setEditingNode(null);
-  };
-
-  // UPDATE ERROR MESSAGE
-  const handleSetError = (message?: string) => {
-    if (!message) message = DEFAULT_ERROR;
-    setErrorMessage(message);
-  };
-
-  const isBoxActive = () => {
-    return (
-      boxActive.aiBox || boxActive.newBlankGraphBox || boxActive.newTextGraphBox
-    );
-  };
-
-  // should we make a new auxillary function OR usestate on box state
-  // easy if convert to single object
 
   // =================================================================
   // =========================== Algorithms ===========================
   // =================================================================
 
-  const [selectingShortest, setSelectingShortest] = useState<boolean>(false);
-  const [highlighted, setHighlighted] = useState<Set<string>>(
-    new Set<string>(),
-  );
-  const [message, setMessage] = useState<string>("");
-  const [shortestDisplayed, setShortestDisplayed] = useState<boolean>(false);
 
-  const handleStartShortest = () => {
-    handleDisableDisplayed();
-    if (currGraph == "") {
-      setErrorMessage("Need to select a graph before running algorithms");
-      return;
-    }
-    setSelectingShortest(true);
-    setMessage("select origin node...");
-  };
-
-  useEffect(() => {
-    if (!selectingShortest || shortestDisplayed) return;
-    if (highlighted.size === 1) {
-      setMessage("select destination node...");
-    } else if (highlighted.size === 2) {
-      handleGetShortest();
-      setMessage("");
-    }
-  }, [highlighted]);
-
-  const handleGetShortest = async () => {
-    if (highlighted.size !== 2) {
-      setErrorMessage("Need to select 2 nodes");
-      setHighlighted(new Set());
-      setSelectingShortest(false);
-      return;
-    }
-    if (!graphs.has(currGraph)) {
-      setErrorMessage(DEFAULT_ERROR);
-      setHighlighted(new Set());
-      setSelectingShortest(false);
-      return;
-    }
-    try {
-      const [n1, n2] = highlighted;
-      const graph: Graph = graphs.get(currGraph)!;
-      const response = await post(
-        `/algorithm/shortest?n1=${n1}&n2=${n2}`,
-        graph,
-      );
-      const ids: string[] = response.data.visitedIds;
-      console.log(ids)
-      if (ids.length === 0) {
-        setErrorMessage("no path exists between these nodes");
-        setHighlighted(new Set());
+  const algoActions = {
+    // START ALGORITHM
+    handleStartAlgo: (type: string) => {
+      algoActions.handleEndAlgorithm();
+      if (currGraph === "") {
+        setErrorMessage("Need to select a graph before running algorithms");
+      } else if (type === "toposort") {  //topo sort not a selection one
+        algoActions.handleGetTopo();
       } else {
-        setHighlighted(new Set())
-        setShortestDisplayed(true);
-        let currHighlighted: string[] = [];
-        for (let id of ids) {
-          currHighlighted = [...currHighlighted, id];
-          setHighlighted(new Set(currHighlighted)); //rerunning
-          await new Promise(resolve => setTimeout(resolve, 250));
+        setSelectingAlgo({
+          ...DEFAULT_SELECTING_ALGO,
+          [type]: true,
+        });
+      }
+      setMessage("select origin node...");
+    },
+
+    // DETECT CHANGE IN HIGHLIGHTED (SELECTED)
+    handleHighlightedChange: () => {
+      if (resetShown) return;
+      if (selectingAlgo.shortest) {
+        if (highlighted.size === 1) {
+          setMessage("select destination node...");
+        } else if (highlighted.size === 2) {
+          algoActions.handleGetShortest();
+          setMessage("");
+        }
+      } else if (selectingAlgo.bfs || selectingAlgo.dfs) {
+        if (highlighted.size === 1) {
+          setSearchValueInputShown(true);
+          setMessage("");
         }
       }
-      setSelectingShortest(false);
-    } catch (err) {
-      setHighlighted(new Set());
-      setSelectingShortest(false);
-      if (isAxiosError(err) && err.response?.status === 400) {
-        setErrorMessage("Invalid graph for finding shortest path");
-      } else {
+    },
+
+    // SEARCH VALUE SUBMIT
+    handleSearchValueSubmit: (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (searchValueInput === "") {
+        setErrorMessage("Need to provide a value");
+      } else if (selectingAlgo.bfs) {
+        algoActions.handleGetTraversal("bfs");
+      } else if (selectingAlgo.dfs) {
+        algoActions.handleGetTraversal("dfs");
+      }
+    },
+
+    handleGetTopo: async () => {
+
+      /* not really any frontend validation that needs to be done. the only questionable thing is whether or not it can happen, which we can return by some flag. We will need to modify the graph, but just the edges, not the nodes. We can return a new graph, and throw an error if its not a valid graph for the given operation.
+
+
+      */
+
+
+
+      // try {
+
+
+
+      // }
+    },
+
+    // GET TRAVERSAL (BFS/DFS)
+    handleGetTraversal: async (type: string) => {
+      try {
+        const [n1] = highlighted;
+        const response = await post(
+          `/algorithm/${type}?origin=${n1}&value=${searchValueInput}`,
+          graphs.get(currGraph)!
+        );
+        const ids: string[] = response.data.visitedIds;
+        algoActions.handleEndAlgorithm();
+        algoActions.displayAnimation(ids);
+        setResetShown(true);
+      } catch (err) {
+        console.log("here");
+        algoActions.handleEndAlgorithm();
+        setSearchValueInputShown(false);
         setErrorMessage(DEFAULT_ERROR);
       }
-    }
+    },
+
+    // GET SHORTEST PATH
+    handleGetShortest: async () => {
+      try {
+        const [n1, n2] = highlighted;
+        const response = await post(
+          `/algorithm/shortest?n1=${n1}&n2=${n2}`,
+          graphs.get(currGraph)!
+        );
+        const ids: string[] = response.data.visitedIds;
+        algoActions.handleEndAlgorithm();
+        if (ids.length === 0) {
+          setErrorMessage("no path exists between these nodes");
+        } else {
+          algoActions.displayAnimation(ids);
+        }
+        setResetShown(true);
+      } catch (err) {
+        algoActions.handleEndAlgorithm();
+        if (isAxiosError(err) && err.response?.status === 400) {
+          setErrorMessage("Invalid graph for finding shortest path");
+        } else {
+          setErrorMessage(DEFAULT_ERROR);
+        }
+      }
+    },
+
+    // DISPLAY ANIMATION
+    displayAnimation: async (ids: string[]) => {
+      for (let id of ids) {
+        setHighlighted((prev) => new Set([...prev, id]));
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+    },
+
+    // END ALGORITHM
+    handleEndAlgorithm: () => {
+      setResetShown(false);
+      setMessage("");
+      setSelectingAlgo(DEFAULT_SELECTING_ALGO);
+      setHighlighted(new Set());
+      setSearchValueInputShown(false);
+      setSearchValueInput("");
+    },
   };
+
+  useEffect(algoActions.handleHighlightedChange, [highlighted]);
+
 
   // =================================================================
-  // ============================ Code Gen ============================
+  // ============================= Saving =============================
   // =================================================================
 
-  const handleDisableDisplayed = () => {
-    setShortestDisplayed(false);
-    setHighlighted(new Set());
-  };
-
-  const handleGenCPP = () => {
-    if (currGraph == "") {
-      setErrorMessage("Need to select a graph before generating code");
-      return;
-    }
-
-    const cpp: string = generateCPP(graphs.get(currGraph)!);
-
-    const blob = new Blob([cpp], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-
-    const element = document.createElement("a");
-    element.download = `${graphs.get(currGraph)!.name}.cpp`;
-    element.href = url;
-    element.click();
-
-    URL.revokeObjectURL(url);
-  };
+  const saveActions = {
+    handleSaveGraphPNG: () => saveGraphPNG(canvasRef, graphs.get(currGraph)!),
+    handleSaveGraphCPP: () => saveGraphCPP(graphs.get(currGraph)!)
+  }
 
   // =================================================================
   // ======================= Returned Component =======================
@@ -765,105 +800,115 @@ export default function GraphPage({
   return (
     <>
       {loading && <div id="loading" />}
-      {errorMessage && (
+      {errorMessage &&
         <Error errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
-      )}
-      {(message || shortestDisplayed) && (
-        <div id="message" className="main-component">
-          {message && message}
-          {shortestDisplayed && (
-            <button className="plain-button" onClick={handleDisableDisplayed}>
+      }
+
+      {/* need to add cancel */}
+      {message && <TopBox
+          children={message}
+          onClose={algoActions.handleEndAlgorithm}
+        />
+      }
+      {resetShown && <TopBox
+          children={
+            <button className="plain-button" onClick={algoActions.handleEndAlgorithm}>
               reset highlighting
             </button>
-          )}
-        </div>
-      )}
+          }
+          onClose={algoActions.handleEndAlgorithm}
+        />
+      }
+      {searchValueInputShown && <TopBox
+          children={<>
+            <div id="searching-for">
+              value searching for:
+            </div>
+            <form onSubmit = {algoActions.handleSearchValueSubmit} >
+                <input className="basic-button" type="text" value={searchValueInput} onChange={(e)=>setSearchValueInput(e.target.value)}/>
+                <input className="basic-button" type="submit"/>
+            </form>
+          </>}
+          onClose={algoActions.handleEndAlgorithm}
+        />
+      }
       <Header
         unsaved={unsaved}
         authenticated={authenticated}
-        handleLogout={handleLogout}
-        handleLogin={handleLogin}
+        authActions={authActions}
         graphs={graphs}
         currGraph={currGraph}
-        setAndCacheCurrGraph={setAndCacheCurrGraph}
-        handleNewGraph={handleNewGraph}
-        handleDeleteGraph={handleDeleteGraph}
+        graphActions={graphActions}
         email={email}
         setBoxActive={setBoxActive}
         graphPopupActive={graphPopupActive}
         setGraphPopupActive={setGraphPopupActive}
         graphSelectPopupRef={graphSelectPopupRef}
-        handleSetError={handleSetError}
+        handleSetError={miscActions.handleSetError}
         loading={loading}
         toggleDarkMode={toggleDarkMode}
         darkMode={darkMode}
+        saveActions={saveActions}
       />
       <main id="graphpage-main">
         {boxActive.infoBox && (
           <InfoBox
             setBoxActive={setBoxActive}
-            handleSetError={handleSetError}
+            handleSetError={miscActions.handleSetError}
           />
         )}
         {boxActive.newBlankGraphBox && (
           <NewBlankGraphBox
             setBoxActive={setBoxActive}
-            handleNewGraph={handleNewGraph}
+            handleNewGraph={graphActions.handleNewGraph}
             setGraphPopupActive={setGraphPopupActive}
-            handleSetError={handleSetError}
+            handleSetError={miscActions.handleSetError}
           />
         )}
         {boxActive.newTextGraphBox && (
           <NewTextGraphBox
             setBoxActive={setBoxActive}
             setGraphPopupActive={setGraphPopupActive}
-            handleSetError={handleSetError}
-            handleNewGraphFromInput={handleNewGraphFromInput}
+            handleSetError={miscActions.handleSetError}
+            handleNewGraphFromInput={graphActions.handleNewGraphFromInput}
           />
         )}
         {boxActive.aiBox && (
           <AiBox
             setBoxActive={setBoxActive}
-            handleAddGraph={handleAddGraph}
+            handleAddGraph={graphActions.handleAddGraph}
             canvasRect={canvasRect}
-            handleSetError={handleSetError}
+            handleSetError={miscActions.handleSetError}
           />
         )}
         <Canvas
           graph={currGraph === "" ? null : graphs.get(currGraph)!}
-          handleAddEdge={handleAddEdge}
-          handleDeleteNode={handleDeleteNode}
-          handleUpdateNodePos={handleUpdateNodePos}
-          handleDeleteEdge={handleDeleteEdge}
           shiftPressed={shiftPressed}
           setCanvasRect={setCanvasRect}
           canvasRect={canvasRect}
-          handleEditNode={handleEditNode}
-          handleEditEdge={handleEditEdge}
-          isBoxActive={isBoxActive}
+          isBoxActive={miscActions.isBoxActive}
           editingEdge={editingEdge}
           setEditingEdge={setEditingEdge}
           editingNode={editingNode}
           setEditingNode={setEditingNode}
           editInputRef={editInputRef}
-          handleBasicNodeClick={handleBasicNodeClick}
           canvasRef={canvasRef}
-          handleSetError={handleSetError}
+          handleSetError={miscActions.handleSetError}
           graphConfig={graphConfig}
           setGraphs={setGraphs}
           highlighted={highlighted}
           loading={loading}
           darkMode={darkMode}
+          edgeActions={edgeActions}
+          nodeActions={nodeActions}
         />
         <Options
           graphConfig={graphConfig}
           setGraphConfig={setGraphConfig}
-          handleSaveGraphPng={handleSaveGraphPng}
-          handleStartShortest={handleStartShortest}
-          handleGenCPP={handleGenCPP}
           darkMode={darkMode}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
+          handleStartAlgo={algoActions.handleStartAlgo}
         />
       </main>
     </>

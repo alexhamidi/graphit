@@ -1,5 +1,5 @@
 import { Position, Node, Graph, AdjEdge } from "../interfaces";
-import { EDGE_BOUNDARY } from "../constants";
+import { EDGE_BOUNDARY, PERP_LEN } from "../constants";
 import { authorizedFetch } from "../networking";
 // App
 export function outOfBounds(
@@ -119,3 +119,39 @@ export function getAdj(graph: Graph): Map<string, AdjEdge[]> {
 // export function minPos(pos: Position, num: number): Position {
 //   return { x: Math.min(pos.x, num), y: Math.min(pos.y, num) };
 // }
+
+export function adjustEndpoint(p1: Position, p2 : Position, circleRadius:number) : Position {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  // Calculate the point that's `radius` units before the end point
+  const t = (distance - circleRadius) / distance;
+
+  return {
+    x: p1.x + dx * t,
+    y: p1.y + dy * t
+  };
+}
+
+export function getBidirectionalOffsets(p1: Position, p2: Position) : Position {
+  const yNeg: boolean = p2.y - p1.y < 0;
+  let dx,dy;
+  if (Math.abs(p1.y - p2.y) < .00001) {
+    dx = 0;
+    dy = p2.x > p1.x ? PERP_LEN : -PERP_LEN;
+  } else {
+    const slope = (p2.y - p1.y) / (p2.x - p1.x);
+    const p_slope = -(1 / (slope + 0.0000001));
+    dx = -Math.sqrt((PERP_LEN * PERP_LEN) / (1 + p_slope * p_slope));
+    dy = p_slope * dx;
+  }
+  if (yNeg) {
+    dx*=-1;
+    dy*=-1;
+  }
+  return {
+    x:dx,
+    y:dy,
+  }
+}

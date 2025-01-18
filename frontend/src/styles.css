@@ -16,6 +16,7 @@
 
   /* Other */
   --box-padding: 0.8em;
+
 }
 
 .dark-mode {
@@ -37,6 +38,10 @@
 
   /* Other */
   --box-padding: 0.8em;
+}
+
+input[type="text"] {
+  background-color:var(--main-color)
 }
 
 i {
@@ -122,7 +127,11 @@ main {
 
 /* message */
 
-#message {
+#searching-for {
+  margin-bottom:.8em;
+}
+
+.message {
   z-index: 1000;
   text-align: center;
   width: 20vw;

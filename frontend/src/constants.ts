@@ -1,4 +1,4 @@
-import { Size, GraphConfig, BoxActive, Colors } from "./interfaces";
+import { Size, GraphConfig, BoxActive, Colors,SelectingAlgo } from "./interfaces";
 
 export const MODE: string = import.meta.env.VITE_MODE!;
 export const AI_ACCESSIBLE: boolean =
@@ -13,9 +13,11 @@ export const GRAVITATIONAL_CONSTANT = 0.03;
 export const DELTA_TIME = 1.2;
 export const DAMPING = 0.6;
 export const MOVEMENT_THRESHOLD = 0.03;
-export const REFRESH_RATE = 5;
+export const REFRESH_RATE = 10;
+export const SPRING_FORCE = .075
 
 //graph stuff
+
 export const PERP_LEN: number =20;
 export const INITIAL_CIRCLE_RADIUS: number = 30;
 export const INITIAL_FONT_SIZE: number = 15;
@@ -32,6 +34,8 @@ export const GRAPH_COLORS: Colors[]= [
     text:"#f0f0f0"
   }
 ]
+
+// defaults
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeMode: false,
   directedMode: false,
@@ -47,6 +51,11 @@ export const DEFAULT_BOX_ACTIVE: BoxActive = {
   newTextGraphBox: false,
   infoBox: false,
 };
+export const DEFAULT_SELECTING_ALGO: SelectingAlgo = {
+  bfs:false,
+  dfs:false,
+  shortest:false
+}
 
 export const PIXELS_PER_FONT_SIZE_UNIT = 0.6;
 

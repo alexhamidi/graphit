@@ -7,46 +7,39 @@ import {
   LocatedEdge,
   Graph,
   GraphConfig,
+  NodeActions,
+  EdgeActions,
 } from "../interfaces";
 import {
   INVISIBLE_CHAR,
   GRAPH_COLORS,
   PIXELS_PER_FONT_SIZE_UNIT,
-  GRAVITATIONAL_CONSTANT,
   NUM_MAX_PHYSICS_ITERS,
-  DAMPING,
-  DELTA_TIME,
-  MOVEMENT_THRESHOLD,
   REFRESH_RATE,
-  PERP_LEN,
 } from "../constants";
 import {
   getPosRelParent,
   getNodeAt,
   outOfBounds,
+  adjustEndpoint,
+  getBidirectionalOffsets,
   getMidpoint,
-  addPos,
-  subtractPos,
-  multiplyPos,
-  lengthPos,
-  getBoundedPosition,
 } from "../utils/utils";
+
+import {
+  updateNodePositions
+} from "../utils/physics"
 import EditBox from "../components/EditBox";
 
 interface Props {
   graph: Graph | null;
-  handleAddEdge: (n1: string, n2: string) => void;
-  handleDeleteNode: (id: string) => void;
-  handleUpdateNodePos: (id: string, pos: Position) => void;
-  handleDeleteEdge: (id: string) => void;
+  nodeActions:NodeActions;
+  edgeActions:EdgeActions;
   shiftPressed: boolean;
   setCanvasRect: React.Dispatch<React.SetStateAction<DOMRect | null>>;
   canvasRect: DOMRect | null;
-  handleEditNode: (node: Node, newValue: string) => void;
-  handleEditEdge: (edge: Edge, newValue: string) => void;
   isBoxActive: () => boolean;
   editInputRef: React.RefObject<HTMLInputElement>;
-  handleBasicNodeClick: (id: string) => void;
   canvasRef: React.RefObject<SVGSVGElement>;
   handleSetError: (message: string) => void;
   editingEdge: LocatedEdge | null;
@@ -62,18 +55,13 @@ interface Props {
 
 export default function Canvas({
   graph,
-  handleAddEdge,
-  handleDeleteNode,
-  handleUpdateNodePos,
-  handleDeleteEdge,
+  nodeActions,
+  edgeActions,
   shiftPressed,
   setCanvasRect,
   canvasRect,
-  handleEditNode,
-  handleEditEdge,
   isBoxActive,
   editInputRef,
-  handleBasicNodeClick,
   canvasRef,
   editingEdge,
   setEditingEdge,
@@ -97,6 +85,10 @@ export default function Canvas({
   const [movedCurrNode, setMovedCurrNode] = useState<boolean>(false);
   const [editingName, setEditingName] = useState<string>("");
 
+  // Bidirectional
+  const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
+
+
   // =================================================================
   // ======================== Mouse Handlers ==========================
   // =================================================================
@@ -107,7 +99,7 @@ export default function Canvas({
   ) => {
     if (isBoxActive()) return;
     e.preventDefault();
-    handleDeleteNode(node.id);
+    nodeActions.handleDeleteNode(node.id);
   };
 
   // NODE INTERACTIONS
@@ -160,7 +152,7 @@ export default function Canvas({
   ) => {
     if (isBoxActive()) return;
     e.preventDefault();
-    handleDeleteEdge(edge.id);
+    edgeActions.handleDeleteEdge(edge.id);
   };
 
   // ELEMENT MOVEMENT AND INTERACTION
@@ -174,7 +166,7 @@ export default function Canvas({
         handleMouseUpElement(e);
         return;
       }
-      handleUpdateNodePos(dragging.id, {
+      nodeActions.handleUpdateNodePos(dragging.id, {
         x: cursorPos.x - dragPos!.x,
         y: cursorPos.y - dragPos!.y,
       });
@@ -190,6 +182,8 @@ export default function Canvas({
     setSelectedEdge(null);
   };
   const [edgingBool, setEdgingBool] = useState<boolean>(false);
+
+
   const handleMouseUpElement = (
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
@@ -202,7 +196,7 @@ export default function Canvas({
       setSelectedNode(null);
       setEdging(null);
     } else if (dragging && !movedCurrNode) {
-      handleBasicNodeClick(dragging.id);
+      nodeActions.handleBasicNodeClick(dragging.id);
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
       const cursorNode = getNodeAt(
@@ -211,7 +205,7 @@ export default function Canvas({
         graphConfig.circleRadius,
       );
       if (cursorNode) {
-        handleAddEdge(edging.n1, cursorNode.id);
+        edgeActions.handleAddEdge(edging.n1, cursorNode.id);
       }
     }
     setEdgingBool(false);
@@ -270,14 +264,14 @@ export default function Canvas({
 
   const handleEditEdgeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleEditEdge(editingEdge!, editingName);
+    edgeActions.handleEditEdge(editingEdge!, editingName);
     setEditingEdge(null);
     setEditingName("");
   };
 
   const handleEditNodeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleEditNode(editingNode!, editingName);
+    nodeActions.handleEditNode(editingNode!, editingName);
     setEditingNode(null);
     setEditingName("");
   };
@@ -299,152 +293,21 @@ export default function Canvas({
     canvasRectRef.current = canvasRect;
   }, [graph, dragging, canvasRect, edging]);
 
-  function updateNodePositions() {
-    const currentGraph = graphRef.current;
-    if (!currentGraph || !canvasRect) return;
-
-    let anyNodeMoved = false; // Track if any node had significant movement
-
-    const updatedGraph = {
-      ...currentGraph,
-      nodes: currentGraph.nodes.map((node) => {
-        if (
-          draggingRef.current !== null &&
-          node.id === draggingRef.current.id
-        ) {
-          return node;
-        } else {
-          const centerX = canvasRect.width / 2;
-          const centerY = canvasRect.height / 2;
-
-          const k = Math.sqrt(
-            (canvasRect.width * canvasRect.height) / currentGraph.nodes.length,
-          );
-
-          let force = { x: 0, y: 0 }; //anynode updated with num
-
-          const distanceToCenter = subtractPos(
-            { x: centerX, y: centerY },
-            node.pos,
-          );
-          const centerDistance = lengthPos(distanceToCenter);
-          if (centerDistance > k * 3) {
-            force = addPos(
-              force,
-              multiplyPos(
-                distanceToCenter,
-                (GRAVITATIONAL_CONSTANT * (centerDistance - k * 3)) /
-                  centerDistance,
-              ),
-            );
-          }
-
-          currentGraph.nodes.forEach((otherNode) => {
-            if (node.id !== otherNode.id) {
-              const diff = subtractPos(node.pos, otherNode.pos);
-              const distance = Math.max(k / 2, lengthPos(diff));
-              const repulsionForce = ((k * k) / (distance * distance)) * 0.3;
-              force = addPos(
-                force,
-                multiplyPos(diff, repulsionForce / distance),
-              );
-            }
-          });
-
-          currentGraph.edges.forEach((edge) => {
-            if (edge.n1 === node.id || edge.n2 === node.id) {
-              const otherNodeId = edge.n1 === node.id ? edge.n2 : edge.n1;
-              const otherNode = currentGraph.nodes.find(
-                (n) => n.id === otherNodeId,
-              );
-
-              if (otherNode) {
-                const diff = subtractPos(otherNode.pos, node.pos);
-                const distance = lengthPos(diff);
-                const springForce = (distance - k) * 0.15;
-                force = addPos(
-                  force,
-                  multiplyPos(diff, springForce / distance),
-                );
-              }
-            }
-          });
-
-          force = multiplyPos(force, DAMPING * DELTA_TIME);
-
-          // Clear threshold - if movement is below this, node stops completely
-          // seems tk be some edge length variable/constant force
-
-          let newPos = addPos(node.pos, force);
-
-          const margin = k / 2;
-          const boundaryForce = 0.05;
-          if (newPos.x < margin)
-            newPos.x += (margin - newPos.x) * boundaryForce;
-          if (newPos.x > canvasRect.width - margin)
-            newPos.x -=
-              (newPos.x - (canvasRect.width - margin)) * boundaryForce;
-          if (newPos.y < margin)
-            newPos.y += (margin - newPos.y) * boundaryForce;
-          if (newPos.y > canvasRect.height - margin)
-            newPos.y -=
-              (newPos.y - (canvasRect.height - margin)) * boundaryForce;
-
-          newPos = getBoundedPosition(newPos, canvasRect);
-
-          const displacement: number = Math.abs(
-            lengthPos(node.pos) - lengthPos(newPos),
-          );
-
-          if (displacement > MOVEMENT_THRESHOLD) {
-            anyNodeMoved = true;
-          }
-
-          const ITERS_PER_UPDATE: number = Math.round(20 / REFRESH_RATE);
-
-          if (
-            edgingBool &&
-            edging &&
-            edging.n1 == node.id &&
-            numTotalIters % ITERS_PER_UPDATE === 0
-          ) {
-            setEdging((prevEdging) => {
-              if (prevEdging === null) {
-                return null;
-              }
-              return {
-                ...prevEdging,
-                p1: newPos,
-              };
-            });
-          }
-
-          return {
-            ...node,
-            pos: newPos,
-          };
-        }
-      }),
-    };
-
-    // Only update if at least one node had significant movement
-    if (!anyNodeMoved) {
-      return;
-    }
-
-    setGraphs((prevGraphs) => {
-      const newGraphs = new Map(prevGraphs);
-      newGraphs.set(updatedGraph.id, updatedGraph);
-      return newGraphs;
-    });
-    setNumTotalIters((p) => p + 1);
-  }
-
   useEffect(() => {
     const intervalId = setInterval(() => {
       NUM_MAX_PHYSICS_ITERS;
       if (graphConfig.gravityMode && !editingEdge && !editingNode)
-        updateNodePositions();
+        updateNodePositions(
+          graphRef,
+          draggingRef,
+          edgingRef,
+          canvasRectRef,
+          numTotalIters,
+          setNumTotalIters,
+          edgingBool,
+          setEdging,
+          setGraphs
+        );
     }, REFRESH_RATE);
 
     return () => clearInterval(intervalId);
@@ -456,9 +319,7 @@ export default function Canvas({
   // ================== Checking bidirectional Edges =================
   // =================================================================
 
-  const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
+  const handleUpdateBidirectional = () => {
     if (!graph) return;
     setBidirectional(new Set())
     const existingEdges = new Set<string>();
@@ -474,48 +335,15 @@ export default function Canvas({
         existingEdges.add(edgeKey);
       }
     });
-  }, [graph]);
+  }
 
 
-  // =================================================================
-  // ======================== Gesture/Movement =======================
-  // =================================================================
-
-
-    const wrapperRef = useRef<HTMLDivElement>(null);
-
-
-
-
-
-    // const handleTouchMove = (e: WheelEvent) => {
-    //   e.preventDefault();
-    //   console.log("wheeel")
-    // };
-
-
-
-
-
-    // useEffect(() => {
-    //   const element = wrapperRef.current;
-    //   if (!element) return;
-    //   console.log("found")
-
-
-    //   element.addEventListener('wheel', handleTouchMove, { passive: false });
-
-    //   return () => {
-
-    //     element.removeEventListener('wheel', (e) => e.preventDefault());
-    //   };
-    // }, [wrapperRef]);
+  useEffect(handleUpdateBidirectional, [graph]);
 
 
   // =================================================================
   // ======================= Returned Component ======================
   // =================================================================
-
 
   return (
     <>
@@ -542,7 +370,6 @@ export default function Canvas({
       <div
         className="main-component main-graphpage-section"
         id="canvas-wrapper"
-        ref={wrapperRef}
 
       >
         {graph !== null ? (
@@ -558,13 +385,28 @@ export default function Canvas({
           >
             <defs>
               <marker
+                id="this-arrow-head-self"
+                className="arrow-head"
+                viewBox="0 0 10 10"
+                refX="10"
+                refY="5"
+                markerUnits="userSpaceOnUse"
+                markerWidth={6 * graphConfig.lineWeight}
+                markerHeight={6 * graphConfig.lineWeight}
+                orient="auto-start-reverse"
+                fill={GRAPH_COLORS[+darkMode].line}
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+              <marker
                 id="this-arrow-head"
                 className="arrow-head"
                 viewBox="0 0 10 10"
-                refX={graphConfig.circleRadius + 4}
+                refX="9.5"
                 refY="5"
-                markerWidth={12 / graphConfig.lineWeight}
-                markerHeight={12 / graphConfig.lineWeight}
+                markerUnits="userSpaceOnUse"
+                markerWidth={6 * graphConfig.lineWeight}
+                markerHeight={6 * graphConfig.lineWeight}
                 orient="auto-start-reverse"
                 fill={GRAPH_COLORS[+darkMode].line}
               >
@@ -574,10 +416,11 @@ export default function Canvas({
                 id="this-arrow-head-red"
                 className="arrow-head"
                 viewBox="0 0 10 10"
-                refX={graphConfig.circleRadius + 4}
+                refX="9.5"
                 refY="5"
-                markerWidth={12 / graphConfig.lineWeight}
-                markerHeight={12 / graphConfig.lineWeight}
+                markerUnits="userSpaceOnUse"
+                markerWidth={6 * graphConfig.lineWeight}
+                markerHeight={6 * graphConfig.lineWeight}
                 orient="auto-start-reverse"
                 fill="red"
               >
@@ -595,94 +438,160 @@ export default function Canvas({
                 y2={edging.p2.y}
               ></line>
             )}
-            {graph!.edges.map((edge) => {
-              const node1: Node | undefined = graph!.nodes.find(
-                (node) => node.id === edge.n1,
-              );
-              const node2: Node | undefined = graph!.nodes.find(
-                (node) => node.id === edge.n2,
-              );
-              if (!node1 || !node2) {
-                return;
-              }
-              const yNeg: boolean = node2.pos.y - node1.pos.y < 0;
-              let dx = 0;
-              let dy = 0;
+          {graph!.edges.map((edge) => {
+          const node1: Node | undefined = graph!.nodes.find(
+            (node) => node.id === edge.n1,
+          );
+          const node2: Node | undefined = graph!.nodes.find(
+            (node) => node.id === edge.n2,
+          );
+          if (!node1 || !node2) {
+            return;
+          }
 
-              if (bidirectional.has(JSON.stringify([edge.n1, edge.n2].sort()))) {
-                if (Math.abs(node1.pos.y - node2.pos.y) < .00001) {
-                  dx = 0;
-                  dy = node2.pos.x > node1.pos.x ? PERP_LEN : -PERP_LEN;
-                } else {
-                  const slope = (node2.pos.y - node1.pos.y) / (node2.pos.x - node1.pos.x);
-                  const p_slope = -(1 / (slope + 0.0000001));
-                  dx = -Math.sqrt((PERP_LEN * PERP_LEN) / (1 + p_slope * p_slope));
-                  dy = p_slope * dx;
+          if (node1.id === node2.id) {
+            const SELF_EDGE_HEIGHT = graphConfig.circleRadius * 2.5;  // Reduced height for tighter loop
+            const SELF_EDGE_WIDTH = graphConfig.circleRadius * 1.5;   // Adjusted width for teardrop shape
+
+            const startX = node1.pos.x;
+            const startY = node1.pos.y - graphConfig.circleRadius*.75;
+
+            // Create a teardrop shape with sharper bottom point
+            const pathData = `
+              M ${startX} ${startY}
+              C ${startX + SELF_EDGE_WIDTH} ${startY},
+                ${startX + SELF_EDGE_WIDTH} ${startY - SELF_EDGE_HEIGHT * 0.8},
+                ${startX} ${startY - SELF_EDGE_HEIGHT}
+              C ${startX - SELF_EDGE_WIDTH} ${startY - SELF_EDGE_HEIGHT * 0.8},
+                ${startX - SELF_EDGE_WIDTH} ${startY},
+                ${startX} ${startY}
+            `; // ${startX - SELF_EDGE_WIDTH * 0.5} ${startY + SELF_EDGE_HEIGHT * 0.3}
+
+
+            const labelPos: Position = {
+              x: startX,
+              y: startY - SELF_EDGE_HEIGHT
+            };
+
+            return (
+              <g
+                style={{ userSelect: "none" }}
+                key={edge.id}
+                onMouseDown={(e) => handleMouseDownEdge(e, { ...edge, pos: labelPos })}
+                onContextMenu={(e) => handleRightClickEdge(e, edge)}
+              >
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={GRAPH_COLORS[+darkMode].line}
+                  strokeWidth={graphConfig.lineWeight * 5}
+                  opacity={0}
+                />
+
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line}
+                  strokeWidth={graphConfig.lineWeight}
+                  {...(graphConfig.directedMode && {
+                    markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : "-self"})`
+                  })}
+                />
+
+                {graphConfig.edgeMode && (
+                  <>
+                    <text
+                      x={labelPos.x}
+                      y={labelPos.y}
+                      dy="0.35em"
+                      strokeWidth={0.4 * graphConfig.fontSize}
+                      className="invisible-edge-text"
+                      textAnchor="middle"
+                    >
+                      {INVISIBLE_CHAR.repeat(edge.value.length)}
+                    </text>
+                    <text
+                      textAnchor="middle"
+                      x={labelPos.x}
+                      y={labelPos.y}
+                      dy="0.35em"
+                      className="edge-text"
+                    >
+                      {edge.value}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          } else {
+            const offsets : Position = (bidirectional.has(JSON.stringify([edge.n1, edge.n2].sort()))) ?
+              getBidirectionalOffsets(node1.pos, node2.pos)
+              :
+              {x:0,y:0};
+            const labelPos: Position = {
+              x: getMidpoint(node1.pos.x, node2.pos.x) + offsets.x,
+              y: getMidpoint(node1.pos.y, node2.pos.y) + offsets.y,
+            };
+
+            return (
+              <g
+                style={{ userSelect: "none" }}
+                key={edge.id}
+                onMouseDown={(e) =>
+                  handleMouseDownEdge(e, { ...edge, pos: labelPos })
                 }
-              }
-              const labelPos: Position = {
-                x: getMidpoint(node1.pos.x, node2.pos.x) + (yNeg ? -1 : 1) * dx,
-                y: getMidpoint(node1.pos.y, node2.pos.y) + (yNeg ? -1 : 1) * dy,
-              };
+                onContextMenu={(e) => handleRightClickEdge(e, edge)}
+              >
+                <line
+                  x1={node1.pos.x}
+                  y1={node1.pos.y}
+                  x2={node2.pos.x}
+                  y2={node2.pos.y}
+                  opacity={0}
+                  stroke={GRAPH_COLORS[+darkMode].line}
+                  strokeWidth={graphConfig.lineWeight * 5}
+                />
+                <line
+                  x1={adjustEndpoint(node2.pos, node1.pos, graphConfig.circleRadius).x}
+                  y1={adjustEndpoint(node2.pos, node1.pos, graphConfig.circleRadius).y}
+                  x2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).x}
+                  y2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).y}
+                  stroke={
+                    highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line
+                  }
+                  strokeWidth={graphConfig.lineWeight}
+                  {...(graphConfig.directedMode && {
+                    markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
+                  })}
+                />
+                {graphConfig.edgeMode && (
+                  <>
+                    <text
+                      x={labelPos.x}
+                      y={labelPos.y}
+                      dy="0.35em"
+                      strokeWidth={0.4 * graphConfig.fontSize}
+                      className="invisible-edge-text"
+                      textAnchor="middle"
+                    >
+                      {INVISIBLE_CHAR.repeat(edge.value.length)}
+                    </text>
+                    <text
+                      textAnchor="middle"
+                      x={labelPos.x}
+                      y={labelPos.y}
+                      dy="0.35em"
+                      className="edge-text"
+                    >
+                      {edge.value}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          }
+        })}
 
-
-              return (
-                <g
-                  style={{ userSelect: "none" }}
-                  key={edge.id}
-                  onMouseDown={(e) =>
-                    handleMouseDownEdge(e, { ...edge, pos: labelPos })
-                  } //not tracking properly.
-                  onContextMenu={(e) => handleRightClickEdge(e, edge)}
-                >
-                  <line
-                    x1={node1.pos.x}
-                    y1={node1.pos.y}
-                    x2={node2.pos.x}
-                    y2={node2.pos.y}
-                    opacity={0}
-                    stroke={GRAPH_COLORS[+darkMode].line}
-                    strokeWidth={graphConfig.lineWeight * 5}
-                  />
-                  <line
-                    x1={node1.pos.x}
-                    y1={node1.pos.y}
-                    x2={node2.pos.x}
-                    y2={node2.pos.y}
-                    stroke={
-                      highlighted && highlighted.has(edge.id) ? "red" : GRAPH_COLORS[+darkMode].line
-                    }
-                    strokeWidth={graphConfig.lineWeight}
-                    {...(graphConfig.directedMode && {
-                      markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
-                    })}
-                  />
-                  {graphConfig.edgeMode && (
-                    <>
-                      <text
-                        x={labelPos.x}
-                        y={labelPos.y}
-                        dy="0.35em"
-                        strokeWidth={0.4 * graphConfig.fontSize}
-                        className="invisible-edge-text"
-                        textAnchor="middle"
-                      >
-                        {INVISIBLE_CHAR.repeat(edge.value.length)}
-                      </text>
-                      <text
-                        textAnchor="middle"
-                        x={labelPos.x}
-                        y={labelPos.y}
-                        dy="0.35em"
-                        className="edge-text"
-                      >
-                        {edge.value} {/* should be fine */}
-                      </text>
-                    </>
-                  )}
-                </g>
-              );
-            })}
             {graph!.nodes.map((node) => (
               <g
                 key={node.id}

@@ -119,4 +119,80 @@ export interface Colors {
   text:string
 }
 
+export interface SelectingAlgo {
+  dfs: boolean,
+  bfs: boolean,
+  shortest: boolean,
+}
+
+
 export type MiniEdge = [string, string, string?];
+
+//groupings
+
+// Graph Actions
+export interface GraphActions {
+  handleNewGraphFromInput: (
+    name: string,
+    nodeValues: string[],
+    edgeValues: MiniEdge[]
+  ) => void;
+  handleNewGraph: (name: string) => void;
+  handleAddGraph: (graph: Graph) => void;
+  setAndCacheCurrGraph: (id: string) => void;
+  handleDeleteGraph: () => void;
+}
+
+// Node Actions
+export interface NodeActions {
+  handleAddNode: (cursorPos?: Position, newValue?: string) => void;
+  handleDeleteNode: (id: string) => void;
+  handleBasicNodeClick: (id: string) => void;
+  handleUpdateNodePos: (id: string, pos: Position) => void;
+  handleEditNode: (editNode: Node, newValue: string) => void;
+}
+
+// Edge Actions
+export interface EdgeActions {
+  handleAddEdge: (n1: string, n2: string) => void;
+  handleDeleteEdge: (id: string) => void;
+  handleEditEdge: (editEdge: Edge, newValue: string) => void;
+}
+
+// Algorithm Actions (AlgoActions)
+export interface AlgoActions {
+  handleStartAlgo: (type: string, currGraph: string) => void;
+  handleSearchValueSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleGetTraversal: (type: string) => Promise<void>;
+  handleGetShortest: () => Promise<void>;
+  displayAnimation: (ids: string[]) => Promise<void>;
+  handleEndAlgorithm: () => void;
+}
+
+// Miscellaneous Actions (MiscActions)
+export interface MiscActions {
+  handleCancelAllActive: () => void;
+  handleCancelEditing: () => void;
+  handleSetError: (message?: string) => void;
+  isBoxActive: () => boolean;
+}
+
+// Authentication Actions (AuthActions)
+export interface AuthActions {
+  checkAuth: () => Promise<void>;
+  handleLogout: () => void;
+  handleLogin: () => void;
+}
+
+// Mouse Event Actions
+export interface MouseEventActions {
+  handleMouseDown: (e: MouseEvent) => void;
+  handleMouseMove: (e: MouseEvent) => void;
+  handleMouseUp: (e: MouseEvent) => void;
+}
+
+
+export interface SaveActions{
+  handleSaveGraphPNG: ()=>void,
+  handleSaveGraphCPP: ()=>void,
+}

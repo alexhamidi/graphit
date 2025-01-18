@@ -6,23 +6,18 @@ import { GraphConfig } from "../interfaces";
 import { OPTIONS_PAGES } from "../constants";
 
 interface Props {
-  // appearance
-  handleSaveGraphPng: () => void;
   graphConfig: GraphConfig;
   setGraphConfig: React.Dispatch<React.SetStateAction<GraphConfig>>;
-  handleStartShortest: () => void;
-  handleGenCPP: () => void;
   darkMode:boolean;
   collapsed: boolean;
-  setCollapsed:React.Dispatch<React.SetStateAction<boolean>>
+  setCollapsed:React.Dispatch<React.SetStateAction<boolean>>;
+  handleStartAlgo: (type:string)=>void;
 }
 
 export default function Options({
-  handleSaveGraphPng,
   graphConfig,
   setGraphConfig,
-  handleStartShortest,
-  handleGenCPP,
+  handleStartAlgo,
   darkMode,
   collapsed,
   setCollapsed
@@ -56,7 +51,6 @@ export default function Options({
           <section id="options-lower">
             {chosenPage == OPTIONS_PAGES[0] && (
               <Appearance
-                handleSaveGraphPng={handleSaveGraphPng}
                 graphConfig={graphConfig}
                 setGraphConfig={setGraphConfig}
                 darkMode={darkMode}
@@ -64,8 +58,7 @@ export default function Options({
             )}
             {chosenPage == OPTIONS_PAGES[1] && (
               <Algorithms
-                handleStartShortest={handleStartShortest}
-                handleGenCPP={handleGenCPP}
+                handleStartAlgo={handleStartAlgo}
               />
             )}
           </section>
