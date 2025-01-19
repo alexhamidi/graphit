@@ -55,9 +55,6 @@ i {
   user-select: none;
 }
 
-#canvas {
-  fill: var(--text-color);
-}
 
 /* util */
 
@@ -438,9 +435,6 @@ input[type="checkbox"] {
   stroke-opacity: 0;
 }
 
-.invisible-edge-text {
-  stroke: var(--main-color);
-}
 
 /* logreg */
 

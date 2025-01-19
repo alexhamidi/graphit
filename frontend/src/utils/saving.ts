@@ -23,7 +23,7 @@ export function saveGraphPNG(
       const pngDataUrl = canvas.toDataURL("image/png");
 
       const element = document.createElement("a");
-      element.download = `${Graph.name}.png`;
+      element.download = `${graph.name}.png`;
       element.href = pngDataUrl;
       element.click();
     }

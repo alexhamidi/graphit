@@ -54,7 +54,13 @@ export function NodeComponent({
       >
         {INVISIBLE_CHAR.repeat(node.value.length)}
       </text>
-      <text textAnchor="middle" x={node.pos.x} y={node.pos.y} dy="0.35em">
+      <text
+        textAnchor="middle"
+        x={node.pos.x}
+        y={node.pos.y}
+        dy="0.35em"
+        fill={currColors.text}
+      >
         {node.value}
       </text>
     </g>
@@ -152,7 +158,8 @@ export function SelfEdgeComponent({
             y={labelPos.y}
             dy="0.35em"
             strokeWidth={0.4 * graphConfig.fontSize}
-            className="invisible-edge-text"
+            stroke={currColors.main}
+
             textAnchor="middle"
           >
             {INVISIBLE_CHAR.repeat(edge.value.length)}
@@ -162,7 +169,7 @@ export function SelfEdgeComponent({
             x={labelPos.x}
             y={labelPos.y}
             dy="0.35em"
-            className="edge-text"
+            fill={currColors.text}
           >
             {edge.value}
           </text>
@@ -268,6 +275,7 @@ export function EdgeComponent({
             strokeWidth={0.4 * graphConfig.fontSize}
             className="invisible-edge-text"
             textAnchor="middle"
+            stroke={currColors.main}
           >
             {INVISIBLE_CHAR.repeat(edge.value.length)}
           </text>
@@ -276,6 +284,7 @@ export function EdgeComponent({
             x={labelPos.x}
             y={labelPos.y}
             dy="0.35em"
+            fill={currColors.text}
             className="edge-text"
           >
             {edge.value}
