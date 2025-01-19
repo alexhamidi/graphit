@@ -50,16 +50,17 @@ export function getBoundedPosition(
   pos: Position,
   canvasRect: DOMRect | null,
 ): Position {
-  return {
-    x: Math.min(
-      Math.max(pos.x, EDGE_BOUNDARY),
-      canvasRect!.width - EDGE_BOUNDARY,
-    ),
-    y: Math.min(
-      Math.max(pos.y, EDGE_BOUNDARY),
-      canvasRect!.height - EDGE_BOUNDARY,
-    ),
-  };
+  return  pos;
+  // return {
+  //   x: Math.min(
+  //     Math.max(pos.x, EDGE_BOUNDARY),
+  //     canvasRect!.width - EDGE_BOUNDARY,
+  //   ),
+  //   y: Math.min(
+  //     Math.max(pos.y, EDGE_BOUNDARY),
+  //     canvasRect!.height - EDGE_BOUNDARY,
+  //   ),
+  // };
 }
 
 export function getDistance(pos1: Position, pos2: Position): number {

@@ -409,7 +409,7 @@ export default function GraphPage({
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
-             ids.has(node.id) ? { ...node, pos: addPos(node.pos, delta) } : node,
+             ids.has(node.id) ? { ...node, pos:  getBoundedPosition(addPos(node.pos, delta), canvasRect)} : node,
           ),
         });
         return updatedGraphs;

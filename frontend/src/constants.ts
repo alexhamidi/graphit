@@ -102,15 +102,25 @@ export const USER_NOT_FOUND_ERROR: string = "User not found";
 export const INCOMPLETE_CREDENTIALS_ERROR: string =
   "Please fill out all fields";
 
-export const COLORS: string[] = [
-  "#DEDE7E",
-  "#7ECD63",
-  "#8ECE9E",
-  "#8EBEDE",
-  "#6E93DE",
-  "#E5AD72",
-  "#C48D95",
-  "#C47DC5",
-  "#A47DE5",
-  "#8589E5",
-];
+  export const COLORS: string[] = [
+    "#DEDE7E",
+    "#7ECD63",
+    "#8ECE9E",
+    "#8EBEDE",
+    "#6E93DE",
+    "#E5AD72",
+    "#C48D95",
+    "#C47DC5",
+    "#A47DE5",
+    "#8589E5",
+    "#959540",
+    "#4F8A42",
+    "#5E8A70",
+    "#4F7A9A",
+    "#3F5E9A",
+    "#A16D40",
+    "#865761",
+    "#864A85",
+    "#654A9A",
+    "#46499A",
+  ];
