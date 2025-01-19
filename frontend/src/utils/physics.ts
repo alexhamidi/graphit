@@ -13,11 +13,11 @@ import {
   lengthPos,
   getBoundedPosition,
 } from "../utils/utils";
-import { Graph, Node, TempEdge } from "../interfaces";
+import { Graph, TempEdge } from "../interfaces";
 
 export function updateNodePositions(
   graphRef: React.MutableRefObject<Graph | null>,
-  draggingRef: React.MutableRefObject<Node | null>,
+  draggingRef: React.MutableRefObject<string | null>,
   edgingRef: React.MutableRefObject<TempEdge | null>,
   canvasRectRef: React.MutableRefObject<DOMRect | null>,
   numTotalIters: number,
@@ -37,7 +37,7 @@ export function updateNodePositions(
   const updatedGraph = {
     ...currentGraph,
     nodes: currentGraph.nodes.map((node) => {
-      if (dragging !== null && node.id === dragging.id) {
+      if (dragging !== null && node.id === dragging) {
         return node;
       } else {
         const centerX = canvasRect.width / 2;

@@ -18,7 +18,7 @@ export const NUM_MAX_PHYSICS_ITERS = 0;
 export const GRAVITATIONAL_CONSTANT = 0.03;
 export const DELTA_TIME = 1.2;
 export const DAMPING = 0.6;
-export const MOVEMENT_THRESHOLD = 0.03;
+export const MOVEMENT_THRESHOLD = 0.05;
 export const REFRESH_RATE = 10;
 export const SPRING_FORCE = 0.075;
 

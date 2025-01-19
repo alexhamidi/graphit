@@ -30,6 +30,7 @@ import {
   getPosRelRect,
   outOfBounds,
   getBoundedPosition,
+  addPos,
 } from "../utils/utils";
 import { saveGraphCPP, saveGraphPNG } from "../utils/saving";
 import { debounce } from "lodash";
@@ -297,10 +298,10 @@ export default function GraphPage({
         setGraphs(graphs);
         setLoading(false);
       } catch (err) {
-        setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
-        if (isAxiosError(err) && err.response?.status === 400) {
+        if (isAxiosError(err) && err.response?.status === 401) {
           authActions.handleLogout();
         }
+        setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
       }
     },
   };
@@ -399,6 +400,22 @@ export default function GraphPage({
         return updatedGraphs;
       });
     },
+
+    handleMassPosUpdate: (ids: Set<string>, delta: Position) => {
+
+      setGraphs((prevGraphs) => {
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          nodes: prevGraph.nodes.map((node) =>
+             ids.has(node.id) ? { ...node, pos: addPos(node.pos, delta) } : node,
+          ),
+        });
+        return updatedGraphs;
+      });
+    },
+
 
     // UPDATE NODE POSITION
     handleUpdateNodePos: (id: string, pos: Position) => {
@@ -505,7 +522,7 @@ export default function GraphPage({
   // =================================================================
 
   // UPDATE
-  const keyHandlers = {
+  const keyActions = {
     handleKeyDown: (e: KeyboardEvent) => {
       if (e.key === "Shift") {
         setShiftPressed(true);
@@ -528,11 +545,11 @@ export default function GraphPage({
   };
 
   useEffect(() => {
-    window.addEventListener("keydown", keyHandlers.handleKeyDown);
-    window.addEventListener("keyup", keyHandlers.handleKeyUp);
+    window.addEventListener("keydown", keyActions.handleKeyDown);
+    window.addEventListener("keyup", keyActions.handleKeyUp);
     return () => {
-      window.removeEventListener("keydown", keyHandlers.handleKeyDown);
-      window.removeEventListener("keyup", keyHandlers.handleKeyUp);
+      window.removeEventListener("keydown", keyActions.handleKeyDown);
+      window.removeEventListener("keyup", keyActions.handleKeyUp);
     };
   }, [metaPressed]);
 
@@ -558,13 +575,12 @@ export default function GraphPage({
           setGraphPopupActive(false);
         }
         return;
-      }
-      if (e.button === 0) {
+      } else if (e.button === 0) {
         setMouseDownStationary(true);
       }
     },
 
-    // MOUSE MOVE
+    // MOUSE MOVEp
     handleMouseMove: (e: MouseEvent) => {
       if (!e.shiftKey) {
         setShiftPressed(false);
@@ -939,6 +955,7 @@ export default function GraphPage({
           darkMode={darkMode}
           edgeActions={edgeActions}
           nodeActions={nodeActions}
+          handleMassPosUpdate={nodeActions.handleMassPosUpdate}
         />
         <Options
           graphConfig={graphConfig}

@@ -82,6 +82,8 @@ export interface LocatedEdge {
   n1: string;
   n2: string;
   pos: Position;
+  width: number;
+  height:number;
 }
 
 export interface Credentials {
@@ -212,7 +214,7 @@ export interface NodeClickActions {
 
 export interface EdgeClickActions {
   handleMouseDownEdge: (
-    e: React.MouseEvent<SVGElement, MouseEvent>,
+    e: React.MouseEvent<SVGGElement, MouseEvent>,
     edge: LocatedEdge,
   ) => void;
   handleRightClickEdge: (

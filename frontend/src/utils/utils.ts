@@ -164,3 +164,46 @@ export function getBidirectionalOffsets(p1: Position, p2: Position): Position {
     y: dy,
   };
 }
+
+export function getConnected(edgeID: string, graph: Graph): Set<string> {
+  const connected = new Set<string>();
+
+  // Find the initial edge to start the traversal
+  const edge = graph.edges.find(e => e.id === edgeID);
+  if (!edge) return connected; // Return an empty set if the edge is not found
+
+  // Use a DFS to find all connected edges and nodes
+  const visitedEdges = new Set<string>();
+  const stack = [edge];
+
+  while (stack.length > 0) {
+    const currentEdge = stack.pop()!;
+
+    if (visitedEdges.has(currentEdge.id)) {
+      continue;
+    }
+
+    // Mark this edge as visited
+    visitedEdges.add(currentEdge.id);
+    connected.add(currentEdge.id);
+
+    // Add the nodes to the connected set
+    connected.add(currentEdge.n1);
+    connected.add(currentEdge.n2);
+
+    // Explore adjacent edges that connect to the current nodes
+    const adjacentEdges = graph.edges.filter(e =>
+      (e.n1 === currentEdge.n1 || e.n2 === currentEdge.n1) ||
+      (e.n1 === currentEdge.n2 || e.n2 === currentEdge.n2)
+    );
+
+    // Add unvisited adjacent edges to the stack
+    for (const adjEdge of adjacentEdges) {
+      if (!visitedEdges.has(adjEdge.id)) {
+        stack.push(adjEdge);
+      }
+    }
+  }
+
+  return connected;
+}

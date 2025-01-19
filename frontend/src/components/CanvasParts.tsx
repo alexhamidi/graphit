@@ -31,7 +31,6 @@ export function NodeComponent({
 }: NodeProps) {
   return (
     <g
-      key={node.id}
       onMouseDown={(e) => nodeClickActions.handleMouseDownNode(e, node)}
       onContextMenu={(e) => nodeClickActions.handleRightClickNode(e, node)}
     >
@@ -85,22 +84,21 @@ export function SelfEdgeComponent({
   const SELF_EDGE_WIDTH = graphConfig.circleRadius * 1.5;
 
   const startX = node1.pos.x;
-  const startY = node1.pos.y - graphConfig.circleRadius * 0.75;
+  const startY = node1.pos.y - graphConfig.circleRadius * 1.44;
 
-  // Create a teardrop shape with sharper bottom point
   const pathData = `
-    M ${startX} ${startY}
-    C ${startX + SELF_EDGE_WIDTH} ${startY},
+    M ${startX+ SELF_EDGE_WIDTH * 0.5} ${startY+SELF_EDGE_HEIGHT* 0.3}
+    C ${startX + SELF_EDGE_WIDTH } ${startY},
         ${startX + SELF_EDGE_WIDTH} ${startY - SELF_EDGE_HEIGHT * 0.8},
-        ${startX} ${startY - SELF_EDGE_HEIGHT}
+        ${startX} ${startY - SELF_EDGE_HEIGHT*.8}
     C ${startX - SELF_EDGE_WIDTH} ${startY - SELF_EDGE_HEIGHT * 0.8},
         ${startX - SELF_EDGE_WIDTH} ${startY},
-        ${startX} ${startY}
-    `; // ${startX - SELF_EDGE_WIDTH * 0.5} ${startY + SELF_EDGE_HEIGHT * 0.3}
+        ${startX - SELF_EDGE_WIDTH * 0.5} ${startY + SELF_EDGE_HEIGHT * 0.3}
+    `;
 
   const labelPos: Position = {
     x: startX,
-    y: startY - SELF_EDGE_HEIGHT,
+    y: startY - SELF_EDGE_HEIGHT*0.8,
   };
 
   return (<>
@@ -109,7 +107,7 @@ export function SelfEdgeComponent({
         id="this-arrow-head-self"
         className="arrow-head"
         viewBox="0 0 10 10"
-        refX="10"
+        refX="9"
         refY="5"
         markerUnits="userSpaceOnUse"
         markerWidth={6 * graphConfig.lineWeight}
@@ -122,9 +120,8 @@ export function SelfEdgeComponent({
     </defs>
     <g
       style={{ userSelect: "none" }}
-      key={edge.id}
       onMouseDown={(e) =>
-        edgeClickActions.handleMouseDownEdge(e, { ...edge, pos: labelPos })
+        edgeClickActions.handleMouseDownEdge(e, { ...edge, pos: labelPos, width:0, height:0})
       }
       onContextMenu={(e) => edgeClickActions.handleRightClickEdge(e, edge)}
     >
@@ -228,9 +225,15 @@ export function EdgeComponent({
         </defs>
     <g
       style={{ userSelect: "none" }}
-      key={edge.id}
       onMouseDown={(e) =>
-        edgeClickActions.handleMouseDownEdge(e, { ...edge, pos: labelPos })
+        edgeClickActions.handleMouseDownEdge(e,
+          {
+            ...edge,
+            pos: labelPos,
+            width: Math.abs(node1.pos.x-node2.pos.x),
+            height: Math.abs(node1.pos.y-node2.pos.y)
+
+          })
       }
       onContextMenu={(e) => edgeClickActions.handleRightClickEdge(e, edge)}
     >

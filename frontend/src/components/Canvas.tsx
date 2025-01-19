@@ -16,7 +16,7 @@ import {
   NUM_MAX_PHYSICS_ITERS,
   REFRESH_RATE,
 } from "../constants";
-import { getPosRelParent, getNodeAt, outOfBounds } from "../utils/utils";
+import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos } from "../utils/utils";
 
 import { updateNodePositions } from "../utils/physics";
 import EditBox from "../components/EditBox";
@@ -46,6 +46,7 @@ interface Props {
   highlighted: Set<string>;
   loading: boolean;
   darkMode: boolean;
+  handleMassPosUpdate: (ids: Set<string>, delta: Position) =>void;
 }
 
 export default function Canvas({
@@ -67,13 +68,19 @@ export default function Canvas({
   highlighted,
   loading,
   darkMode,
+  handleMassPosUpdate,
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
   // =================================================================
 
-  const [dragPos, setDragPos] = useState<Position | null>(null);
-  const [dragging, setDragging] = useState<Node | null>(null);
+  const [mouseDownPosRelNode, setMouseDownPosRelNode] = useState<Position | null>(null);
+  const [draggingNode, setDraggingNode] = useState<string | null>(null);
+
+  const [mouseDownPosRelEdge, setMouseDownPosRelEdge] = useState<Position | null>(null);
+  const [segmentDragFirstPos, setSegmentDragFirstPos] = useState<Position | null>(null);
+  const [draggingEdgeSegment, setDraggingEdgeSegment] = useState<Set<string> | null>(null);
+
   const [edging, setEdging] = useState<TempEdge | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<LocatedEdge | null>(null);
@@ -105,7 +112,7 @@ export default function Canvas({
         });
       } else {
         setMovedCurrNode(false);
-        setDragging(node);
+        setDraggingNode(node.id);
         const charWidth: number =
           graphConfig.fontSize * PIXELS_PER_FONT_SIZE_UNIT;
         const numChars: number = node.value.length;
@@ -116,7 +123,7 @@ export default function Canvas({
           halfWidth - graphConfig.circleRadius,
         );
 
-        setDragPos({
+        setMouseDownPosRelNode({
           x: startingMousePosRelCircle.x - graphConfig.circleRadius - halfOver,
           y: startingMousePosRelCircle.y - graphConfig.circleRadius,
         });
@@ -135,14 +142,30 @@ export default function Canvas({
 
   const edgeClickActions = {
     handleMouseDownEdge: (
-      e: React.MouseEvent<SVGElement, MouseEvent>,
+      e: React.MouseEvent<SVGGElement, MouseEvent>,
       edge: LocatedEdge,
     ): void => {
       if (isBoxActive()) return;
-      e.preventDefault();
+      if (e.button !== 0) return;
 
+      e.preventDefault();
       if (shiftPressed) {
         setSelectedEdge(edge);
+        return;
+      }
+
+      setSegmentDragFirstPos(edge.pos);
+      setDraggingEdgeSegment(getConnected(edge.id, graph!));
+
+      if (edge.n1 === edge.n2) {
+        setMouseDownPosRelEdge({x:0,y:0})
+      } else {
+        const factor = .5;
+        const startingMousePosRelEdge: Position = getPosRelParent(e);
+        const scaledRel = multiplyPos(startingMousePosRelEdge!, 1/factor);
+        const off = {x:scaledRel.x-edge.width, y:scaledRel.y-edge.height}
+        const adjOff = multiplyPos(off,factor)
+        setMouseDownPosRelEdge(adjOff)
       }
     },
 
@@ -161,16 +184,27 @@ export default function Canvas({
     e: React.MouseEvent<SVGSVGElement, MouseEvent>,
   ) => {
     if (isBoxActive()) return;
-    if (dragging) {
+    if (draggingNode) {
       const cursorPos: Position = getPosRelParent(e);
       if (outOfBounds(cursorPos, canvasRect)) {
         handleMouseUpElement(e);
         return;
       }
-      nodeActions.handleUpdateNodePos(dragging.id, {
-        x: cursorPos.x - dragPos!.x,
-        y: cursorPos.y - dragPos!.y,
-      });
+
+      nodeActions.handleUpdateNodePos(draggingNode, subtractPos(cursorPos, mouseDownPosRelNode!));
+
+    } else if (draggingEdgeSegment) {
+      const cursorPos: Position = getPosRelParent(e);
+      if (outOfBounds(cursorPos, canvasRect)) {
+        handleMouseUpElement(e);
+        return;
+      }
+
+
+      const absPos = subtractPos(cursorPos, mouseDownPosRelEdge!);
+      const delta = subtractPos(absPos, segmentDragFirstPos!)
+      handleMassPosUpdate(draggingEdgeSegment, delta)
+      setSegmentDragFirstPos(absPos)
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
       setEdging({
@@ -195,15 +229,15 @@ export default function Canvas({
       setEditingNode(selectedNode);
       setSelectedNode(null);
       setEdging(null);
-    } else if (dragging && !movedCurrNode) {
-      nodeActions.handleBasicNodeClick(dragging.id);
+    } else if (draggingNode && !movedCurrNode) {
+      nodeActions.handleBasicNodeClick(draggingNode);
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
       const cursorNode = getNodeAt(
         cursorPos,
         graph!.nodes,
         graphConfig.circleRadius,
-      );
+      )
       if (cursorNode) {
         edgeActions.handleAddEdge(edging.n1, cursorNode.id);
       }
@@ -211,8 +245,10 @@ export default function Canvas({
     setEdgingBool(false);
     setMovedCurrNode(false);
     setEdging(null);
-    setDragging(null);
-    setDragPos(null);
+    setDraggingEdgeSegment(null);
+    setSegmentDragFirstPos(null);
+    setDraggingNode(null);
+    setMouseDownPosRelNode(null);
   };
 
   // =================================================================
@@ -282,16 +318,16 @@ export default function Canvas({
   const [numTotalIters, setNumTotalIters] = useState(0);
 
   const graphRef = useRef(graph);
-  const draggingRef = useRef(dragging);
+  const draggingRef = useRef(draggingNode);
   const edgingRef = useRef(edging);
   const canvasRectRef = useRef(canvasRect);
 
   useEffect(() => {
     graphRef.current = graph;
-    draggingRef.current = dragging;
+    draggingRef.current = draggingNode;
     edgingRef.current = edging;
     canvasRectRef.current = canvasRect;
-  }, [graph, dragging, canvasRect, edging]);
+  }, [graph, draggingNode, canvasRect, edging]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -342,7 +378,9 @@ export default function Canvas({
   // =================================================================
 
   return (
+
     <>
+
       {editingEdge && (
         <EditBox
           handleSubmit={handleEditEdgeSubmit}
@@ -396,6 +434,7 @@ export default function Canvas({
               if (node1.id === node2.id) {
                 return (
                   <SelfEdgeComponent
+                    key={edge.id}
                     edge={edge}
                     node1={node1}
                     node2={node2}
@@ -409,6 +448,7 @@ export default function Canvas({
               } else {
                 return (
                   <EdgeComponent
+                    key={edge.id}
                     edge={edge}
                     node1={node1}
                     node2={node2}
@@ -423,6 +463,7 @@ export default function Canvas({
             })}
             {graph!.nodes.map((node) => (
               <NodeComponent
+                key={node.id}
                 node={node}
                 nodeClickActions={nodeClickActions}
                 graphConfig={graphConfig}

@@ -187,6 +187,8 @@ public class AlgorithmService {
     }
 
     public ArrayList<String> mst(Graph graph) {
+        if (graph.getEdges().isEmpty()) throw new IllegalArgumentException();
+
         HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj();
         ArrayList<String> path = new ArrayList<>();
         HashSet<String> visited = new HashSet<>();
@@ -194,7 +196,7 @@ public class AlgorithmService {
             (a, b) -> Integer.compare(a.getValue(), b.getValue())
         );
 
-        String startNode = adjList.keySet().iterator().next();
+        String startNode = graph.getEdges().get(0).getN1();
         visited.add(startNode);
         path.add(startNode);
 
@@ -202,9 +204,12 @@ public class AlgorithmService {
             pq.add(entry.getValue());
         }
 
+
         while (!pq.isEmpty()) {
             NumEdge edge = pq.poll();
             String v = edge.getN2();
+
+
 
             if (visited.contains(v)) continue;
 
@@ -218,6 +223,7 @@ public class AlgorithmService {
                 }
             }
         }
+
 
         if (visited.size() != adjList.size()) {
             throw new IllegalArgumentException();

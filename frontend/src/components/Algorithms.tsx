@@ -9,7 +9,7 @@ export default function Appearance({ handleStartAlgo }: Props) {
         onClick={() => handleStartAlgo("shortest")}
         className="basic-button"
       >
-        Djikstra's
+        Shortest Path
       </button>
       <button onClick={() => handleStartAlgo("bfs")} className="basic-button">
         BFS
