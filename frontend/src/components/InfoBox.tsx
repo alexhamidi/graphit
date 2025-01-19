@@ -51,7 +51,7 @@ export default function InfoBox({ setBoxActive, handleSetError }: Props) {
             </ul>
           </div>
           <p id="love">
-            this project was made with love by{" "}
+            this project was made by{" "}
             <a href="https://alexhamidi.github.io/">alex hamidi</a>
           </p>
         </>
