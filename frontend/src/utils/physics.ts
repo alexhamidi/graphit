@@ -67,7 +67,6 @@ export function updateNodePositions(
               ),
             );
           }
-          if (numTotalIters%5000===0) console.log(node.pos)
 
 
         currentGraph.nodes.forEach((otherNode) => {
@@ -85,7 +84,6 @@ export function updateNodePositions(
           }
         });
 
-        if (numTotalIters%5000===0) console.log(force)
 
 
         currentGraph.edges.forEach((edge) => { //happens here
