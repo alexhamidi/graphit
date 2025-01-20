@@ -95,9 +95,8 @@ export default function GraphPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     const stored = localStorage.getItem("collapsed");
-    console.log(stored);
     if (stored) {
-      return stored == "1";
+      return stored == "true";
     }
     return false;
   });

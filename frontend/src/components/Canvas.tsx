@@ -20,7 +20,7 @@ import {
   // PAN_AMOUNT,
   // ZOOM_FACTOR
 } from "../constants";
-import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos, adjustEndpoint } from "../utils/utils";
+import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos, adjustEndpoint,getBidirectionalOffsets} from "../utils/utils";
 
 import { updateNodePositions } from "../utils/physics";
 import EditBox from "../components/EditBox";
@@ -28,6 +28,7 @@ import {
   NodeComponent,
   SelfEdgeComponent,
   EdgeComponent,
+
 } from "../components/CanvasParts";
 // import ControlPanel from "../components/ControlPanel";
 
@@ -171,11 +172,19 @@ export default function Canvas({
       if (edge.n1 === edge.n2) {
         setMouseDownPosRelEdge({x:0,y:0})
       } else {
+
+
         const factor = .5;
         const startingMousePosRelEdge: Position = getPosRelParent(e);
         const scaledRel = multiplyPos(startingMousePosRelEdge!, 1/factor);
         const off = {x:scaledRel.x-edge.width, y:scaledRel.y-edge.height}
-        const adjOff = multiplyPos(off,factor)
+        let adjOff = multiplyPos(off,factor)
+
+        if (bidirectional.has(JSON.stringify([edge.n1, edge.n2].sort()))) {
+          const off = getBidirectionalOffsets(graph!.nodes.find(node => node.id === edge.n1)!.pos, graph!.nodes.find(node => node.id === edge.n2)!.pos);
+          adjOff.x -= off.x;
+          adjOff.y -= off.y
+        }
         setMouseDownPosRelEdge(adjOff)
       }
     },
