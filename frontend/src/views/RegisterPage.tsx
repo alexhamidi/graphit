@@ -118,7 +118,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
             </button>
           </form>
           or
-          <button className="gsi-material-button" onClick={handleGoogleLogin}>
+          {/* <button className="gsi-material-button" onClick={handleGoogleLogin}>
             <div className="gsi-material-button-state"></div>
             <div className="gsi-material-button-content-wrapper">
               <div className="gsi-material-button-icon">
@@ -153,7 +153,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
               </span>
               <span style={{ display: "none" }}>Continue with Google</span>
             </div>
-          </button>
+          </button> */}
           <button className="basic-button" onClick={() => navigate("/")}>
             continue as a guest
           </button>
