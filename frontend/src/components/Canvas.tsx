@@ -237,7 +237,7 @@ export default function Canvas({
   const handleMouseUpElement = (
     e: React.MouseEvent<SVGGElement, MouseEvent>,
   ) => {
-    if (shiftPressed && selectedEdge && graphConfig.edgeMode) {
+    if (shiftPressed && selectedEdge && graphConfig.valuedMode) {
       setEditingEdge(selectedEdge);
       setSelectedEdge(null);
       setEdging(null);

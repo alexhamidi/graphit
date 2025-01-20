@@ -4,6 +4,9 @@ server:
 frontend:
   url: ${FRONTEND_URL}
 
+backend:
+  url: ${BACKEND_URL}
+
 jwt:
   secret-key: ${JWT_SECRET_KEY}
 

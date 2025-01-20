@@ -1,15 +1,18 @@
+import { GraphConfig } from "../interfaces"
+
 interface Props {
   handleStartAlgo: (type: string) => void;
+  graphConfig:GraphConfig;
 }
 
-export default function Appearance({ handleStartAlgo }: Props) {
+export default function Appearance({ handleStartAlgo, graphConfig }: Props) {
   return (
     <>
       <button
         onClick={() => handleStartAlgo("shortest")}
         className="basic-button"
       >
-        Shortest Path
+        Djikstra's
       </button>
       <button onClick={() => handleStartAlgo("bfs")} className="basic-button">
         BFS
@@ -17,17 +20,17 @@ export default function Appearance({ handleStartAlgo }: Props) {
       <button onClick={() => handleStartAlgo("dfs")} className="basic-button">
         DFS
       </button>
-      <button
+      {graphConfig.directedMode && <button
         onClick={() => handleStartAlgo("toposort")}
         className="basic-button"
       >
         Topological Sort
-      </button>
+      </button>}
       <button
         onClick={() => handleStartAlgo("mst")}
         className="basic-button"
       >
-        MST
+        Minimum Spanning {graphConfig.directedMode ? "Arborescence (Edmond's)" : "Tree (Prim's)"}
       </button>
     </>
   );

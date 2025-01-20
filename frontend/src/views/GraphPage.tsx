@@ -163,7 +163,7 @@ export default function GraphPage({
       setEmail(null);
       setGraphConfig(DEFAULT_GRAPH_CONFIG);
       localStorage.clear();
-      localStorage.setItem("darkMode", (+darkMode).toString());
+      localStorage.setItem("darkMode", darkMode.toString());
     },
 
     // LOGIN
@@ -182,7 +182,7 @@ export default function GraphPage({
   }, [graphConfig]);
 
   useEffect(() => {
-    localStorage.setItem("collapsed", (+collapsed).toString());
+    localStorage.setItem("collapsed", collapsed.toString());
   }, [collapsed]);
 
   // FETCH CURRGRAPH - need to wait for graphs
@@ -745,7 +745,7 @@ export default function GraphPage({
       try {
         const [n1] = highlighted;
         const response = await post(
-          `/algorithm/${type}?origin=${n1}&value=${searchValueInput}`,
+          `/algorithm/${type}?origin=${n1}&value=${searchValueInput}&directed=${graphConfig.directedMode}`,
           graphs.get(currGraph)!,
         );
         const ids: string[] = response.data.visitedIds;
@@ -762,7 +762,7 @@ export default function GraphPage({
       try {
         const [n1, n2] = highlighted;
         const response = await post(
-          `/algorithm/shortest?n1=${n1}&n2=${n2}`,
+          `/algorithm/shortest?n1=${n1}&n2=${n2}&directed=${graphConfig.directedMode}&valued=${graphConfig.valuedMode}`,
           graphs.get(currGraph)!,
         );
         const ids: string[] = response.data.visitedIds;
@@ -785,7 +785,7 @@ export default function GraphPage({
     handleGetMST: async () => {
       try {
         const response = await post(
-          `/algorithm/mst`,
+          `/algorithm/mst?directed=${graphConfig.directedMode}&valued=${graphConfig.valuedMode}`,
           graphs.get(currGraph)!,
         );
         const ids: string[] = response.data.visitedIds;

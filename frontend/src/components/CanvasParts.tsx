@@ -151,7 +151,7 @@ export function SelfEdgeComponent({
         })}
       />
 
-      {graphConfig.edgeMode && (
+      {graphConfig.valuedMode && (
         <>
           <text
             x={labelPos.x}
@@ -266,7 +266,7 @@ export function EdgeComponent({
           markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
         })}
       />
-      {graphConfig.edgeMode && (
+      {graphConfig.valuedMode && (
         <>
           <text
             x={labelPos.x}

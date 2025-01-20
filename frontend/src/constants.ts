@@ -48,7 +48,7 @@ export const PAN_PIX : number = 40;
 
 // defaults
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
-  edgeMode: false,
+  valuedMode: false,
   directedMode: false,
   gravityMode: false,
   currentChosenColor: null,

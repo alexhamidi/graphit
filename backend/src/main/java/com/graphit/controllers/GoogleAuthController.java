@@ -32,6 +32,9 @@ public class GoogleAuthController {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${backend.url}")
+    private String backendUrl;
+
     private UserRepository userRepository;
     private RestTemplate restTemplate;
     private JwtTokenService jwtTokenService;
@@ -53,7 +56,7 @@ public class GoogleAuthController {
         // Step 1: Exchange the authorization code for an access token
         LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code);
-        params.add("redirect_uri", "http://localhost:8080/api/login/oauth2/code/google");
+        params.add("redirect_uri", backendUrl + "/api/login/oauth2/code/google");
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
         params.add("grant_type", "authorization_code");
@@ -94,8 +97,9 @@ public class GoogleAuthController {
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
 
     } catch (Exception e) {
+        System.out.println(e);
         // Step 6: Handle any errors by redirecting to an error page
-        String errorUrl = (frontendUrl + "/login?error=" + e.getMessage());
+        String errorUrl = (frontendUrl + "/login?error=login%20error");
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(errorUrl)).build();
     }
 }

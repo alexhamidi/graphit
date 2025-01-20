@@ -208,3 +208,4 @@ export function getConnected(edgeID: string, graph: Graph): Set<string> {
 
   return connected;
 }
+

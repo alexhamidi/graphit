@@ -99,7 +99,7 @@ export interface PageProps {
 }
 
 export interface GraphConfig {
-  edgeMode: boolean;
+  valuedMode: boolean;
   directedMode: boolean;
   gravityMode: boolean;
   circleRadius: number;

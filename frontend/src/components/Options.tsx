@@ -57,7 +57,7 @@ export default function Options({
               />
             )}
             {chosenPage == OPTIONS_PAGES[1] && (
-              <Algorithms handleStartAlgo={handleStartAlgo} />
+              <Algorithms handleStartAlgo={handleStartAlgo} graphConfig={graphConfig} />
             )}
           </section>
         </div>

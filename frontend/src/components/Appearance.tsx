@@ -76,8 +76,8 @@ export default function Appearance({
         <input
           type="checkbox"
           id="edge-mode"
-          checked={graphConfig.edgeMode}
-          onChange={() => updateGraphConfig("edgeMode", !graphConfig.edgeMode)}
+          checked={graphConfig.valuedMode}
+          onChange={() => updateGraphConfig("valuedMode", !graphConfig.valuedMode)}
         />
       </div>
 
