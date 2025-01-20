@@ -102,6 +102,7 @@ export interface GraphConfig {
   edgeMode: boolean;
   directedMode: boolean;
   gravityMode: boolean;
+  unboundedMode: boolean;
   circleRadius: number;
   fontSize: number;
   lineWeight: number;
@@ -113,6 +114,7 @@ export interface BoxActive {
   newBlankGraphBox: boolean;
   newTextGraphBox: boolean;
   infoBox: boolean;
+  queryBox: boolean;
 }
 
 export interface Colors {
@@ -147,11 +149,14 @@ export interface GraphActions {
 
 // Node Actions
 export interface NodeActions {
+
   handleAddNode: (cursorPos?: Position, newValue?: string) => void;
   handleDeleteNode: (id: string) => void;
   handleBasicNodeClick: (id: string) => void;
   handleUpdateNodePos: (id: string, pos: Position) => void;
   handleEditNode: (editNode: Node, newValue: string) => void;
+  handleMassPosUpdate: (ids: Set<string>, delta: Position) => void;
+
 }
 
 // Edge Actions
@@ -221,4 +226,21 @@ export interface EdgeClickActions {
     e: React.MouseEvent<SVGGElement, MouseEvent>,
     edge: Edge,
   ) => void;
+}
+
+export interface ZoomActions {
+  handleZoomIn: () => void;
+  handleZoomOut: () => void;
+  handlePanLeft: () => void;
+  handlePanDown: () => void;
+  handlePanUp: () => void;
+  handlePanRight: () => void;
+}
+
+
+
+export interface Viewport{
+  scale: number;
+  translateX: number;
+  translateY: number;
 }

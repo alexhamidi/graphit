@@ -231,25 +231,6 @@ hr {
   width: 5em;
 }
 
-/* canvas */
-
-#graphpage-main {
-  flex-direction: row;
-}
-
-.main-graphpage-section {
-  height: 90vh;
-  margin: var(--box-padding);
-}
-
-#canvas-wrapper {
-  background-color: var(--main-color);
-  width: 100%;
-  #canvas {
-    width: 100%;
-    height: 100%;
-  }
-}
 
 /* options */
 
@@ -418,6 +399,47 @@ input[type="checkbox"] {
   top: 0.5em;
   right: 0.5em;
 }
+
+
+/* Control panel */
+
+#control-panel {
+  z-index:1000;
+  position:absolute;
+  /* right:0; */
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  padding:var(--box-padding);
+  width:min-content;
+  gap:.4em;
+  margin:0;
+  background-color:var(--background-color);
+  border-radius:6px;
+  border:var(--main-border);
+}
+
+
+/* canvas */
+
+#graphpage-main {
+  flex-direction: row;
+}
+
+.main-graphpage-section {
+  height: 90vh;
+  margin: var(--box-padding);
+}
+
+#canvas-wrapper {
+  background-color: var(--main-color);
+  width: 100%;
+  #canvas {
+    width: 100%;
+    height: 100%;
+  }
+}
+
 
 /* graph */
 

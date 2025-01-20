@@ -25,6 +25,7 @@ export function updateNodePositions(
   edgingBool: boolean,
   setEdging: React.Dispatch<React.SetStateAction<TempEdge | null>>,
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>,
+  unbounded: boolean,
 ) {
   const currentGraph = graphRef.current;
   const canvasRect = canvasRectRef.current;
@@ -50,21 +51,25 @@ export function updateNodePositions(
         let force = { x: 0, y: 0 };
 
         // Gravitation towards center to keep layout balanced
-        const distanceToCenter = subtractPos(
-          { x: centerX, y: centerY },
-          node.pos,
-        );
-        const centerDistance = lengthPos(distanceToCenter);
-        if (centerDistance > k * 3) {
-          force = addPos(
-            force,
-            multiplyPos(
-              distanceToCenter,
-              (GRAVITATIONAL_CONSTANT * (centerDistance - k * 3)) /
-                centerDistance,
-            ),
+
+        if (!unbounded) {
+          const distanceToCenter = subtractPos(
+            { x: centerX, y: centerY },
+            node.pos,
           );
+          const centerDistance = lengthPos(distanceToCenter);
+          if (centerDistance > k * 3) {
+            force = addPos(
+              force,
+              multiplyPos(
+                distanceToCenter,
+                (GRAVITATIONAL_CONSTANT * (centerDistance - k * 3)) /
+                  centerDistance,
+              ),
+            );
+          }
         }
+
 
         currentGraph.nodes.forEach((otherNode) => {
           if (node.id !== otherNode.id) {
@@ -104,16 +109,18 @@ export function updateNodePositions(
 
         let newPos = addPos(node.pos, force);
 
-        const margin = k / 2;
-        const boundaryForce = 0.05;
-        if (newPos.x < margin) newPos.x += (margin - newPos.x) * boundaryForce;
-        if (newPos.x > canvasRect.width - margin)
-          newPos.x -= (newPos.x - (canvasRect.width - margin)) * boundaryForce;
-        if (newPos.y < margin) newPos.y += (margin - newPos.y) * boundaryForce;
-        if (newPos.y > canvasRect.height - margin)
-          newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
+        if (!unbounded) {
+          const margin = k / 2;
+          const boundaryForce = 0.05;
+          if (newPos.x < margin) newPos.x += (margin - newPos.x) * boundaryForce;
+          if (newPos.x > canvasRect.width - margin)
+            newPos.x -= (newPos.x - (canvasRect.width - margin)) * boundaryForce;
+          if (newPos.y < margin) newPos.y += (margin - newPos.y) * boundaryForce;
+          if (newPos.y > canvasRect.height - margin)
+            newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
+          newPos = getBoundedPosition(newPos, canvasRect);
+        }
 
-        newPos = getBoundedPosition(newPos, canvasRect);
 
         const displacement = Math.abs(lengthPos(node.pos) - lengthPos(newPos));
 

@@ -18,12 +18,14 @@ export const NUM_MAX_PHYSICS_ITERS = 0;
 export const GRAVITATIONAL_CONSTANT = 0.03;
 export const DELTA_TIME = 1.2;
 export const DAMPING = 0.6;
-export const MOVEMENT_THRESHOLD = 0.05;
+export const MOVEMENT_THRESHOLD = 0.1;
 export const REFRESH_RATE = 10;
 export const SPRING_FORCE = 0.075;
 
 //graph stuff
 
+export const ZOOM_FACTOR = 1.2;
+export const PAN_AMOUNT = 50;
 export const PERP_LEN: number = 20;
 export const INITIAL_CIRCLE_RADIUS: number = 30;
 export const INITIAL_FONT_SIZE: number = 15;
@@ -41,11 +43,15 @@ export const GRAPH_COLORS: Colors[] = [
   },
 ];
 
+
+export const PAN_PIX : number = 40;
+
 // defaults
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeMode: false,
   directedMode: false,
   gravityMode: false,
+  unboundedMode:false,
   currentChosenColor: null,
   circleRadius: INITIAL_CIRCLE_RADIUS,
   fontSize: INITIAL_FONT_SIZE,
@@ -56,6 +62,7 @@ export const DEFAULT_BOX_ACTIVE: BoxActive = {
   newBlankGraphBox: false,
   newTextGraphBox: false,
   infoBox: false,
+  queryBox:false
 };
 export const DEFAULT_SELECTING_ALGO: SelectingAlgo = {
   bfs: false,

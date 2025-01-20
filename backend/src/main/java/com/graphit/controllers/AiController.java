@@ -22,6 +22,9 @@ public class AiController {
     @Value("${spring.ai.openai.prompt.first}")
     private String systemPrompt;
 
+    @Value("${spring.ai.openai.prompt.query}")
+    private String queryPrompt;
+
     // @Value("${spring.ai.openai.model}") //model not working
     // private String model;
 
@@ -70,6 +73,33 @@ public class AiController {
             System.out.println(graph);
 
             return ResponseEntity.ok(Map.of("graph", graph));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Unexpected error occurred"));
+        }
+    }
+
+    @PostMapping("/aiquery")
+    public ResponseEntity<Map<String, Object>> query( //should get iiud for graph to avoid intergraph conflict
+            @RequestParam String userPrompt,
+            @RequestBody Graph graph
+    ) {
+        try {
+
+            OpenAiChatOptions openAiChatOptions = new OpenAiChatOptions();
+            openAiChatOptions.setModel("gpt-4o-mini");
+
+            String graphGenerationPrompt = String.format("%s\nUser Input: %s\nGraph Data: %s",
+            queryPrompt, userPrompt, graph.toString());
+
+            String result = chatModel.call(new Prompt(graphGenerationPrompt, openAiChatOptions))
+                    .getResult()
+                    .getOutput()
+                    .getContent();
+
+            System.out.println(result);
+
+            return ResponseEntity.ok(Map.of("result", result));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Unexpected error occurred"));

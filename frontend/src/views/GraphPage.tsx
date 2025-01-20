@@ -10,7 +10,9 @@ import NewBlankGraphBox from "../components/NewBlankGraphBox";
 import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
 import Error from "../components/Error";
+// import QueryBox from "../components/TopBox";
 import TopBox from "../components/TopBox";
+import QueryBox from "../components/QueryBox"
 import {
   Graph,
   Position,
@@ -22,6 +24,7 @@ import {
   BoxActive,
   MiniEdge,
   SelectingAlgo,
+  Viewport,
 } from "../interfaces";
 import { authorizedFetch, authorizedPost, post } from "../networking";
 import {
@@ -29,7 +32,7 @@ import {
   getNodeAt,
   getPosRelRect,
   outOfBounds,
-  getBoundedPosition,
+  getUpdatedPosition,
   addPos,
 } from "../utils/utils";
 import { saveGraphCPP, saveGraphPNG } from "../utils/saving";
@@ -118,9 +121,19 @@ export default function GraphPage({
   const editInputRef = useRef<HTMLInputElement>(null);
   const graphSelectPopupRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<SVGSVGElement>(null);
+  const controlPanelRef = useRef<HTMLDivElement>(null);
 
   // OTHER
   const navigate = useNavigate();
+
+
+
+  const [viewport, setViewport] = useState<Viewport>({
+    scale: 1,
+    translateX: 0,
+    translateY: 0,
+  });
+
 
   // =================================================================
   // ========================== Auth Actions ==========================
@@ -336,6 +349,13 @@ export default function GraphPage({
   // ========================== Node Actions ==========================
   // =================================================================
 
+  const addViewport = (pos: Position) => {
+    return graphConfig.unboundedMode ? {
+      x:pos.x - viewport.translateX,
+      y:pos.y - viewport.translateY
+    } : pos
+  }
+
   const nodeActions = {
     // ADD NODE
     handleAddNode: (cursorPos?: Position, newValue?: string) => {
@@ -396,20 +416,22 @@ export default function GraphPage({
             node.id === id ? { ...node, customColor: newColor } : node,
           ),
         });
-
         return updatedGraphs;
       });
     },
 
-    handleMassPosUpdate: (ids: Set<string>, delta: Position) => {
 
+    handleMassPosUpdate: (ids: Set<string>, delta: Position) => {
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
-             ids.has(node.id) ? { ...node, pos:  getBoundedPosition(addPos(node.pos, delta), canvasRect)} : node,
+             ids.has(node.id) ? { ...node, pos:  {
+              x:getUpdatedPosition(addPos(node.pos, delta), canvasRect, graphConfig.unboundedMode, canvasRef).x,
+              y:getUpdatedPosition(addPos(node.pos, delta), canvasRect, graphConfig.unboundedMode, canvasRef).y
+            }} : node,
           ),
         });
         return updatedGraphs;
@@ -417,19 +439,17 @@ export default function GraphPage({
     },
 
 
+
     // UPDATE NODE POSITION
     handleUpdateNodePos: (id: string, pos: Position) => {
-      // Need to min canvasrect
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-
-        const newPos: Position = getBoundedPosition(pos, canvasRect);
-
+        let newPos: Position = addViewport(getUpdatedPosition(pos, canvasRect, graphConfig.unboundedMode, canvasRef));
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
-            node.id === id ? { ...node, pos: newPos } : node,
+            node.id === id ? { ...node, pos:newPos} : node, //distance from center * scale
           ),
         });
         return updatedGraphs;
@@ -534,6 +554,8 @@ export default function GraphPage({
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
       } else if (e.key === "u" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
+      } else if (e.key === "m" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
       } else if (e.key == "Escape") {
         miscActions.handleCancelAllActive();
       }
@@ -596,7 +618,8 @@ export default function GraphPage({
         currGraph !== "" &&
         !editingEdge &&
         !editingNode &&
-        !miscActions.isBoxActive() &&
+        !Object.values(boxActive).includes(true) &&
+        !(controlPanelRef && controlPanelRef.current && controlPanelRef.current.contains(e.target as globalThis.Node)) &&
         canvasRect
       ) {
         const posRelCanvas: Position = getPosRelRect(
@@ -656,13 +679,7 @@ export default function GraphPage({
     },
 
     // CHECK IF BOX IS ACTIVE
-    isBoxActive: () => {
-      return (
-        boxActive.aiBox ||
-        boxActive.newBlankGraphBox ||
-        boxActive.newTextGraphBox
-      );
-    },
+
   };
 
   // =================================================================
@@ -806,7 +823,7 @@ export default function GraphPage({
       for (let id of ids) {
         setHighlighted((prev) => new Set(cumulative?[...prev, id]:[id]));
         await new Promise((resolve) => {
-          setTimeout(resolve, 250)
+          setTimeout(resolve, 400)
         });
       }
       if (!cumulative) {
@@ -927,6 +944,13 @@ export default function GraphPage({
             handleNewGraphFromInput={graphActions.handleNewGraphFromInput}
           />
         )}
+        {/* {boxActive.queryBox && (
+          <QueryBox
+            setBoxActive={setBoxActive}
+            handleSetError={miscActions.handleSetError}
+            graph={graphs.get(currGraph)}
+          />
+        )} */}
         {boxActive.aiBox && (
           <AiBox
             setBoxActive={setBoxActive}
@@ -940,7 +964,6 @@ export default function GraphPage({
           shiftPressed={shiftPressed}
           setCanvasRect={setCanvasRect}
           canvasRect={canvasRect}
-          isBoxActive={miscActions.isBoxActive}
           editingEdge={editingEdge}
           setEditingEdge={setEditingEdge}
           editingNode={editingNode}
@@ -955,7 +978,10 @@ export default function GraphPage({
           darkMode={darkMode}
           edgeActions={edgeActions}
           nodeActions={nodeActions}
-          handleMassPosUpdate={nodeActions.handleMassPosUpdate}
+          boxActive={boxActive}
+          controlPanelRef={controlPanelRef}
+          viewport={viewport}
+          setViewport={setViewport}
         />
         <Options
           graphConfig={graphConfig}

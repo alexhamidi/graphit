@@ -1,8 +1,8 @@
 package com.graphit.models;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class Graph {
 
@@ -10,8 +10,6 @@ public class Graph {
     private String name;
     private ArrayList<Node> nodes;
     private ArrayList<Edge> edges;
-
-
 
     public String getID() {
         return id;
@@ -40,14 +38,15 @@ public class Graph {
     public ArrayList<Edge> getEdges() {
         return edges;
     }
+
     public void setEdges(ArrayList<Edge> edges) {
         this.edges = edges;
     }
 
     public HashMap<String, HashMap<String, Edge>> toAdj() {
-        HashMap<String, HashMap<String, Edge>> adj = new HashMap<String, HashMap<String, Edge>>();
+        HashMap<String, HashMap<String, Edge>> adj = new HashMap<>();
         for (Node node : nodes) {
-            adj.put(node.getID(), new HashMap<String, Edge>());
+            adj.put(node.getID(), new HashMap<>());
         }
         for (Edge edge : edges) {
             adj.get(edge.getN1()).put(edge.getN2(), edge);
@@ -58,12 +57,12 @@ public class Graph {
     public HashMap<String, HashMap<String, NumEdge>> toNumAdj() {
         HashMap<String, HashMap<String, NumEdge>> adj = new HashMap<>();
         for (Node node : nodes) {
-            adj.put(node.getID(), new HashMap<String, NumEdge>());
+            adj.put(node.getID(), new HashMap<>());
         }
         for (Edge edge : edges) {
             int edgeVal = 0;
             try {
-                edgeVal = Integer.parseInt(edge.getValue()); //here
+                edgeVal = Integer.parseInt(edge.getValue());
             } catch (NumberFormatException e) {
                 throw e;
             }
@@ -97,5 +96,15 @@ public class Graph {
             nodeIDs.add(node.getID());
         }
         return nodeIDs;
+    }
+
+    @Override
+    public String toString() {
+        return "Graph{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", nodes=[" + nodes.stream().map(Node::toString).collect(Collectors.joining(", ")) + "]" +
+                ", edges=[" + edges.stream().map(Edge::toString).collect(Collectors.joining(", ")) + "]" +
+                '}';
     }
 }

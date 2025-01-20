@@ -25,6 +25,7 @@ public class SecurityConfig {
                     "/api/health",
                     "/api/login/oauth2/code/google",
                     "/api/ai",
+                    "/api/aiquery",
                     "/api/algorithm/shortest",
                     "/api/algorithm/bfs",
                     "/api/algorithm/dfs",

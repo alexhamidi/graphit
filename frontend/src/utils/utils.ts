@@ -1,5 +1,5 @@
 import { Position, Node, Graph, AdjEdge } from "../interfaces";
-import { EDGE_BOUNDARY, PERP_LEN } from "../constants";
+import { PERP_LEN, EDGE_BOUNDARY } from "../constants";
 import { authorizedFetch } from "../networking";
 // App
 export function outOfBounds(
@@ -46,21 +46,58 @@ export function getNodeAt(
   return null;
 }
 
+// const screenToSVGCoordinates = (
+//   pos: Position,
+//   canvasRect: DOMRect | null,
+//   canvasRef: React.RefObject<SVGSVGElement>
+// ) => {
+//   if (!canvasRef.current || !canvasRect) return { x: 0, y: 0 };
+
+//   const ctm = canvasRef.current.getScreenCTM();
+//   if (!ctm) return { x: 0, y: 0 };
+
+//   // Adjust for viewport scaling
+
+//   const point = canvasRef.current.createSVGPoint();
+//   point.x = pos.x;
+//   point.y = pos.y;
+
+//   const svgPoint = point.matrixTransform(ctm.inverse());
+
+//   return {
+//     x: svgPoint.x,
+//     y: svgPoint.y
+//   };
+// };
+
+
 export function getBoundedPosition(
   pos: Position,
   canvasRect: DOMRect | null,
 ): Position {
-  return  pos;
-  // return {
-  //   x: Math.min(
-  //     Math.max(pos.x, EDGE_BOUNDARY),
-  //     canvasRect!.width - EDGE_BOUNDARY,
-  //   ),
-  //   y: Math.min(
-  //     Math.max(pos.y, EDGE_BOUNDARY),
-  //     canvasRect!.height - EDGE_BOUNDARY,
-  //   ),
-  // };
+  return {
+    x: Math.min(
+      Math.max(pos.x, EDGE_BOUNDARY),
+      canvasRect!.width - EDGE_BOUNDARY,
+    ),
+    y: Math.min(
+      Math.max(pos.y, EDGE_BOUNDARY),
+      canvasRect!.height - EDGE_BOUNDARY,
+    ),
+  };
+}
+
+export function getUpdatedPosition(
+  pos: Position,
+  canvasRect: DOMRect | null,
+  unbounded: boolean,
+  canvasRef: React.RefObject<SVGSVGElement>
+): Position {
+  if (unbounded) {
+    return pos
+    // return screenToSVGCoordinates(pos, canvasRect, canvasRef);
+  }
+  return (getBoundedPosition(pos, canvasRect))
 }
 
 export function getDistance(pos1: Position, pos2: Position): number {

@@ -9,12 +9,16 @@ import {
   GraphConfig,
   NodeActions,
   EdgeActions,
+  BoxActive,
+  Viewport
 } from "../interfaces";
 import {
   GRAPH_COLORS,
   PIXELS_PER_FONT_SIZE_UNIT,
   NUM_MAX_PHYSICS_ITERS,
   REFRESH_RATE,
+  PAN_AMOUNT,
+  ZOOM_FACTOR
 } from "../constants";
 import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos } from "../utils/utils";
 
@@ -25,6 +29,7 @@ import {
   SelfEdgeComponent,
   EdgeComponent,
 } from "../components/CanvasParts";
+import ControlPanel from "../components/ControlPanel";
 
 interface Props {
   graph: Graph | null;
@@ -33,7 +38,7 @@ interface Props {
   shiftPressed: boolean;
   setCanvasRect: React.Dispatch<React.SetStateAction<DOMRect | null>>;
   canvasRect: DOMRect | null;
-  isBoxActive: () => boolean;
+  boxActive: BoxActive;
   editInputRef: React.RefObject<HTMLInputElement>;
   canvasRef: React.RefObject<SVGSVGElement>;
   handleSetError: (message: string) => void;
@@ -46,7 +51,9 @@ interface Props {
   highlighted: Set<string>;
   loading: boolean;
   darkMode: boolean;
-  handleMassPosUpdate: (ids: Set<string>, delta: Position) =>void;
+  controlPanelRef: React.RefObject<HTMLDivElement>
+  viewport:Viewport,
+  setViewport:React.Dispatch<React.SetStateAction<Viewport>>;
 }
 
 export default function Canvas({
@@ -56,7 +63,7 @@ export default function Canvas({
   shiftPressed,
   setCanvasRect,
   canvasRect,
-  isBoxActive,
+  boxActive,
   editInputRef,
   canvasRef,
   editingEdge,
@@ -68,7 +75,9 @@ export default function Canvas({
   highlighted,
   loading,
   darkMode,
-  handleMassPosUpdate,
+  controlPanelRef,
+  viewport,
+  setViewport
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -98,7 +107,7 @@ export default function Canvas({
       e: React.MouseEvent<SVGGElement, MouseEvent>,
       node: Node,
     ): void => {
-      if (isBoxActive()) return;
+      if (Object.values(boxActive).includes(true)) return;
       e.preventDefault();
       const startingMousePosRelCircle: Position = getPosRelParent(e);
 
@@ -134,7 +143,7 @@ export default function Canvas({
       e: React.MouseEvent<SVGGElement, MouseEvent>,
       node: Node,
     ): void => {
-      if (isBoxActive()) return;
+      if (Object.values(boxActive).includes(true)) return;
       e.preventDefault();
       nodeActions.handleDeleteNode(node.id);
     },
@@ -145,7 +154,7 @@ export default function Canvas({
       e: React.MouseEvent<SVGGElement, MouseEvent>,
       edge: LocatedEdge,
     ): void => {
-      if (isBoxActive()) return;
+      if (Object.values(boxActive).includes(true)) return;
       if (e.button !== 0) return;
 
       e.preventDefault();
@@ -173,7 +182,7 @@ export default function Canvas({
       e: React.MouseEvent<SVGGElement, MouseEvent>,
       edge: Edge,
     ): void => {
-      if (isBoxActive()) return;
+      if (Object.values(boxActive).includes(true)) return;
       e.preventDefault();
       edgeActions.handleDeleteEdge(edge.id);
     },
@@ -183,7 +192,7 @@ export default function Canvas({
   const handleMouseMoveElement = (
     e: React.MouseEvent<SVGSVGElement, MouseEvent>,
   ) => {
-    if (isBoxActive()) return;
+    if (Object.values(boxActive).includes(true)) return;
     if (draggingNode) {
       const cursorPos: Position = getPosRelParent(e);
       if (outOfBounds(cursorPos, canvasRect)) {
@@ -200,10 +209,9 @@ export default function Canvas({
         return;
       }
 
-
       const absPos = subtractPos(cursorPos, mouseDownPosRelEdge!);
       const delta = subtractPos(absPos, segmentDragFirstPos!)
-      handleMassPosUpdate(draggingEdgeSegment, delta)
+      nodeActions.handleMassPosUpdate(draggingEdgeSegment, delta)
       setSegmentDragFirstPos(absPos)
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
@@ -343,6 +351,7 @@ export default function Canvas({
           edgingBool,
           setEdging,
           setGraphs,
+          graphConfig.unboundedMode
         );
     }, REFRESH_RATE);
 
@@ -374,13 +383,83 @@ export default function Canvas({
   useEffect(handleUpdateBidirectional, [graph]);
 
   // =================================================================
+  // ============================ Zoom/Pan ===========================
+  // =================================================================
+
+
+
+
+
+  const zoomActions = {
+    handleZoomIn: () => {
+      setViewport(prev => ({
+        ...prev,
+        scale: prev.scale * ZOOM_FACTOR,
+      }));
+    },
+
+    handleZoomOut: () => {
+      setViewport(prev => ({
+        ...prev,
+        scale: prev.scale / ZOOM_FACTOR,
+      }));
+    },
+
+    handlePanLeft: () => {
+      setViewport(prev => ({
+        ...prev,
+        translateX: prev.translateX + PAN_AMOUNT,
+      }));
+    },
+
+    handlePanRight: () => {
+      setViewport(prev => ({
+        ...prev,
+        translateX: prev.translateX - PAN_AMOUNT,
+      }));
+    },
+
+    handlePanUp: () => {
+      setViewport(prev => ({
+        ...prev,
+        translateY: prev.translateY + PAN_AMOUNT,
+      }));
+    },
+
+    handlePanDown: () => {
+      setViewport(prev => ({
+        ...prev,
+        translateY: prev.translateY - PAN_AMOUNT,
+      }));
+    },
+  };
+
+  const getViewBox = () => {
+    if (!canvasRect) return "0 0 100 100";
+
+    // Calculate the center point
+    const centerX = canvasRect.width / 2;
+    const centerY = canvasRect.height / 2;
+
+    // Calculate dimensions
+    const width = canvasRect.width / viewport.scale;
+    const height = canvasRect.height / viewport.scale;
+
+    // Calculate offset to keep center point fixed
+    const x = centerX - (width / 2) - viewport.translateX;
+    const y = centerY - (height / 2) - viewport.translateY;
+
+    return `${x} ${y} ${width} ${height}`;
+  };
+
+
+  // =================================================================
   // ======================= Returned Component ======================
   // =================================================================
 
+
   return (
-
     <>
-
       {editingEdge && (
         <EditBox
           handleSubmit={handleEditEdgeSubmit}
@@ -389,6 +468,8 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingEdge}
+          viewport={viewport}
+          unboundedMode={graphConfig.unboundedMode}
         />
       )}
       {editingNode && (
@@ -399,17 +480,24 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingNode}
+          viewport={viewport}
+          unboundedMode={graphConfig.unboundedMode}
         />
       )}
       <div
         className="main-component main-graphpage-section"
         id="canvas-wrapper"
       >
-        {graph !== null ? (
+        {graph !== null ? (<>
+          {graphConfig.unboundedMode && <ControlPanel
+            controlPanelRef={controlPanelRef}
+            zoomActions={zoomActions}
+          />}
           <svg
             fontFamily="monospace"
             id="canvas"
             ref={canvasRef}
+            viewBox={graphConfig.unboundedMode ? getViewBox() : ""}
             onContextMenu={(e) => e.preventDefault()}
             onMouseMove={handleMouseMoveElement}
             onMouseUp={handleMouseUpElement}
@@ -472,7 +560,7 @@ export default function Canvas({
               />
             ))}
           </svg>
-        ) : (
+        </>) : (
           <svg id="canvas" ref={canvasRef}>
             <text
               x="50%"
@@ -480,6 +568,7 @@ export default function Canvas({
               textAnchor="middle"
               dominantBaseline="middle"
               style={{ fontSize: "16px" }}
+              fill={GRAPH_COLORS[+darkMode].text}
             >
               {!loading && "select a graph to view it here"}
             </text>

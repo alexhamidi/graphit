@@ -1,4 +1,4 @@
-import { Node, LocatedEdge } from "../interfaces";
+import { Node, LocatedEdge, Viewport } from "../interfaces";
 import { TEXT_BOX_ADJUSTMENT } from "../constants";
 interface Props {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -7,6 +7,8 @@ interface Props {
   setValue: React.Dispatch<React.SetStateAction<string>>;
   canvasRect: DOMRect | null;
   editingObj: Node | LocatedEdge;
+  viewport:Viewport,
+  unboundedMode:boolean
 }
 
 export default function EditBox({
@@ -16,6 +18,8 @@ export default function EditBox({
   setValue,
   canvasRect,
   editingObj,
+  viewport,
+  unboundedMode,
 }: Props) {
   return (
     <form onSubmit={handleSubmit}>
@@ -26,8 +30,8 @@ export default function EditBox({
         value={value}
         style={{
           position: "absolute",
-          top: canvasRect!.top + editingObj.pos.y - TEXT_BOX_ADJUSTMENT.height,
-          left: canvasRect!.left + editingObj.pos.x - TEXT_BOX_ADJUSTMENT.width,
+          top: canvasRect!.top + editingObj.pos.y - TEXT_BOX_ADJUSTMENT.height+ (unboundedMode?viewport.translateY:0),
+          left: canvasRect!.left + editingObj.pos.x - TEXT_BOX_ADJUSTMENT.width+(unboundedMode?viewport.translateX:0),
         }}
         ref={editInputRef}
       />

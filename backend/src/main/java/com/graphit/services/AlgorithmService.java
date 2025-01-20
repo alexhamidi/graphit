@@ -185,51 +185,52 @@ public class AlgorithmService {
         visited.add(curr);
         nodeOrdering.add(curr);
     }
-
     public ArrayList<String> mst(Graph graph) {
         if (graph.getEdges().isEmpty()) throw new IllegalArgumentException();
 
         HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj();
         ArrayList<String> path = new ArrayList<>();
         HashSet<String> visited = new HashSet<>();
-        PriorityQueue<NumEdge> pq = new PriorityQueue<>(
-            (a, b) -> Integer.compare(a.getValue(), b.getValue())
-        );
+        HashMap<String, NumEdge> minIncomingEdges = new HashMap<>();
+        HashMap<String, String> parent = new HashMap<>();
 
-        String startNode = graph.getEdges().get(0).getN1();
-        visited.add(startNode);
-        path.add(startNode);
-
-        for (Map.Entry<String, NumEdge> entry : adjList.get(startNode).entrySet()) {
-            pq.add(entry.getValue());
+        // Initialize the minIncomingEdges and parent maps
+        for (String node : adjList.keySet()) {
+            minIncomingEdges.put(node, null);
+            parent.put(node, null);
         }
 
-
-        while (!pq.isEmpty()) {
-            NumEdge edge = pq.poll();
-            String v = edge.getN2();
-
-
-
-            if (visited.contains(v)) continue;
-
-            visited.add(v);
-            path.add(edge.getID());
-            path.add(v);
-
-            for (Map.Entry<String, NumEdge> entry : adjList.get(v).entrySet()) {
-                if (!visited.contains(entry.getKey())) {
-                    pq.add(entry.getValue());
+        // Process each node (excluding the root)
+        for (String node : adjList.keySet()) {
+            if (!visited.contains(node)) {
+                // Find the minimum incoming edge for each node
+                for (Map.Entry<String, NumEdge> entry : adjList.get(node).entrySet()) {
+                    NumEdge edge = entry.getValue();
+                    String u = edge.getN1();
+                    if (minIncomingEdges.get(node) == null || edge.getValue() < minIncomingEdges.get(node).getValue()) {
+                        minIncomingEdges.put(node, edge);
+                        parent.put(node, u);
+                    }
                 }
             }
         }
 
+        // Add edges to the MST
+        for (String node : minIncomingEdges.keySet()) {
+            NumEdge edge = minIncomingEdges.get(node);
+            if (edge != null) {
+                path.add(edge.getID());
+                path.add(node);
+            }
+        }
 
-        if (visited.size() != adjList.size()) {
+        // Check if all nodes were visited, which means we formed a spanning tree
+        if (path.size() != adjList.size() * 2 - 2) {
             throw new IllegalArgumentException();
         }
 
         return path;
     }
+
 
 }

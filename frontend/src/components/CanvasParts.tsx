@@ -135,7 +135,7 @@ export function SelfEdgeComponent({
         d={pathData}
         fill="none"
         stroke={currColors.line}
-        strokeWidth={graphConfig.lineWeight * 5}
+        strokeWidth={graphConfig.lineWeight * 8}
         opacity={0}
       />
 
@@ -251,7 +251,7 @@ export function EdgeComponent({
         y2={node2.pos.y}
         opacity={0}
         stroke={currColors.line}
-        strokeWidth={graphConfig.lineWeight * 5}
+        strokeWidth={graphConfig.lineWeight * 8}
       />
       <line
         x1={adjustEndpoint(node2.pos, node1.pos, graphConfig.circleRadius).x}

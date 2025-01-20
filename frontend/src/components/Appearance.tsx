@@ -108,6 +108,19 @@ export default function Appearance({
           }
         />
       </div>
+      <div className="toggle-item">
+        <label htmlFor="unbounded-mode" className="toggle-label">
+          Infinite Mode
+        </label>
+        <input
+          type="checkbox"
+          id="unbounded-mode"
+          checked={graphConfig.unboundedMode}
+          onChange={() =>
+            updateGraphConfig("unboundedMode", !graphConfig.unboundedMode)
+          }
+        />
+      </div>
       <div>
         Colors
         <div id="colors">

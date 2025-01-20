@@ -29,6 +29,7 @@ export default function InfoBox({ setBoxActive, handleSetError }: Props) {
             <ul>
               <li>click to place a node</li>
               <li>drag nodes with your cursor</li>
+              <li>drag connected components by dragging edges</li>
               <li>right-click on a node or edge to delete it</li>
               <li>shift-click on a node or edge to edit its value</li>
               <li>shift-drag a node to create an edge</li>
@@ -51,7 +52,7 @@ export default function InfoBox({ setBoxActive, handleSetError }: Props) {
             </ul>
           </div>
           <p id="love">
-            this project was made by{" "}
+            graphit was made by{" "}
             <a href="https://alexhamidi.github.io/">alex hamidi</a>
           </p>
         </>
