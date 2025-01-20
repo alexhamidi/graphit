@@ -21,7 +21,7 @@ interface Props {
   graphPopupActive: boolean;
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
   graphSelectPopupRef: React.RefObject<HTMLDivElement>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
   loading: boolean;
   darkMode: boolean;
   toggleDarkMode: () => void;

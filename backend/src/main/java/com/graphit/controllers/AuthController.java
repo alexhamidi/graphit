@@ -40,7 +40,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUser(
         @RequestBody Map<String, String> credentials) {
-        System.out.println("here");
         try {
             if (!credentials.containsKey("email") || !credentials.containsKey("password")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Email and password are required."));

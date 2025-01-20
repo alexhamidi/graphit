@@ -4,10 +4,10 @@ import { BoxActive } from "../interfaces";
 
 interface Props {
   setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
 }
 
-export default function InfoBox({ setBoxActive, handleSetError }: Props) {
+export default function InfoBox({ setBoxActive, setErrorMessage }: Props) {
   return (
     <Box //use children to render the other stuff
       mainText={"Basics"}

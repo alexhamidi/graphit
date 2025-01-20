@@ -6,19 +6,19 @@ import Box from "../components/Box";
 
 interface Props {
   setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
   graph: Graph | undefined
 }
 
 export default function QueryBox({
   setBoxActive,
-  handleSetError,
+  setErrorMessage,
   graph
 }: Props) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>("loading");
-  const [result, setResult] = useState<string | null>(null)
+  const [aiMessage, setAiMessage] = useState<string | null>(null)
   const quotes = [
     "If a man will begin with certainties, he shall end in doubts; but if he will be content to begin with doubts, he shall end in certainties. - Sir Francis Bacon",
     "Reading maketh a full man; and writing an axact man. And, therefore, if a man write little, he need have a present wit; and if he read little, he need have much cunning to seem to know which he doth not. - Sir Francis Bacon",
@@ -98,34 +98,36 @@ export default function QueryBox({
     e.preventDefault();
     const currPrompt: string = prompt;
     setPrompt("");
+    setAiMessage("")
     if (currPrompt === "") {
-      handleSetError("Please provide a prompt");
+      setErrorMessage("Please provide a prompt");
       return;
     }
-    if (graph === null) {
-        handleSetError("Graph must not be null");
+    console.log(graph)
+    if (graph === undefined) {
+        setErrorMessage("Must select a graph");
         return;
     }
     try {
       setLoading(true);
       setDisplayed(quotes[Math.floor(Math.random() * quotes.length)]);
-      const response = await post(`/aiquery?userPrompt=${currPrompt}`, {
+      const response = await post("/ai/query", {
+        userPrompt: currPrompt,
         graph: graph,
       });
       const aiResult: string = response.data.result;
-      setResult(aiResult)
+      setAiMessage(aiResult)
       setLoading(false);
-      setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: false });
     } catch (err) {
       setLoading(false);
-      handleSetError(AI_ERROR);
+      setErrorMessage(AI_ERROR);
     }
     setPrompt("");
   };
 
   return (
     <Box
-      mainText={"query this graph using AI "}
+      mainText={"Query this graph using AI "}
       placeholderText={"enter prompt here"}
       closeFunction={() =>
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: false })
@@ -137,8 +139,8 @@ export default function QueryBox({
       loadingMessage={loadingMessage}
       containsPrimaryInput={true}
       children={<>
-        {loading ? <div className="quote">{displayed}</div> : null}
-        {result ? <div className="aiResult">{result}</div> : null}
+        {loading && <div className="quote">{displayed}</div> }
+        {aiMessage && <div className="ai-message">{aiMessage}</div>}
         </>}
     />
   );

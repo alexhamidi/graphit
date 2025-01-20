@@ -24,7 +24,6 @@ import {
   BoxActive,
   MiniEdge,
   SelectingAlgo,
-  Viewport,
 } from "../interfaces";
 import { authorizedFetch, authorizedPost, post } from "../networking";
 import {
@@ -32,7 +31,7 @@ import {
   getNodeAt,
   getPosRelRect,
   outOfBounds,
-  getUpdatedPosition,
+  getBoundedPosition,
   addPos,
 } from "../utils/utils";
 import { saveGraphCPP, saveGraphPNG } from "../utils/saving";
@@ -125,14 +124,6 @@ export default function GraphPage({
 
   // OTHER
   const navigate = useNavigate();
-
-
-
-  const [viewport, setViewport] = useState<Viewport>({
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
-  });
 
 
   // =================================================================
@@ -286,7 +277,7 @@ export default function GraphPage({
         await authorizedPost("/graphs", Object.fromEntries(graphs), token);
       } catch (err) {
         console.error(CLOUD_SAVE_FAIL_ERROR);
-        if (isAxiosError(err) && err.response?.status === 400) {
+        if (isAxiosError(err) && err.response?.status === 401) {
           authActions.handleLogout();
         }
       }
@@ -349,16 +340,9 @@ export default function GraphPage({
   // ========================== Node Actions ==========================
   // =================================================================
 
-  const addViewport = (pos: Position) => {
-    return graphConfig.unboundedMode ? {
-      x:pos.x - viewport.translateX,
-      y:pos.y - viewport.translateY
-    } : pos
-  }
-
   const nodeActions = {
     // ADD NODE
-    handleAddNode: (cursorPos?: Position, newValue?: string) => {
+    handleAddNode: (cursorPos: Position, newValue?: string) => {
       const newNode: Node = new Node(
         canvasRect,
         graphConfig.currentChosenColor,
@@ -428,10 +412,9 @@ export default function GraphPage({
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
-             ids.has(node.id) ? { ...node, pos:  {
-              x:getUpdatedPosition(addPos(node.pos, delta), canvasRect, graphConfig.unboundedMode, canvasRef).x,
-              y:getUpdatedPosition(addPos(node.pos, delta), canvasRect, graphConfig.unboundedMode, canvasRef).y
-            }} : node,
+             ids.has(node.id) ? { ...node, pos:
+              getBoundedPosition(addPos(node.pos, delta), canvasRect)
+            } : node,
           ),
         });
         return updatedGraphs;
@@ -443,9 +426,10 @@ export default function GraphPage({
     // UPDATE NODE POSITION
     handleUpdateNodePos: (id: string, pos: Position) => {
       setGraphs((prevGraphs) => {
+          //canvasrect not properly updated here
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-        let newPos: Position = addViewport(getUpdatedPosition(pos, canvasRect, graphConfig.unboundedMode, canvasRef));
+        let newPos: Position = getBoundedPosition(pos, canvasRect)
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
@@ -554,8 +538,8 @@ export default function GraphPage({
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
       } else if (e.key === "u" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
-      } else if (e.key === "m" && metaPressed) {
-        // setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
+      } else if (e.key === "a" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
       } else if (e.key == "Escape") {
         miscActions.handleCancelAllActive();
       }
@@ -602,7 +586,7 @@ export default function GraphPage({
       }
     },
 
-    // MOUSE MOVEp
+    // MOUSE MOVE
     handleMouseMove: (e: MouseEvent) => {
       if (!e.shiftKey) {
         setShiftPressed(false);
@@ -670,12 +654,6 @@ export default function GraphPage({
     handleCancelEditing: () => {
       setEditingEdge(null);
       setEditingNode(null);
-    },
-
-    // UPDATE ERROR MESSAGE
-    handleSetError: (message?: string) => {
-      if (!message) message = DEFAULT_ERROR;
-      setErrorMessage(message);
     },
 
     // CHECK IF BOX IS ACTIVE
@@ -915,7 +893,7 @@ export default function GraphPage({
         graphPopupActive={graphPopupActive}
         setGraphPopupActive={setGraphPopupActive}
         graphSelectPopupRef={graphSelectPopupRef}
-        handleSetError={miscActions.handleSetError}
+        setErrorMessage={setErrorMessage}
         loading={loading}
         toggleDarkMode={toggleDarkMode}
         darkMode={darkMode}
@@ -925,7 +903,7 @@ export default function GraphPage({
         {boxActive.infoBox && (
           <InfoBox
             setBoxActive={setBoxActive}
-            handleSetError={miscActions.handleSetError}
+            setErrorMessage={setErrorMessage}
           />
         )}
         {boxActive.newBlankGraphBox && (
@@ -933,21 +911,21 @@ export default function GraphPage({
             setBoxActive={setBoxActive}
             handleNewGraph={graphActions.handleNewGraph}
             setGraphPopupActive={setGraphPopupActive}
-            handleSetError={miscActions.handleSetError}
+            setErrorMessage={setErrorMessage}
           />
         )}
         {boxActive.newTextGraphBox && (
           <NewTextGraphBox
             setBoxActive={setBoxActive}
             setGraphPopupActive={setGraphPopupActive}
-            handleSetError={miscActions.handleSetError}
+            setErrorMessage={setErrorMessage}
             handleNewGraphFromInput={graphActions.handleNewGraphFromInput}
           />
         )}
         {boxActive.queryBox && (
           <QueryBox
             setBoxActive={setBoxActive}
-            handleSetError={miscActions.handleSetError}
+            setErrorMessage={setErrorMessage}
             graph={graphs.get(currGraph)}
           />
         )}
@@ -956,7 +934,7 @@ export default function GraphPage({
             setBoxActive={setBoxActive}
             handleAddGraph={graphActions.handleAddGraph}
             canvasRect={canvasRect}
-            handleSetError={miscActions.handleSetError}
+            setErrorMessage={setErrorMessage}
           />
         )}
         <Canvas
@@ -970,7 +948,7 @@ export default function GraphPage({
           setEditingNode={setEditingNode}
           editInputRef={editInputRef}
           canvasRef={canvasRef}
-          handleSetError={miscActions.handleSetError}
+          setErrorMessage={setErrorMessage}
           graphConfig={graphConfig}
           setGraphs={setGraphs}
           highlighted={highlighted}
@@ -980,8 +958,6 @@ export default function GraphPage({
           nodeActions={nodeActions}
           boxActive={boxActive}
           controlPanelRef={controlPanelRef}
-          viewport={viewport}
-          setViewport={setViewport}
         />
         <Options
           graphConfig={graphConfig}

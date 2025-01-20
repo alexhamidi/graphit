@@ -53,4 +53,15 @@ public class Node {
     public void setCustomColor(String customColor) {
         this.customColor = customColor;
     }
+
+    @Override
+public String toString() {
+    return "Node{" +
+            "id='" + id + '\'' +
+            ", value='" + value + '\'' +
+            ", pos=" + pos.toString() +
+            ", customColor='" + customColor + '\'' +
+            '}';
+}
+
 }

@@ -72,7 +72,6 @@ public class AlgorithmService {
             current = prev;
         }
         Collections.reverse(path);
-        System.out.println(path);
         return path;
     }
 

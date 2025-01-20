@@ -2,6 +2,7 @@ package com.graphit.controllers;
 
 import com.google.gson.Gson;
 import com.graphit.models.Graph;
+import com.graphit.models.QueryReq;
 import com.graphit.utils.AiUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
  @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/ai")
 public class AiController {
 
     @Value("${spring.ai.openai.prompt.first}")
@@ -24,9 +25,6 @@ public class AiController {
 
     @Value("${spring.ai.openai.prompt.query}")
     private String queryPrompt;
-
-    // @Value("${spring.ai.openai.model}") //model not working
-    // private String model;
 
     private final ChatModel chatModel;
     private final AiUtil aiUtil;
@@ -36,8 +34,8 @@ public class AiController {
         this.aiUtil = aiUtil;
     }
 
-    @PostMapping("/ai")
-    public ResponseEntity<Map<String, Object>> doPrompt( //should get iiud for graph to avoid intergraph conflict
+    @PostMapping("/create")
+    public ResponseEntity<Map<String, Object>> create( //should get iiud for graph to avoid intergraph conflict
             @RequestBody HashMap<String, String> data
     ) {
         try {
@@ -47,6 +45,8 @@ public class AiController {
 
             OpenAiChatOptions openAiChatOptions = new OpenAiChatOptions();
             openAiChatOptions.setModel("gpt-4o-mini");
+            openAiChatOptions.setTemperature(0.2);
+            openAiChatOptions.setTopP(0.3);
 
             BeanOutputConverter<Graph> converter = new BeanOutputConverter<>(Graph.class);
 
@@ -56,7 +56,6 @@ public class AiController {
                 """;
 
             String graphGenerationPrompt = String.format(systemPrompt, width, height) + userPrompt;
-            System.out.println(graphGenerationPrompt);
 
             PromptTemplate promptTemplate = new PromptTemplate(template, Map.of(
                     "template", new PromptTemplate(graphGenerationPrompt).getTemplate(),
@@ -70,7 +69,6 @@ public class AiController {
             Graph graph = gson.fromJson(result, Graph.class);
             graph.setID(aiUtil.getUuid());
 
-            System.out.println(graph);
 
             return ResponseEntity.ok(Map.of("graph", graph));
         } catch (Exception e) {
@@ -79,25 +77,25 @@ public class AiController {
         }
     }
 
-    @PostMapping("/aiquery")
+    @PostMapping("/query")
     public ResponseEntity<Map<String, Object>> query( //should get iiud for graph to avoid intergraph conflict
-            @RequestParam String userPrompt,
-            @RequestBody Graph graph
+            @RequestBody QueryReq req
     ) {
         try {
 
             OpenAiChatOptions openAiChatOptions = new OpenAiChatOptions();
             openAiChatOptions.setModel("gpt-4o-mini");
 
-            String graphGenerationPrompt = String.format("%s\nUser Input: %s\nGraph Data: %s",
-            queryPrompt, userPrompt, graph.toString());
+            String graphGenerationPrompt = String.format("%s\nUser Prompt: %s\nGraph Data: %s",
+            queryPrompt, req.getUserPrompt(), req.getGraph().toString());
 
-            String result = chatModel.call(new Prompt(graphGenerationPrompt, openAiChatOptions))
+
+            String result = "";
+            result = chatModel.call(new Prompt(graphGenerationPrompt, openAiChatOptions))
                     .getResult()
                     .getOutput()
                     .getContent();
 
-            System.out.println(result);
 
             return ResponseEntity.ok(Map.of("result", result));
         } catch (Exception e) {

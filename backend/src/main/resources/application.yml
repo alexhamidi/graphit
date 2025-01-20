@@ -37,9 +37,7 @@ spring:
         prompt:
         # expiriment with telling it to do nodes first
           query: |
-            You are tasked with describing a graph with a prompt. return a description of the graph below according to the prompt
-            ===========================GRAPH AND PROMPT BELOW====================
-
+            Describe the graph according to the prompt. do not reference node ids. do not restate the data in the graph. Keep responses insightful, extremely brief, and in paragraph form. Do not include any filler text-be extremely extremely direct, extremely extremely, blunt, extremely extremely to the point. Ignore the name, focus only on the content, nodes, edges, relationships, and positions.
           first: |
             Generate a graph G=(U, V) matching the given prompt. The canvas spans from origin (0,0) at the top-left to (%s, %s) at the bottom-right, with all nodes positioned within this space (x, y in pixels). Assign unique string IDs to each graph, edge, and node. Define edges by their ID, value, and the IDs of their connected nodes (n1: origin, n2: destination). Default values for nodes and edges are 0, and customColor is always an empty string. Values can represent diverse relationships (e.g., numbers, strings, words). Distribute graph elements sparsely across the space, ensuring logical structure and avoiding intersections where possible.
             ===========================PROMPT BELOW====================

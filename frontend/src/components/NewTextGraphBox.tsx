@@ -11,14 +11,14 @@ interface Props {
     edgeValues: MiniEdge[],
   ) => void;
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
 }
 
 export default function NewTextGraphBox({
   setBoxActive,
   handleNewGraphFromInput,
   setGraphPopupActive,
-  handleSetError,
+  setErrorMessage,
 }: Props) {
   const [newGraphName, setNewGraphName] = useState("");
   const [nodeInput, setNodeInput] = useState("");
@@ -27,7 +27,7 @@ export default function NewTextGraphBox({
   const handleNewGraphSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newGraphName === "") {
-      handleSetError("Please provide a name");
+      setErrorMessage("Please provide a name");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function NewTextGraphBox({
         if (splitLine.length === 1) {
           return true;
         } else {
-          handleSetError("Invalid input format");
+          setErrorMessage("Invalid input format");
           invalidInput = true;
           return false;
         }
@@ -57,7 +57,7 @@ export default function NewTextGraphBox({
         if (splitLine.length === 2 || splitLine.length === 3) {
           return [splitLine[0], splitLine[1], splitLine[2]] as MiniEdge;
         } else {
-          handleSetError("Invalid input format");
+          setErrorMessage("Invalid input format");
           invalidInput = true;
           return null;
         }

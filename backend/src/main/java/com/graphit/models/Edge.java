@@ -52,4 +52,15 @@ public class Edge {
     public void setN2(String n2) {
         this.n2 = n2;
     }
+
+    @Override
+public String toString() {
+    return "Edge{" +
+            "id='" + id + '\'' +
+            ", value='" + value + '\'' +
+            ", n1='" + n1 + '\'' +
+            ", n2='" + n2 + '\'' +
+            '}';
+}
+
 }

@@ -150,7 +150,7 @@ export interface GraphActions {
 // Node Actions
 export interface NodeActions {
 
-  handleAddNode: (cursorPos?: Position, newValue?: string) => void;
+  handleAddNode: (cursorPos: Position, newValue?: string) => void;
   handleDeleteNode: (id: string) => void;
   handleBasicNodeClick: (id: string) => void;
   handleUpdateNodePos: (id: string, pos: Position) => void;
@@ -180,7 +180,7 @@ export interface AlgoActions {
 export interface MiscActions {
   handleCancelAllActive: () => void;
   handleCancelEditing: () => void;
-  handleSetError: (message?: string) => void;
+  setErrorMessage: (message?: string) => void;
   isBoxActive: () => boolean;
 }
 

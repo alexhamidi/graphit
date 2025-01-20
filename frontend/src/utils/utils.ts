@@ -87,18 +87,6 @@ export function getBoundedPosition(
   };
 }
 
-export function getUpdatedPosition(
-  pos: Position,
-  canvasRect: DOMRect | null,
-  unbounded: boolean,
-  canvasRef: React.RefObject<SVGSVGElement>
-): Position {
-  if (unbounded) {
-    return pos
-    // return screenToSVGCoordinates(pos, canvasRect, canvasRef);
-  }
-  return (getBoundedPosition(pos, canvasRect))
-}
 
 export function getDistance(pos1: Position, pos2: Position): number {
   const distance = Math.sqrt(
@@ -172,7 +160,6 @@ export function adjustEndpoint(
   const dy = p2.y - p1.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  // Calculate the point that's `radius` units before the end point
   const t = (distance - circleRadius) / distance;
 
   return {

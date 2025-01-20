@@ -10,15 +10,15 @@ import {
   NodeActions,
   EdgeActions,
   BoxActive,
-  Viewport
+  // Viewport
 } from "../interfaces";
 import {
   GRAPH_COLORS,
   PIXELS_PER_FONT_SIZE_UNIT,
   NUM_MAX_PHYSICS_ITERS,
   REFRESH_RATE,
-  PAN_AMOUNT,
-  ZOOM_FACTOR
+  // PAN_AMOUNT,
+  // ZOOM_FACTOR
 } from "../constants";
 import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos } from "../utils/utils";
 
@@ -29,7 +29,7 @@ import {
   SelfEdgeComponent,
   EdgeComponent,
 } from "../components/CanvasParts";
-import ControlPanel from "../components/ControlPanel";
+// import ControlPanel from "../components/ControlPanel";
 
 interface Props {
   graph: Graph | null;
@@ -41,7 +41,7 @@ interface Props {
   boxActive: BoxActive;
   editInputRef: React.RefObject<HTMLInputElement>;
   canvasRef: React.RefObject<SVGSVGElement>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
   editingEdge: LocatedEdge | null;
   setEditingEdge: React.Dispatch<React.SetStateAction<LocatedEdge | null>>;
   editingNode: Node | null;
@@ -52,8 +52,8 @@ interface Props {
   loading: boolean;
   darkMode: boolean;
   controlPanelRef: React.RefObject<HTMLDivElement>
-  viewport:Viewport,
-  setViewport:React.Dispatch<React.SetStateAction<Viewport>>;
+  // viewport:Viewport,
+  // setViewport:React.Dispatch<React.SetStateAction<Viewport>>;
 }
 
 export default function Canvas({
@@ -76,8 +76,8 @@ export default function Canvas({
   loading,
   darkMode,
   controlPanelRef,
-  viewport,
-  setViewport
+  // viewport,
+  // setViewport
 }: Props) {
   // =================================================================
   // ========================== State Variables ========================
@@ -98,6 +98,8 @@ export default function Canvas({
 
   // Bidirectional
   const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
+
+
 
   // =================================================================
   // ======================== Mouse Handlers ==========================
@@ -211,7 +213,13 @@ export default function Canvas({
 
       const absPos = subtractPos(cursorPos, mouseDownPosRelEdge!);
       const delta = subtractPos(absPos, segmentDragFirstPos!)
+
+      //need to udate here
+
+
       nodeActions.handleMassPosUpdate(draggingEdgeSegment, delta)
+
+
       setSegmentDragFirstPos(absPos)
     } else if (edging) {
       const cursorPos = getPosRelParent(e);
@@ -382,75 +390,11 @@ export default function Canvas({
 
   useEffect(handleUpdateBidirectional, [graph]);
 
+
   // =================================================================
   // ============================ Zoom/Pan ===========================
   // =================================================================
 
-
-
-
-
-  const zoomActions = {
-    handleZoomIn: () => {
-      setViewport(prev => ({
-        ...prev,
-        scale: prev.scale * ZOOM_FACTOR,
-      }));
-    },
-
-    handleZoomOut: () => {
-      setViewport(prev => ({
-        ...prev,
-        scale: prev.scale / ZOOM_FACTOR,
-      }));
-    },
-
-    handlePanLeft: () => {
-      setViewport(prev => ({
-        ...prev,
-        translateX: prev.translateX + PAN_AMOUNT,
-      }));
-    },
-
-    handlePanRight: () => {
-      setViewport(prev => ({
-        ...prev,
-        translateX: prev.translateX - PAN_AMOUNT,
-      }));
-    },
-
-    handlePanUp: () => {
-      setViewport(prev => ({
-        ...prev,
-        translateY: prev.translateY + PAN_AMOUNT,
-      }));
-    },
-
-    handlePanDown: () => {
-      setViewport(prev => ({
-        ...prev,
-        translateY: prev.translateY - PAN_AMOUNT,
-      }));
-    },
-  };
-
-  const getViewBox = () => {
-    if (!canvasRect) return "0 0 100 100";
-
-    // Calculate the center point
-    const centerX = canvasRect.width / 2;
-    const centerY = canvasRect.height / 2;
-
-    // Calculate dimensions
-    const width = canvasRect.width / viewport.scale;
-    const height = canvasRect.height / viewport.scale;
-
-    // Calculate offset to keep center point fixed
-    const x = centerX - (width / 2) - viewport.translateX;
-    const y = centerY - (height / 2) - viewport.translateY;
-
-    return `${x} ${y} ${width} ${height}`;
-  };
 
 
   // =================================================================
@@ -468,7 +412,6 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingEdge}
-          viewport={viewport}
           unboundedMode={graphConfig.unboundedMode}
         />
       )}
@@ -480,7 +423,6 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingNode}
-          viewport={viewport}
           unboundedMode={graphConfig.unboundedMode}
         />
       )}
@@ -488,16 +430,15 @@ export default function Canvas({
         className="main-component main-graphpage-section"
         id="canvas-wrapper"
       >
-        {graph !== null ? (<>
-          {graphConfig.unboundedMode && <ControlPanel
+         {graph !== null ? (<>
+          {/* {graphConfig.unboundedMode && <ControlPanel
             controlPanelRef={controlPanelRef}
             zoomActions={zoomActions}
-          />}
+          />} */}
           <svg
             fontFamily="monospace"
             id="canvas"
             ref={canvasRef}
-            viewBox={graphConfig.unboundedMode ? getViewBox() : ""}
             onContextMenu={(e) => e.preventDefault()}
             onMouseMove={handleMouseMoveElement}
             onMouseUp={handleMouseUpElement}

@@ -108,7 +108,7 @@ export default function Appearance({
           }
         />
       </div>
-      <div className="toggle-item">
+      {/* <div className="toggle-item">
         <label htmlFor="unbounded-mode" className="toggle-label">
           Infinite Mode
         </label>
@@ -120,7 +120,7 @@ export default function Appearance({
             updateGraphConfig("unboundedMode", !graphConfig.unboundedMode)
           }
         />
-      </div>
+      </div> */}
       <div>
         Colors
         <div id="colors">

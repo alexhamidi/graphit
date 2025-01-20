@@ -349,6 +349,11 @@ input[type="checkbox"] {
   width: 40vw;
 }
 
+.ai-message {
+  width: 40vw;
+  line-height:1.5em;
+}
+
 .info {
   width: 40vw;
 }

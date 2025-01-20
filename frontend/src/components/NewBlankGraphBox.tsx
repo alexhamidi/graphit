@@ -7,14 +7,14 @@ interface Props {
   setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
   handleNewGraph: (name: string) => void;
   setGraphPopupActive: React.Dispatch<React.SetStateAction<boolean>>;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
 }
 
 export default function NewBlankGraphBox({
   setBoxActive,
   handleNewGraph,
   setGraphPopupActive,
-  handleSetError,
+  setErrorMessage,
 }: Props) {
   const [newGraphName, setNewGraphName] = useState("");
 
@@ -22,7 +22,7 @@ export default function NewBlankGraphBox({
     e.preventDefault();
     console.log(newGraphName);
     if (newGraphName === "") {
-      handleSetError("Please provide a name");
+      setErrorMessage("Please provide a name");
       return;
     }
     const newName: string = newGraphName;

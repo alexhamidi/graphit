@@ -8,14 +8,14 @@ interface Props {
   setBoxActive: React.Dispatch<React.SetStateAction<BoxActive>>;
   handleAddGraph: (graph: Graph) => void;
   canvasRect: DOMRect | null;
-  handleSetError: (message: string) => void;
+  setErrorMessage: (message: string) => void;
 }
 
 export default function AiBox({
   setBoxActive,
   handleAddGraph,
   canvasRect,
-  handleSetError,
+  setErrorMessage,
 }: Props) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -96,13 +96,13 @@ export default function AiBox({
     const currPrompt: string = prompt;
     setPrompt("");
     if (currPrompt === "") {
-      handleSetError("Please provide a prompt");
+      setErrorMessage("Please provide a prompt");
       return;
     }
     try {
       setLoading(true);
       setDisplayed(quotes[Math.floor(Math.random() * quotes.length)]);
-      const response = await post("/ai", {
+      const response = await post("/ai/create", {
         prompt: currPrompt,
         width: canvasRect!.width,
         height: canvasRect!.height,
@@ -113,7 +113,7 @@ export default function AiBox({
       setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: false });
     } catch (err) {
       setLoading(false);
-      handleSetError(AI_ERROR);
+      setErrorMessage(AI_ERROR);
     }
     setPrompt("");
   };
