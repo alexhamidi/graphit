@@ -630,6 +630,7 @@ export default function GraphPage({
     },
   };
 
+
   useEffect(() => {
     window.addEventListener("mousedown", mouseActions.handleMouseDown);
     window.addEventListener("mousemove", mouseActions.handleMouseMove);
@@ -639,7 +640,7 @@ export default function GraphPage({
       window.removeEventListener("mousemove", mouseActions.handleMouseMove);
       window.removeEventListener("mouseup", mouseActions.handleMouseUp);
     };
-  }, [mouseDownStationary, canvasRect, currGraph, shiftPressed]);
+  }, [mouseDownStationary, canvasRect, currGraph, shiftPressed, graphPopupActive]);
 
   // =================================================================
   // ========================== Misc Actions ==========================
