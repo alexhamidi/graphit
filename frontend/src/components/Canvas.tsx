@@ -359,7 +359,6 @@ export default function Canvas({
           edgingBool,
           setEdging,
           setGraphs,
-          graphConfig.unboundedMode
         );
     }, REFRESH_RATE);
 
@@ -412,7 +411,6 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingEdge}
-          unboundedMode={graphConfig.unboundedMode}
         />
       )}
       {editingNode && (
@@ -423,7 +421,6 @@ export default function Canvas({
           setValue={setEditingName}
           canvasRect={canvasRect}
           editingObj={editingNode}
-          unboundedMode={graphConfig.unboundedMode}
         />
       )}
       <div

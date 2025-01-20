@@ -102,7 +102,6 @@ export interface GraphConfig {
   edgeMode: boolean;
   directedMode: boolean;
   gravityMode: boolean;
-  unboundedMode: boolean;
   circleRadius: number;
   fontSize: number;
   lineWeight: number;
@@ -227,16 +226,6 @@ export interface EdgeClickActions {
     edge: Edge,
   ) => void;
 }
-
-export interface ZoomActions {
-  handleZoomIn: () => void;
-  handleZoomOut: () => void;
-  handlePanLeft: () => void;
-  handlePanDown: () => void;
-  handlePanUp: () => void;
-  handlePanRight: () => void;
-}
-
 
 
 export interface Viewport{

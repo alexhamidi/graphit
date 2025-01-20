@@ -7,7 +7,6 @@ interface Props {
   setValue: React.Dispatch<React.SetStateAction<string>>;
   canvasRect: DOMRect | null;
   editingObj: Node | LocatedEdge;
-  unboundedMode:boolean
 }
 
 export default function EditBox({
@@ -17,7 +16,6 @@ export default function EditBox({
   setValue,
   canvasRect,
   editingObj,
-  unboundedMode,
 }: Props) {
   return (
     <form onSubmit={handleSubmit}>

@@ -5,6 +5,7 @@ import {
   MOVEMENT_THRESHOLD,
   REFRESH_RATE,
   SPRING_FORCE,
+  EPSILON,
 } from "../constants";
 import {
   addPos,
@@ -25,7 +26,6 @@ export function updateNodePositions(
   edgingBool: boolean,
   setEdging: React.Dispatch<React.SetStateAction<TempEdge | null>>,
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>,
-  unbounded: boolean,
 ) {
   const currentGraph = graphRef.current;
   const canvasRect = canvasRectRef.current;
@@ -52,7 +52,6 @@ export function updateNodePositions(
 
         // Gravitation towards center to keep layout balanced
 
-        if (!unbounded) {
           const distanceToCenter = subtractPos(
             { x: centerX, y: centerY },
             node.pos,
@@ -68,7 +67,7 @@ export function updateNodePositions(
               ),
             );
           }
-        }
+          if (numTotalIters%5000===0) console.log(node.pos)
 
 
         currentGraph.nodes.forEach((otherNode) => {
@@ -86,7 +85,10 @@ export function updateNodePositions(
           }
         });
 
-        currentGraph.edges.forEach((edge) => {
+        if (numTotalIters%5000===0) console.log(force)
+
+
+        currentGraph.edges.forEach((edge) => { //happens here
           if (
             (edge.n1 === node.id || edge.n2 === node.id) &&
             edge.n1 !== edge.n2
@@ -100,16 +102,16 @@ export function updateNodePositions(
               const diff = subtractPos(otherNode.pos, node.pos);
               const distance = lengthPos(diff);
               const springForce = (distance - k) * SPRING_FORCE;
-              force = addPos(force, multiplyPos(diff, springForce / distance));
+              force = addPos(force, multiplyPos(diff, springForce / (distance+EPSILON)));
             }
           }
         });
+
 
         force = multiplyPos(force, DAMPING * DELTA_TIME);
 
         let newPos = addPos(node.pos, force);
 
-        if (!unbounded) {
           const margin = k / 2;
           const boundaryForce = 0.05;
           if (newPos.x < margin) newPos.x += (margin - newPos.x) * boundaryForce;
@@ -119,7 +121,6 @@ export function updateNodePositions(
           if (newPos.y > canvasRect.height - margin)
             newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
           newPos = getBoundedPosition(newPos, canvasRect);
-        }
 
 
         const displacement = Math.abs(lengthPos(node.pos) - lengthPos(newPos));

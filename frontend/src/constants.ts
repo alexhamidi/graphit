@@ -21,7 +21,7 @@ export const DAMPING = 0.6;
 export const MOVEMENT_THRESHOLD = 0.1;
 export const REFRESH_RATE = 10;
 export const SPRING_FORCE = 0.075;
-
+export const EPSILON = 0.000001;
 //graph stuff
 
 export const ZOOM_FACTOR = 1.2;
@@ -51,7 +51,6 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeMode: false,
   directedMode: false,
   gravityMode: false,
-  unboundedMode:false,
   currentChosenColor: null,
   circleRadius: INITIAL_CIRCLE_RADIUS,
   fontSize: INITIAL_FONT_SIZE,
