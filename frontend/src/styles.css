@@ -331,6 +331,8 @@ hr {
   border: 2px solid var(--text-color);
 }
 
+
+
 #deselect-color {
   display: flex;
   align-items: center;
@@ -339,6 +341,10 @@ hr {
   * {
     color: var(--error-color);
   }
+}
+
+#transparent-color.selected-color {
+  background-position: 2px 2px;
 }
 
 #transparent-color {

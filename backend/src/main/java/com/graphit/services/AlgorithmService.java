@@ -8,7 +8,6 @@ import com.graphit.models.NumEdge;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -164,10 +163,13 @@ public class AlgorithmService {
         HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj(false, valued);
         ArrayList<String> path = new ArrayList<>();
 
-        PriorityQueue<NumEdge> pq = new PriorityQueue<>(Comparator.comparingInt(NumEdge::getValue));
+
+        PriorityQueue<NumEdge> pq = new PriorityQueue<>(
+            (a, b) -> Integer.compare(a.getValue(), b.getValue())
+        );
+
         HashSet<String> visited = new HashSet<>();
 
-        // Start with the first node
         String startNode = graph.getNodes().get(0).getID();
         visited.add(startNode);
         path.add(startNode);
@@ -192,25 +194,14 @@ public class AlgorithmService {
                     }
                 }
             }
-            else if (visited.contains(node2) && !visited.contains(node1)) {
-                visited.add(node1);
-                path.add(node1);
-                path.add(edge.getID());
 
-                for (Map.Entry<String, NumEdge> entry : adjList.get(node1).entrySet()) {
-                    if (!visited.contains(entry.getKey())) {
-                        pq.add(entry.getValue());
-                    }
-                }
-            }
         }
-
         if (visited.size() != graph.getNodes().size()) {
             throw new IllegalArgumentException();
         }
-
         return path;
     }
+
 
     public ArrayList<String> msa(Graph graph, boolean valued) {
         if (graph.getEdges().isEmpty()) throw new IllegalArgumentException();
@@ -349,10 +340,6 @@ public class AlgorithmService {
 
 
 
-
-
-
-
     public ArrayList<String> toposort(Graph graph) {
         ArrayList<String> nodeIDs = graph.getNodeIDs();
         HashMap<String, ArrayList<String>> adjList = graph.toBasicAdj();
@@ -388,6 +375,12 @@ public class AlgorithmService {
         visited.add(curr);
         nodeOrdering.add(curr);
     }
+
+
+    // here on out - fully understood
+
+
+
 
 
 }

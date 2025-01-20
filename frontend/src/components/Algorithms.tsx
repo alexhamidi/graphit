@@ -12,7 +12,7 @@ export default function Appearance({ handleStartAlgo, graphConfig }: Props) {
         onClick={() => handleStartAlgo("shortest")}
         className="basic-button"
       >
-        Djikstra's
+        Shortest Path (Djikstra's)
       </button>
       <button onClick={() => handleStartAlgo("bfs")} className="basic-button">
         BFS

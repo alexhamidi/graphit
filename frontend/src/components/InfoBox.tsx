@@ -48,7 +48,7 @@ export default function InfoBox({ setBoxActive, setErrorMessage }: Props) {
             <ul>
               <li>[cmd]+[b] to create a blank graph </li>
               <li>[cmd]+[i] to create a graph from text input</li>
-              <li>[cmd]+[a] to create a graph with ai</li>
+              <li>[cmd]+[k] to create a graph with ai</li>
               <li>[cmd]+[h] to query the current graph</li>
             </ul>
           </div>

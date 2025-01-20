@@ -121,6 +121,7 @@ export default function GraphPage({
   const graphSelectPopupRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<SVGSVGElement>(null);
   const controlPanelRef = useRef<HTMLDivElement>(null);
+  const searchValueInputRef = useRef<HTMLInputElement>(null);
 
   // OTHER
   const navigate = useNavigate();
@@ -532,7 +533,7 @@ export default function GraphPage({
         setShiftPressed(true);
       } else if (e.key === "Meta") {
         setMetaPressed(true);
-      } else if (e.key === "a" && metaPressed) {
+      } else if (e.key === "k" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
       } else if (e.key === "b" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
@@ -648,11 +649,11 @@ export default function GraphPage({
   const miscActions = {
     // CANCEL ALL ACTIVE DISPLAYS
     handleCancelAllActive: () => {
-      setEditingEdge(null);
-      setEditingNode(null);
+      miscActions.handleCancelEditing();
       setBoxActive(DEFAULT_BOX_ACTIVE);
       setGraphPopupActive(false);
       setErrorMessage(null);
+      algoActions.handleEndAlgorithm();
     },
 
     // CANCEL ALL ACTIVE DISPLAYS (editing)
@@ -816,6 +817,7 @@ export default function GraphPage({
       }
     },
 
+
     // END ALGORITHM
     handleEndAlgorithm: () => {
       setResetShown(false);
@@ -826,6 +828,14 @@ export default function GraphPage({
       setSearchValueInput("");
     },
   };
+
+
+  //focus valueinput
+  useEffect(() => {
+    if (searchValueInputRef.current && searchValueInputShown) {
+      searchValueInputRef.current.focus();
+    }
+  }, [searchValueInputRef,searchValueInputShown]);
 
   useEffect(algoActions.handleHighlightedChange, [highlighted]);
 
@@ -874,6 +884,7 @@ export default function GraphPage({
               <div id="searching-for">value searching for:</div>
               <form onSubmit={algoActions.handleSearchValueSubmit}>
                 <input
+                  ref={searchValueInputRef}
                   className="basic-button"
                   type="text"
                   value={searchValueInput}
