@@ -109,6 +109,8 @@ export const INCOMPLETE_CREDENTIALS_ERROR: string =
   "Please fill out all fields";
 
   export const COLORS: string[] = [
+    GRAPH_COLORS[0].main,
+    GRAPH_COLORS[1].main,
     "#DEDE7E",
     "#7ECD63",
     "#8ECE9E",

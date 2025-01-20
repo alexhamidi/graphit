@@ -38,7 +38,7 @@ export function NodeComponent({
         cx={node.pos.x}
         cy={node.pos.y}
         r={graphConfig.circleRadius}
-        fill={node.customColor ? node.customColor : currColors.main}
+        fill={node.customColor ? node.customColor : "transparent"}
         strokeWidth={graphConfig.lineWeight}
         stroke={
           highlighted && highlighted.has(node.id) ? "red" : currColors.line

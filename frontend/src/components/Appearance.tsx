@@ -1,4 +1,4 @@
-import { COLORS, GRAPH_COLORS } from "../constants";
+import { COLORS } from "../constants";
 import { GraphConfig } from "../interfaces";
 
 interface Props {
@@ -126,29 +126,27 @@ export default function Appearance({
         <div id="colors">
           <button
             onClick={() => updateGraphConfig("currentChosenColor", "")} //not actually setting to this color- auxillary to reset
-            className="color-option"
-            id={graphConfig.currentChosenColor === "" ? "selected-color" : ""}
-            style={{ backgroundColor: GRAPH_COLORS[+darkMode].main }}
+            id="transparent-color"
+            className={`color-option ${graphConfig.currentChosenColor === "" ? "selected-color" : ""}`}
+            style={{ backgroundColor: "gray"}}
           ></button>
           {COLORS.map((color, idx) => (
             <button
               onClick={() => updateGraphConfig("currentChosenColor", color)}
               key={idx}
-              className="color-option"
-              id={
-                graphConfig.currentChosenColor === color ? "selected-color" : ""
-              }
+              className={`color-option ${graphConfig.currentChosenColor === color ? "selected-color" : ""}`}
               style={{ backgroundColor: color }}
             ></button>
           ))}
           <button
             onClick={() => updateGraphConfig("currentChosenColor", null)}
             id="deselect-color"
-            className="color-option"
+            className={"color-option"}
             style={{ backgroundColor: "white" }}
           >
             <i className="fa-solid fa-xmark fa-xl"></i>
           </button>
+
         </div>
       </div>
     </>
