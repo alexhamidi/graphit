@@ -27,9 +27,11 @@ public class AlgorithmController {
     public ResponseEntity<Map<String, Object>> getShortest(
             @RequestParam String n1,
             @RequestParam String n2,
+            @RequestParam boolean directed,
+            @RequestParam boolean valued,
             @RequestBody Graph graph) {
         try {
-            ArrayList<String> visitedIds = algorithmService.shortestPath(n1, n2, graph);
+            ArrayList<String> visitedIds = algorithmService.shortestPath(n1, n2, graph, directed, valued);
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
@@ -47,10 +49,11 @@ public class AlgorithmController {
     public ResponseEntity<Map<String, Object>> getBFS(
             @RequestParam String origin,
             @RequestParam String value,
+            @RequestParam boolean directed,
             @RequestBody Graph graph) {
         try {
 
-            ArrayList<String> visitedIds = algorithmService.bfs(origin, value, graph);
+            ArrayList<String> visitedIds = algorithmService.bfs(origin, value, graph, directed);
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
@@ -67,10 +70,11 @@ public class AlgorithmController {
     public ResponseEntity<Map<String, Object>> getDFS(
             @RequestParam String origin,
             @RequestParam String value,
+            @RequestParam boolean directed,
             @RequestBody Graph graph) {
         try {
 
-            ArrayList<String> visitedIds = algorithmService.dfs(origin, value, graph);
+            ArrayList<String> visitedIds = algorithmService.dfs(origin, value, graph, directed);
 
             return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
 
@@ -82,6 +86,30 @@ public class AlgorithmController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
         }
     }
+
+
+    @PostMapping("/mst")
+    public ResponseEntity<Map<String, Object>> getMST( //basically need to return a linked list
+            @RequestParam boolean directed,
+            @RequestParam boolean valued,
+            @RequestBody Graph graph) {
+
+        try {
+            ArrayList<String> visitedIds = directed ? algorithmService.msa(graph, valued) : algorithmService.mst(graph, valued);
+            return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error",  "Graph must have numbered edges"));
+        } catch (IllegalArgumentException e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Graph has no " + (directed ? "MSA" : "MST")));
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
+        }
+    }
+
+
 
 
     @PostMapping("/toposort")
@@ -100,22 +128,4 @@ public class AlgorithmController {
         }
     }
 
-    @PostMapping("/mst")
-    public ResponseEntity<Map<String, Object>> getMST( //basically need to return a linked list
-            @RequestBody Graph graph) {
-        try {
-
-            ArrayList<String> visitedIds = algorithmService.mst(graph); //modifies graph internally
-            return ResponseEntity.ok(Map.of("visitedIds", visitedIds));
-        } catch (NumberFormatException e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error",  "Graph must have numbered edges"));
-        } catch (IllegalArgumentException e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", "Graph has no MST"));
-        } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unexpected error occurred"));
-        }
-    }
 }
