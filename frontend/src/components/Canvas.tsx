@@ -20,7 +20,7 @@ import {
   // PAN_AMOUNT,
   // ZOOM_FACTOR
 } from "../constants";
-import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos } from "../utils/utils";
+import { getPosRelParent, getNodeAt, outOfBounds, getConnected, subtractPos, multiplyPos, adjustEndpoint } from "../utils/utils";
 
 import { updateNodePositions } from "../utils/physics";
 import EditBox from "../components/EditBox";
@@ -446,8 +446,8 @@ export default function Canvas({
                 className="graph-element"
                 strokeWidth={graphConfig.lineWeight}
                 stroke={GRAPH_COLORS[+darkMode].line}
-                x1={edging.p1.x}
-                y1={edging.p1.y}
+                x1={adjustEndpoint(edging.p2, edging.p1, graphConfig.circleRadius).x}
+                y1={adjustEndpoint(edging.p2, edging.p1, graphConfig.circleRadius).y}
                 x2={edging.p2.x}
                 y2={edging.p2.y}
               ></line>

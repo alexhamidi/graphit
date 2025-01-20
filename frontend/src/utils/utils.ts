@@ -1,5 +1,5 @@
 import { Position, Node, Graph, AdjEdge } from "../interfaces";
-import { PERP_LEN, EDGE_BOUNDARY } from "../constants";
+import { PERP_LEN, EDGE_BOUNDARY, EPSILON } from "../constants";
 import { authorizedFetch } from "../networking";
 // App
 export function outOfBounds(
@@ -46,29 +46,7 @@ export function getNodeAt(
   return null;
 }
 
-// const screenToSVGCoordinates = (
-//   pos: Position,
-//   canvasRect: DOMRect | null,
-//   canvasRef: React.RefObject<SVGSVGElement>
-// ) => {
-//   if (!canvasRef.current || !canvasRect) return { x: 0, y: 0 };
 
-//   const ctm = canvasRef.current.getScreenCTM();
-//   if (!ctm) return { x: 0, y: 0 };
-
-//   // Adjust for viewport scaling
-
-//   const point = canvasRef.current.createSVGPoint();
-//   point.x = pos.x;
-//   point.y = pos.y;
-
-//   const svgPoint = point.matrixTransform(ctm.inverse());
-
-//   return {
-//     x: svgPoint.x,
-//     y: svgPoint.y
-//   };
-// };
 
 
 export function getBoundedPosition(
@@ -147,9 +125,7 @@ export function getNodeMap(nodes: Node[]) : Map<string,Node>  {
   return new  Map<string,Node>()
 }
 
-// export function minPos(pos: Position, num: number): Position {
-//   return { x: Math.min(pos.x, num), y: Math.min(pos.y, num) };
-// }
+
 
 export function adjustEndpoint(
   p1: Position,
@@ -160,7 +136,7 @@ export function adjustEndpoint(
   const dy = p2.y - p1.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  const t = (distance - circleRadius) / distance;
+  const t = (distance - circleRadius) / (distance+EPSILON);
 
   return {
     x: p1.x + dx * t,
