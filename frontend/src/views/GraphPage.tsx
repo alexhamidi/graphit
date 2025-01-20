@@ -555,7 +555,7 @@ export default function GraphPage({
       } else if (e.key === "u" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
       } else if (e.key === "m" && metaPressed) {
-        setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
+        // setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
       } else if (e.key == "Escape") {
         miscActions.handleCancelAllActive();
       }
@@ -944,13 +944,13 @@ export default function GraphPage({
             handleNewGraphFromInput={graphActions.handleNewGraphFromInput}
           />
         )}
-        {/* {boxActive.queryBox && (
+        {boxActive.queryBox && (
           <QueryBox
             setBoxActive={setBoxActive}
             handleSetError={miscActions.handleSetError}
             graph={graphs.get(currGraph)}
           />
-        )} */}
+        )}
         {boxActive.aiBox && (
           <AiBox
             setBoxActive={setBoxActive}
