@@ -140,6 +140,13 @@ export default function Header({
                     <i className="fa-solid fa-code fa-sm"></i>
                     save this graph (.cpp)
                   </button>
+                  <button
+                    className="plain-button popup-item"
+                    onClick={()=>setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true })}
+                  >
+                    <i className="fa-solid fa-question fa-sm"></i>
+                    query this graph with ai
+                  </button>
                 </>
               )}
 

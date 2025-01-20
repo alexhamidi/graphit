@@ -276,10 +276,10 @@ export default function GraphPage({
       try {
         await authorizedPost("/graphs", Object.fromEntries(graphs), token);
       } catch (err) {
-        console.error(CLOUD_SAVE_FAIL_ERROR);
         if (isAxiosError(err) && err.response?.status === 401) {
           authActions.handleLogout();
         }
+        console.error(CLOUD_SAVE_FAIL_ERROR);
       }
     },
 
@@ -532,14 +532,18 @@ export default function GraphPage({
         setShiftPressed(true);
       } else if (e.key === "Meta") {
         setMetaPressed(true);
-      } else if (e.key === "k" && metaPressed) {
-        setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
-      } else if (e.key === "i" && metaPressed) {
-        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
-      } else if (e.key === "u" && metaPressed) {
-        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
       } else if (e.key === "a" && metaPressed) {
-        setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
+      } else if (e.key === "b" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
+      } else if (e.key === "i" && metaPressed) {
+        setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
+      } else if (e.key === "h" && metaPressed) {
+        if (currGraph === "") {
+          setErrorMessage("Must choose a graph before querying");
+        } else {
+          setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true });
+        }
       } else if (e.key == "Escape") {
         miscActions.handleCancelAllActive();
       }

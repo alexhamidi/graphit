@@ -354,9 +354,17 @@ input[type="checkbox"] {
   line-height:1.5em;
 }
 
+
+
 .info {
   width: 40vw;
+
 }
+
+li {
+  margin:.25em;
+}
+
 #love {
   font-style: italic;
 }
