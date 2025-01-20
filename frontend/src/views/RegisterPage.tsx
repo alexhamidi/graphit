@@ -7,7 +7,7 @@ import {
   DEFAULT_ERROR,
   INCOMPLETE_CREDENTIALS_ERROR,
   EMAIL_IN_USE_ERROR,
-  // BASE_BACKEND_URL,
+  BASE_BACKEND_URL,
   SERVER_ERROR,
 } from "../constants";
 import { isAxiosError } from "axios";
@@ -81,9 +81,9 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
     setCredentials({ email: "", password: "" });
   };
 
-  // const handleGoogleLogin = () => {
-  //   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
-  // };
+  const handleGoogleLogin = () => {
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${BASE_BACKEND_URL}/login/oauth2/code/google&response_type=code&client_id=859034309572-651h4hqiv2mjpbe6k7o4f0porl9p0f5j.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&access_type=offline`;
+  };
 
   return (
     <>
@@ -118,7 +118,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
             </button>
           </form>
           or
-          {/* <button className="gsi-material-button" onClick={handleGoogleLogin}>
+          <button className="gsi-material-button" onClick={handleGoogleLogin}>
             <div className="gsi-material-button-state"></div>
             <div className="gsi-material-button-content-wrapper">
               <div className="gsi-material-button-icon">
@@ -153,7 +153,7 @@ export default function RegisterPage({ setAuthenticated }: PageProps) {
               </span>
               <span style={{ display: "none" }}>Continue with Google</span>
             </div>
-          </button> */}
+          </button>
           <button className="basic-button" onClick={() => navigate("/")}>
             continue as a guest
           </button>
