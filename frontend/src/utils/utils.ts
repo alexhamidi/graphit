@@ -10,7 +10,7 @@ export function outOfBounds(
     pos.x < 10 ||
     pos.x > canvasDims!.width*.99 ||
     pos.y < 10 ||
-    pos.y > canvasDims!.height
+    pos.y > canvasDims!.height*.99
   );
 }
 
