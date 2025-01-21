@@ -207,6 +207,7 @@ export default function Canvas({
     if (draggingNode) {
       const cursorPos: Position = getPosRelParent(e);
       if (outOfBounds(cursorPos, canvasRect)) {
+        console.log("oob")
         handleMouseUpElement(e);
         return;
       }
@@ -241,6 +242,8 @@ export default function Canvas({
     setSelectedNode(null);
     setSelectedEdge(null);
   };
+
+
   const [edgingBool, setEdgingBool] = useState<boolean>(false);
 
   const handleMouseUpElement = (

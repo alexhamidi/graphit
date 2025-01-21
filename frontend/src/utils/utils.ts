@@ -8,7 +8,7 @@ export function outOfBounds(
 ): boolean {
   return (
     pos.x < 10 ||
-    pos.x > canvasDims!.width ||
+    pos.x > canvasDims!.width*.99 ||
     pos.y < 10 ||
     pos.y > canvasDims!.height
   );
@@ -209,3 +209,12 @@ export function getConnected(edgeID: string, graph: Graph): Set<string> {
   return connected;
 }
 
+
+
+export function processHistory(history : string[]) : string {
+  let historyStr = "";
+  for (let i = 0; i < history.length; i++) {
+    historyStr += `${i%2===0 ? "USER: " : "CHATBOT: "}\n${history[i]}\n\n`;
+  }
+  return historyStr;
+}

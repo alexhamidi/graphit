@@ -277,6 +277,7 @@ export default function GraphPage({
         await authorizedPost("/graphs", Object.fromEntries(graphs), token);
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 401) {
+          setErrorMessage("You have been logged out")
           authActions.handleLogout();
         }
         console.error(CLOUD_SAVE_FAIL_ERROR);
@@ -303,6 +304,7 @@ export default function GraphPage({
         setLoading(false);
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 401) {
+          setErrorMessage("You have been logged out")
           authActions.handleLogout();
         }
         setErrorMessage(CLOUD_FETCH_FAIL_ERROR);

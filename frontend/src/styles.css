@@ -14,6 +14,7 @@
 
   --text-color: #141414;
 
+
   /* Other */
   --box-padding: 0.8em;
 }
@@ -369,10 +370,6 @@ input[type="checkbox"] {
   width: 40vw;
 }
 
-.ai-message {
-  width: 40vw;
-  line-height:1.5em;
-}
 
 
 
@@ -432,6 +429,40 @@ li {
   top: 0.5em;
   right: 0.5em;
 }
+
+/* messages */
+
+.query-message{
+  padding:var(--box-padding);
+  border-radius:var(--main-border-radius);
+  border:var(--main-border);
+  max-width:35vw;
+
+}
+
+.ai-message {
+  background-color:#a4bab1;
+  color:var(--main-color);
+
+}
+
+
+.user-message {
+  margin-left: auto;
+}
+
+
+
+#messages {
+  display:flex;
+  flex-direction:column;
+  gap:var(--box-padding);
+  max-height:40vh;
+  width: 40vw;
+  line-height:1.5em;
+  overflow:scroll;
+}
+
 
 
 /* Control panel */
