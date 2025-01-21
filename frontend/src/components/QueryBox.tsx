@@ -86,7 +86,7 @@ export default function QueryBox({
       loadingMessage={null}
       containsPrimaryInput={true}
       children={<>
-        {messages && <div id="messages">
+        {messages.length>0 && <div id="messages">
             {messages.map((message, index) =>
               <div
                 key={index}
