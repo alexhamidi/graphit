@@ -256,10 +256,12 @@ export default function Canvas({
   ) => {
     if (shiftPressed && selectedEdge && graphConfig.valuedMode) {
       setEditingEdge(selectedEdge);
+      setEditingName(selectedEdge.value)
       setSelectedEdge(null);
       setEdging(null);
     } else if (shiftPressed && selectedNode) {
       setEditingNode(selectedNode);
+      setEditingName(selectedNode.value)
       setSelectedNode(null);
       setEdging(null);
     } else if (draggingNode && !movedCurrNode) {
