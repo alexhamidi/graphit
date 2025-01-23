@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
-import { v4 as uuidv4 } from "uuid";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Canvas from "../components/Canvas";
 import Options from "../components/Options";
