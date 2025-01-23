@@ -55,6 +55,8 @@ interface Props {
   controlPanelRef: React.RefObject<HTMLDivElement>
   // viewport:Viewport,
   // setViewport:React.Dispatch<React.SetStateAction<Viewport>>;
+  mouseDownEdgeStationary: string | null;
+  setMouseDownEdgeStationary: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export default function Canvas({
@@ -77,6 +79,8 @@ export default function Canvas({
   loading,
   darkMode,
   controlPanelRef,
+  mouseDownEdgeStationary,
+  setMouseDownEdgeStationary
   // viewport,
   // setViewport
 }: Props) {
@@ -99,7 +103,6 @@ export default function Canvas({
 
   // Bidirectional
   const [bidirectional, setBidirectional] = useState<Set<string>>(new Set());
-
 
 
   // =================================================================
@@ -160,12 +163,13 @@ export default function Canvas({
       if (Object.values(boxActive).includes(true)) return;
       if (e.button !== 0) return;
 
+
       e.preventDefault();
       if (shiftPressed) {
         setSelectedEdge(edge);
         return;
       }
-
+      setMouseDownEdgeStationary(edge.id);
       setSegmentDragFirstPos(edge.pos);
       setDraggingEdgeSegment(getConnected(edge.id, graph!));
 
@@ -206,7 +210,7 @@ export default function Canvas({
     if (Object.values(boxActive).includes(true)) return;
     if (draggingNode) {
       const cursorPos: Position = getPosRelParent(e);
-      if (outOfBounds(cursorPos, canvasRect)) {
+      if (outOfBounds(cursorPos, canvasRect, graphConfig.circleRadius)) {
         console.log("oob")
         handleMouseUpElement(e);
         return;
@@ -216,7 +220,7 @@ export default function Canvas({
 
     } else if (draggingEdgeSegment) {
       const cursorPos: Position = getPosRelParent(e);
-      if (outOfBounds(cursorPos, canvasRect)) {
+      if (outOfBounds(cursorPos, canvasRect, graphConfig.circleRadius)) {
         handleMouseUpElement(e);
         return;
       }
@@ -238,6 +242,7 @@ export default function Canvas({
         p2: cursorPos,
       });
     }
+    setMouseDownEdgeStationary(null);
     setMovedCurrNode(true);
     setSelectedNode(null);
     setSelectedEdge(null);
@@ -269,7 +274,10 @@ export default function Canvas({
       if (cursorNode) {
         edgeActions.handleAddEdge(edging.n1, cursorNode.id);
       }
+    } else if (mouseDownEdgeStationary) {
+      edgeActions.handleBasicEdgeClick(mouseDownEdgeStationary)
     }
+
     setEdgingBool(false);
     setMovedCurrNode(false);
     setEdging(null);
@@ -371,6 +379,7 @@ export default function Canvas({
           edgingBool,
           setEdging,
           setGraphs,
+          graphConfig.circleRadius
         );
     }, REFRESH_RATE);
 
@@ -457,7 +466,7 @@ export default function Canvas({
               <line
                 className="graph-element"
                 strokeWidth={graphConfig.lineWeight}
-                stroke={GRAPH_COLORS[+darkMode].line}
+                stroke={graphConfig.currentChosenColor ? graphConfig.currentChosenColor : GRAPH_COLORS[+darkMode].line}
                 x1={adjustEndpoint(edging.p2, edging.p1, graphConfig.circleRadius).x}
                 y1={adjustEndpoint(edging.p2, edging.p1, graphConfig.circleRadius).y}
                 x2={edging.p2.x}

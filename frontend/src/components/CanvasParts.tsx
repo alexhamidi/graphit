@@ -41,7 +41,7 @@ export function NodeComponent({
         fill={node.customColor ? node.customColor : "transparent"}
         strokeWidth={graphConfig.lineWeight}
         stroke={
-          highlighted && highlighted.has(node.id) ? "red" : currColors.line
+          highlighted && highlighted.has(node.id) ? "red" : ((graphConfig.nodeOutlineColor && node.customColor) ? node.customColor : currColors.line)
         }
       />
       <text
@@ -143,7 +143,7 @@ export function SelfEdgeComponent({
         d={pathData}
         fill="none"
         stroke={
-          highlighted && highlighted.has(edge.id) ? "red" : currColors.line
+          highlighted && highlighted.has(edge.id) ? "red" :  (edge.customColor ? edge.customColor : currColors.line)
         }
         strokeWidth={graphConfig.lineWeight}
         {...(graphConfig.directedMode && {
@@ -259,8 +259,9 @@ export function EdgeComponent({
         x2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).x}
         y2={adjustEndpoint(node1.pos, node2.pos, graphConfig.circleRadius).y}
         stroke={
-          highlighted && highlighted.has(edge.id) ? "red" : currColors.line
+          highlighted && highlighted.has(edge.id) ? "red" :  (edge.customColor ? edge.customColor : currColors.line)
         }
+
         strokeWidth={graphConfig.lineWeight}
         {...(graphConfig.directedMode && {
           markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,

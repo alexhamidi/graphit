@@ -21,14 +21,16 @@ export interface Edge {
   value: string;
   n1: string;
   n2: string;
+  customColor: string;
 }
 
 export class Edge {
-  constructor(n1: string, n2: string, edgeValue?: string) {
+  constructor(n1: string, n2: string, currentChosenColor: string | null, edgeValue?: string) {
     this.id = uuidv4();
     this.value = edgeValue ?? "0";
     this.n1 = n1;
     this.n2 = n2;
+    this.customColor = currentChosenColor ?? "";
   }
 }
 
@@ -84,6 +86,7 @@ export interface LocatedEdge {
   pos: Position;
   width: number;
   height:number;
+  customColor:string;
 }
 
 export interface Credentials {
@@ -102,6 +105,8 @@ export interface GraphConfig {
   valuedMode: boolean;
   directedMode: boolean;
   gravityMode: boolean;
+  nodeOutlineColor: boolean;
+
   circleRadius: number;
   fontSize: number;
   lineWeight: number;
@@ -163,6 +168,7 @@ export interface EdgeActions {
   handleAddEdge: (n1: string, n2: string) => void;
   handleDeleteEdge: (id: string) => void;
   handleEditEdge: (editEdge: Edge, newValue: string) => void;
+  handleBasicEdgeClick: (id: string) => void;
 }
 
 // Algorithm Actions (AlgoActions)

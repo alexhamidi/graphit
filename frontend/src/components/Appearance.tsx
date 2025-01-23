@@ -1,4 +1,4 @@
-import { COLORS } from "../constants";
+import { LIGHT_COLORS, DARK_COLORS } from "../constants";
 import { GraphConfig } from "../interfaces";
 
 interface Props {
@@ -12,6 +12,12 @@ export default function Appearance({
   setGraphConfig,
   darkMode,
 }: Props) {
+
+  const updateChosenColor = (newValue : string | null) => {
+    updateGraphConfig("currentChosenColor", newValue)
+  }
+
+
   const updateGraphConfig = <K extends keyof GraphConfig>(
     key: K,
     value: GraphConfig[K],
@@ -108,6 +114,19 @@ export default function Appearance({
           }
         />
       </div>
+      <div className="toggle-item">
+        <label htmlFor="node-outline-color" className="toggle-label">
+          Color Node Outlines
+        </label>
+        <input
+          type="checkbox"
+          id="node-outline-color"
+          checked={graphConfig.nodeOutlineColor}
+          onChange={() =>
+            updateGraphConfig("nodeOutlineColor", !graphConfig.nodeOutlineColor)
+          }
+        />
+      </div>
       {/* <div className="toggle-item">
         <label htmlFor="unbounded-mode" className="toggle-label">
           Infinite Mode
@@ -124,28 +143,47 @@ export default function Appearance({
       <div>
         Colors
         <div id="colors">
+
           <button
             onClick={() => updateGraphConfig("currentChosenColor", "")} //not actually setting to this color- auxillary to reset
             id="transparent-color"
             className={`color-option ${graphConfig.currentChosenColor === "" ? "selected-color" : ""}`}
             style={{ backgroundColor: "gray"}}
           ></button>
-          {COLORS.map((color, idx) => (
             <button
-              onClick={() => updateGraphConfig("currentChosenColor", color)}
-              key={idx}
-              className={`color-option ${graphConfig.currentChosenColor === color ? "selected-color" : ""}`}
-              style={{ backgroundColor: color }}
-            ></button>
-          ))}
-          <button
-            onClick={() => updateGraphConfig("currentChosenColor", null)}
+            onClick={() => updateChosenColor(null)}
             id="deselect-color"
             className={"color-option"}
             style={{ backgroundColor: "white" }}
           >
             <i className="fa-solid fa-xmark fa-xl"></i>
           </button>
+          <hr/>
+
+          {LIGHT_COLORS.map((color, idx) => (
+            <button
+              onClick={() => updateChosenColor(color)}
+              key={idx}
+              className={`color-option ${graphConfig.currentChosenColor === color ? "selected-color" : ""}`}
+              style={{ backgroundColor: color }}
+            ></button>
+          ))}
+          <hr/>
+          {DARK_COLORS.map((color, idx) => (
+            <button
+              onClick={() => updateChosenColor(color)}
+              key={idx}
+              className={`color-option ${graphConfig.currentChosenColor === color ? "selected-color" : ""}`}
+              style={{ backgroundColor: color }}
+            ></button>
+          ))}
+
+          {/* <button
+            onClick={handleHighlightSelect}
+            className={`color-option ${highlightClicking ? "selected-outline" : "outline-color"}`}
+            style={{ backgroundColor: "white" }}
+          >
+          </button> */}
 
         </div>
       </div>

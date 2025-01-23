@@ -313,6 +313,8 @@ hr {
   cursor: pointer;
 }
 
+
+
 #colors {
   display: flex;
   flex-direction: row;
@@ -320,6 +322,10 @@ hr {
 }
 
 
+#colors hr {
+  opacity:0;
+  margin-bottom:0;
+}
 
 .color-option {
   border-radius: 50%;

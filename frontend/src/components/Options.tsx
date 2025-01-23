@@ -12,6 +12,8 @@ interface Props {
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   handleStartAlgo: (type: string) => void;
+  highlightClicking: boolean;
+  setHighlightClicking: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function Options({

@@ -6,19 +6,21 @@ public class Edge {
     private String value;
     private String n1;
     private String n2;
+    private String customColor;
 
     public Edge() {
         this.id = "";
         this.value = "";
         this.n1 = "";
         this.n2 = "";
+        this.customColor = "";
     }
 
-    public Edge(String id, String value, String n1, String n2) {
+    public Edge(String id, String value, String n1, String n2, String customColor) {
         this.id = id;
         this.value = value;
-         this.n1 = n1;
-        this.n2 = n2;
+        this.n1 = n1;
+        this.customColor = "";
     }
 
     public String getID() {

@@ -34,8 +34,8 @@ export default function InfoBox({ setBoxActive, setErrorMessage }: Props) {
               <li>shift-click on a node or edge to edit its value</li>
               <li>shift-drag a node to create an edge</li>
               <li>
-                once you've selected a color, color nodes by clicking existing
-                nodes or adding new nodes
+                once you've selected a color, color nodes/edges by adding new ones or clicking existing ones
+
               </li>
               <li>
                 note: for mouse events to be considered a "click", the mouse

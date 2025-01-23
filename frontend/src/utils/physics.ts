@@ -26,6 +26,7 @@ export function updateNodePositions(
   edgingBool: boolean,
   setEdging: React.Dispatch<React.SetStateAction<TempEdge | null>>,
   setGraphs: React.Dispatch<React.SetStateAction<Map<string, Graph>>>,
+  circleRadius:number
 ) {
   const currentGraph = graphRef.current;
   const canvasRect = canvasRectRef.current;
@@ -118,7 +119,7 @@ export function updateNodePositions(
           if (newPos.y < margin) newPos.y += (margin - newPos.y) * boundaryForce;
           if (newPos.y > canvasRect.height - margin)
             newPos.y -= (newPos.y - (canvasRect.height - margin)) * boundaryForce;
-          newPos = getBoundedPosition(newPos, canvasRect);
+          newPos = getBoundedPosition(newPos, canvasRect, circleRadius);
 
 
         const displacement = Math.abs(lengthPos(node.pos) - lengthPos(newPos));

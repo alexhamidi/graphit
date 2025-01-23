@@ -5,12 +5,13 @@ import { authorizedFetch } from "../networking";
 export function outOfBounds(
   pos: Position,
   canvasDims: DOMRect | null,
+  circleRadius: number,
 ): boolean {
   return (
-    pos.x < 10 ||
-    pos.x > canvasDims!.width*.99 ||
-    pos.y < 10 ||
-    pos.y > canvasDims!.height*.99
+    pos.x < circleRadius ||
+    pos.x > canvasDims!.width - circleRadius ||
+    pos.y < circleRadius ||
+    pos.y > canvasDims!.height - circleRadius
   );
 }
 
@@ -52,15 +53,16 @@ export function getNodeAt(
 export function getBoundedPosition(
   pos: Position,
   canvasRect: DOMRect | null,
+  circleRadius: number,
 ): Position {
   return {
     x: Math.min(
-      Math.max(pos.x, EDGE_BOUNDARY),
-      canvasRect!.width - EDGE_BOUNDARY,
+      Math.max(pos.x, circleRadius),
+      canvasRect!.width - circleRadius,
     ),
     y: Math.min(
-      Math.max(pos.y, EDGE_BOUNDARY),
-      canvasRect!.height - EDGE_BOUNDARY,
+      Math.max(pos.y, circleRadius),
+      canvasRect!.height - circleRadius,
     ),
   };
 }

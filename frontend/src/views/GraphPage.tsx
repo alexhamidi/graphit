@@ -10,7 +10,6 @@ import NewBlankGraphBox from "../components/NewBlankGraphBox";
 import NewTextGraphBox from "../components/NewTextGraphBox";
 import Header from "../components/Header";
 import Error from "../components/Error";
-// import QueryBox from "../components/TopBox";
 import TopBox from "../components/TopBox";
 import QueryBox from "../components/QueryBox"
 import {
@@ -79,6 +78,7 @@ export default function GraphPage({
     }
     return DEFAULT_GRAPH_CONFIG;
   });
+  const [highlightClicking, setHighlightClicking] = useState<boolean>(false);
 
   // KEYS
   const [shiftPressed, setShiftPressed] = useState<boolean>(false);
@@ -88,6 +88,7 @@ export default function GraphPage({
   // MOUSE
   const [mouseDownStationary, setMouseDownStationary] =
     useState<boolean>(false);
+  const [mouseDownEdgeStationary, setMouseDownEdgeStationary] = useState<string | null>(null);
 
   // VISIBILITY
   const [boxActive, setBoxActive] = useState<BoxActive>(DEFAULT_BOX_ACTIVE);
@@ -235,7 +236,7 @@ export default function GraphPage({
         const n1Id = nodeIdMap.get(node1Value);
         const n2Id = nodeIdMap.get(node2Value);
         if (n1Id && n2Id && n1Id !== n2Id) {
-          const newEdge: Edge = new Edge(n1Id, n2Id, edgeValue);
+          const newEdge: Edge = new Edge(n1Id, n2Id, graphConfig.currentChosenColor, edgeValue);
           newGraph.edges.push(newEdge);
         }
       });
@@ -277,7 +278,7 @@ export default function GraphPage({
         await authorizedPost("/graphs", Object.fromEntries(graphs), token);
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 401) {
-          setErrorMessage("You have been logged out")
+          setErrorMessage("Session Expired")
           authActions.handleLogout();
         }
         console.error(CLOUD_SAVE_FAIL_ERROR);
@@ -304,7 +305,7 @@ export default function GraphPage({
         setLoading(false);
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 401) {
-          setErrorMessage("You have been logged out")
+          setErrorMessage("Session Expired")
           authActions.handleLogout();
         }
         setErrorMessage(CLOUD_FETCH_FAIL_ERROR);
@@ -392,7 +393,7 @@ export default function GraphPage({
       if (graphConfig.currentChosenColor === null) {
         return;
       }
-      setGraphs((prevGraphs) => {
+      setGraphs((prevGraphs) => { //maybe nodecolor function
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
         const newColor = graphConfig.currentChosenColor!;
@@ -415,7 +416,7 @@ export default function GraphPage({
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
              ids.has(node.id) ? { ...node, pos:
-              getBoundedPosition(addPos(node.pos, delta), canvasRect)
+              getBoundedPosition(addPos(node.pos, delta), canvasRect, graphConfig.circleRadius)
             } : node,
           ),
         });
@@ -431,7 +432,7 @@ export default function GraphPage({
           //canvasrect not properly updated here
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
-        let newPos: Position = getBoundedPosition(pos, canvasRect)
+        let newPos: Position = getBoundedPosition(pos, canvasRect, graphConfig.circleRadius)
         updatedGraphs.set(currGraph, {
           ...prevGraph,
           nodes: prevGraph.nodes.map((node) =>
@@ -465,13 +466,7 @@ export default function GraphPage({
   const edgeActions = {
     // ADD EDGE
     handleAddEdge: (n1: string, n2: string) => {
-      // if (n1 === n2) return;//allow
-      const newEdge: Edge = {
-        id: uuidv4(),
-        value: "0",
-        n1: n1,
-        n2: n2,
-      };
+      const newEdge = new Edge(n1, n2, graphConfig.currentChosenColor)
       setGraphs((prevGraphs) => {
         const updatedGraphs = new Map(prevGraphs);
         const prevGraph = prevGraphs.get(currGraph)!;
@@ -488,6 +483,24 @@ export default function GraphPage({
           edges: [...prevGraph.edges, newEdge],
         });
 
+        return updatedGraphs;
+      });
+    },
+    handleBasicEdgeClick: (id: string) => {
+      console.log("changing color")
+      if (graphConfig.currentChosenColor === null) {
+        return;
+      }
+      setGraphs((prevGraphs) => { //maybe nodecolor function
+        const updatedGraphs = new Map(prevGraphs);
+        const prevGraph = prevGraphs.get(currGraph)!;
+        const newColor = graphConfig.currentChosenColor!;
+        updatedGraphs.set(currGraph, {
+          ...prevGraph,
+          edges: prevGraph.edges.map((edge) =>
+            edge.id === id ? { ...edge, customColor: newColor } : edge,
+          ),
+        });
         return updatedGraphs;
       });
     },
@@ -617,17 +630,20 @@ export default function GraphPage({
           canvasRect,
         );
         if (
-          !outOfBounds(posRelCanvas, canvasRect) &&
+          !outOfBounds(posRelCanvas, canvasRect, graphConfig.circleRadius) &&
           !getNodeAt(
             posRelCanvas,
             graphs.get(currGraph)!.nodes,
             graphConfig.circleRadius,
           )
         ) {
-          nodeActions.handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
+          if (!mouseDownEdgeStationary) {
+            nodeActions.handleAddNode({ x: posRelCanvas.x, y: posRelCanvas.y });
+          }
         }
       }
 
+      setMouseDownEdgeStationary(null);
       setMouseDownStationary(false);
     },
   };
@@ -642,7 +658,7 @@ export default function GraphPage({
       window.removeEventListener("mousemove", mouseActions.handleMouseMove);
       window.removeEventListener("mouseup", mouseActions.handleMouseUp);
     };
-  }, [mouseDownStationary, canvasRect, currGraph, shiftPressed, graphPopupActive]);
+  }, [mouseDownStationary, canvasRect, currGraph, shiftPressed, graphPopupActive, graphConfig]);
 
   // =================================================================
   // ========================== Misc Actions ==========================
@@ -975,6 +991,8 @@ export default function GraphPage({
           nodeActions={nodeActions}
           boxActive={boxActive}
           controlPanelRef={controlPanelRef}
+          mouseDownEdgeStationary={mouseDownEdgeStationary}
+          setMouseDownEdgeStationary={setMouseDownEdgeStationary}
         />
         <Options
           graphConfig={graphConfig}
@@ -983,6 +1001,8 @@ export default function GraphPage({
           collapsed={collapsed}
           setCollapsed={setCollapsed}
           handleStartAlgo={algoActions.handleStartAlgo}
+          highlightClicking={highlightClicking}
+          setHighlightClicking={setHighlightClicking}
         />
       </main>
     </>

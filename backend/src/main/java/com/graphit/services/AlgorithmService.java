@@ -155,14 +155,12 @@ public class AlgorithmService {
 
 
 
-
-
     public ArrayList<String> mst(Graph graph, boolean valued) {
-        if (graph.getEdges().isEmpty()) throw new IllegalArgumentException();
+        if (graph.getEdges().isEmpty()) throw new IllegalArgumentException("Graph has no edges!");
 
+        // Convert graph to adjacency list
         HashMap<String, HashMap<String, NumEdge>> adjList = graph.toNumAdj(false, valued);
         ArrayList<String> path = new ArrayList<>();
-
 
         PriorityQueue<NumEdge> pq = new PriorityQueue<>(
             (a, b) -> Integer.compare(a.getValue(), b.getValue())
@@ -170,12 +168,14 @@ public class AlgorithmService {
 
         HashSet<String> visited = new HashSet<>();
 
+        // Choose an arbitrary start node
         String startNode = graph.getNodes().get(0).getID();
         visited.add(startNode);
-        path.add(startNode);
+        path.add(startNode); // Add the first node
 
-        for (Map.Entry<String, NumEdge> entry : adjList.get(startNode).entrySet()) {
-            pq.add(entry.getValue());
+        // Add all edges from the startNode to the priority queue
+        for (NumEdge edge : adjList.get(startNode).values()) {
+            pq.add(edge);
         }
 
         while (!pq.isEmpty()) {
@@ -183,24 +183,31 @@ public class AlgorithmService {
             String node1 = edge.getN1();
             String node2 = edge.getN2();
 
-            if (visited.contains(node1) && !visited.contains(node2)) {
-                visited.add(node2);
-                path.add(node2);
-                path.add(edge.getID());
+            // Find the unvisited node and expand from it
+            String newNode = visited.contains(node1) ? node2 : node1;
 
-                for (Map.Entry<String, NumEdge> entry : adjList.get(node2).entrySet()) {
-                    if (!visited.contains(entry.getKey())) {
-                        pq.add(entry.getValue());
+            if (!visited.contains(newNode)) {
+                visited.add(newNode);
+                path.add(edge.getID());  // Add the edge ID
+                path.add(newNode);       // Add the new node ID
+
+                // Push all its adjacent edges into PQ
+                for (NumEdge newEdge : adjList.get(newNode).values()) {
+                    if (!visited.contains(newEdge.getN1()) || !visited.contains(newEdge.getN2())) {
+                        pq.add(newEdge);
                     }
                 }
             }
+        }
 
-        }
+        // Check if all nodes were visited (Graph should be connected)
         if (visited.size() != graph.getNodes().size()) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Graph is not connected!");
         }
+
         return path;
     }
+
 
 
     public ArrayList<String> msa(Graph graph, boolean valued) {
