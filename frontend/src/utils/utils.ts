@@ -1,5 +1,5 @@
 import { Position, Node, Graph, AdjEdge } from "../interfaces";
-import { PERP_LEN, EDGE_BOUNDARY, EPSILON } from "../constants";
+import { PERP_LEN, EPSILON } from "../constants";
 import { authorizedFetch } from "../networking";
 // App
 export function outOfBounds(
