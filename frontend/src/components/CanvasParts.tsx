@@ -119,7 +119,7 @@ export function SelfEdgeComponent({
         markerWidth={6 * graphConfig.lineWeight}
         markerHeight={6 * graphConfig.lineWeight}
         orient="auto-start-reverse"
-        fill={currColors.line}
+        fill={edge.customColor || currColors.line}
         >
         <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
@@ -198,7 +198,6 @@ export function EdgeComponent({
     x: getMidpoint(node1.pos.x, node2.pos.x) + offsets.x,
     y: getMidpoint(node1.pos.y, node2.pos.y) + offsets.y,
   };
-
   return (<>
   <defs>
         <marker
@@ -212,7 +211,7 @@ export function EdgeComponent({
                 markerHeight={6 * graphConfig.lineWeight}
                 orient="auto-start-reverse"
                 fill={currColors.line}
-              >
+                >
                 <path d="M 0 0 L 10 5 L 0 10 z" />
               </marker>
               <marker
@@ -229,6 +228,21 @@ export function EdgeComponent({
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" />
               </marker>
+              <marker
+              id="this-arrow-head-custom"
+              className="arrow-head"
+              viewBox="0 0 10 10"
+              refX="9.5"
+              refY="5"
+              markerUnits="userSpaceOnUse"
+              markerWidth={6 * graphConfig.lineWeight}
+              markerHeight={6 * graphConfig.lineWeight}
+              orient="auto-start-reverse"
+              fill={edge.customColor || currColors.line}
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+
         </defs>
     <g
       style={{ userSelect: "none" }}
@@ -264,7 +278,7 @@ export function EdgeComponent({
 
         strokeWidth={graphConfig.lineWeight}
         {...(graphConfig.directedMode && {
-          markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : ""})`,
+          markerEnd: `url(#this-arrow-head${highlighted.has(edge.id) ? "-red" : edge.customColor ? "-custom" : ""})`,
         })}
       />
       {graphConfig.valuedMode && (
