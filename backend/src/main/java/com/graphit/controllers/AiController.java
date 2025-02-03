@@ -10,7 +10,8 @@ import java.util.concurrent.Executors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import reactor.core.publisher.Flux;
 
  @RestController
@@ -63,7 +64,7 @@ public class AiController {
 
 diff process for local:
 - another endpoint hosted on something like sagemaker (?);
--
+- just use huggingface transformer library
 
 
 */
