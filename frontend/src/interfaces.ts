@@ -47,8 +47,9 @@ export class Node {
     currentChosenColor: string | null,
     cursorPos?: Position,
     newValue?: string,
+    id?: string,
   ) {
-    this.id = uuidv4();
+    this.id = id ?? uuidv4();
     this.value = newValue ?? "0";
     this.pos = cursorPos ?? {
       x: Math.random() * (canvasRect?.width ?? 0),
@@ -144,6 +145,7 @@ export interface GraphActions {
     name: string,
     nodeValues: string[],
     edgeValues: MiniEdge[],
+    referringIds: boolean,
   ) => void;
   handleNewGraph: (name: string) => void;
   handleAddGraph: (graph: Graph) => void;

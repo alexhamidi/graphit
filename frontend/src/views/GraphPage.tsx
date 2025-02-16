@@ -218,27 +218,52 @@ export default function GraphPage({
       name: string,
       nodeValues: string[],
       edgeValues: MiniEdge[],
+      referringIds: boolean,
     ) => {
       const newGraph: Graph = new Graph(name);
-      const nodeIdMap = new Map<string, string>();
-      nodeValues.forEach((value) => {
-        const newNode: Node = new Node(
-          canvasRect,
-          graphConfig.currentChosenColor,
-          undefined,
-          value,
-        );
-        nodeIdMap.set(value, newNode.id);
-        newGraph.nodes.push(newNode);
-      });
-      edgeValues.forEach(([node1Value, node2Value, edgeValue]) => {
-        const n1Id = nodeIdMap.get(node1Value);
-        const n2Id = nodeIdMap.get(node2Value);
-        if (n1Id && n2Id && n1Id !== n2Id) {
-          const newEdge: Edge = new Edge(n1Id, n2Id, graphConfig.currentChosenColor, edgeValue);
-          newGraph.edges.push(newEdge);
-        }
-      });
+
+      if (referringIds) {
+        nodeValues.forEach((line) => {
+          const values: string[] = line.split(" ");
+          const id = values[0];
+          const value = values.slice(1).join(" "); // Correctly joins the remaining words
+          const newNode: Node = new Node(
+            canvasRect,
+            graphConfig.currentChosenColor,
+            undefined,
+            value,
+            id
+          );
+          newGraph.nodes.push(newNode);
+        });
+
+        edgeValues.forEach(([n1Id, n2Id, edgeValue]) => {
+          if (n1Id && n2Id && n1Id !== n2Id) {
+            const newEdge: Edge = new Edge(n1Id, n2Id, graphConfig.currentChosenColor, edgeValue);
+            newGraph.edges.push(newEdge);
+          }
+        });
+      } else {
+        const nodeIdMap = new Map<string, string>();
+        nodeValues.forEach((value) => {
+          const newNode: Node = new Node(
+            canvasRect,
+            graphConfig.currentChosenColor,
+            undefined,
+            value,
+          );
+          nodeIdMap.set(value, newNode.id);
+          newGraph.nodes.push(newNode);
+        });
+        edgeValues.forEach(([node1Value, node2Value, edgeValue]) => {
+          const n1Id = nodeIdMap.get(node1Value);
+          const n2Id = nodeIdMap.get(node2Value);
+          if (n1Id && n2Id && n1Id !== n2Id) {
+            const newEdge: Edge = new Edge(n1Id, n2Id, graphConfig.currentChosenColor, edgeValue);
+            newGraph.edges.push(newEdge);
+          }
+        });
+      }
       graphActions.handleAddGraph(newGraph);
     },
 

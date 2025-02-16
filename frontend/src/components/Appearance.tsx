@@ -36,7 +36,7 @@ export default function Appearance({
           id="circle-radius"
           value={graphConfig.circleRadius}
           min={10}
-          max={50}
+          max={80}
           step={1}
           onChange={(e) =>
             updateGraphConfig("circleRadius", Number(e.target.value))
