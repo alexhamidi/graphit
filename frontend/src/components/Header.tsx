@@ -173,7 +173,7 @@ export default function Header({
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
-              {AI_ACCESSIBLE && (
+              {false && (
                 <button
                   className="plain-button popup-item"
                   onClick={() =>
@@ -224,7 +224,7 @@ export default function Header({
         <p id="savestate">
           {authenticated && (unsaved ? loadingMessage : "saved")}
         </p>
-        {authenticated ? (
+        {/* {authenticated ? (
           <button className="plain-button" onClick={authActions.handleLogout}>
             logout
           </button>
@@ -232,7 +232,7 @@ export default function Header({
           <button className="plain-button" onClick={authActions.handleLogin}>
             login
           </button>
-        )}
+        )} */}
       </div>
     </header>
   );
