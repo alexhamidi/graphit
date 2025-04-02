@@ -173,7 +173,7 @@ export default function Header({
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
-              {false && (
+              {false && AI_ACCESSIBLE && (
                 <button
                   className="plain-button popup-item"
                   onClick={() =>
