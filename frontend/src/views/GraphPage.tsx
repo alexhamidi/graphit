@@ -41,6 +41,7 @@ import {
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_BOX_ACTIVE,
   DEFAULT_SELECTING_ALGO,
+  AI_ACCESSIBLE,
 } from "../constants";
 import { AlgorithmService } from "../algorithms";
 
@@ -573,13 +574,13 @@ export default function GraphPage({
         setShiftPressed(true);
       } else if (e.key === "Meta") {
         setMetaPressed(true);
-      } else if (e.key === "k" && metaPressed) {
+      } else if (e.key === "k" && metaPressed && AI_ACCESSIBLE) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, aiBox: true });
       } else if (e.key === "b" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newBlankGraphBox: true });
       } else if (e.key === "i" && metaPressed) {
         setBoxActive({ ...DEFAULT_BOX_ACTIVE, newTextGraphBox: true });
-      } else if (e.key === "h" && metaPressed) {
+      } else if (e.key === "h" && metaPressed && AI_ACCESSIBLE) {
         if (currGraph === "") {
           setErrorMessage("Must choose a graph before querying");
         } else {
