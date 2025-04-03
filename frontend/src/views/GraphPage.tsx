@@ -42,6 +42,7 @@ import {
   DEFAULT_BOX_ACTIVE,
   DEFAULT_SELECTING_ALGO,
 } from "../constants";
+import { AlgorithmService } from "../algorithms";
 
 export default function GraphPage({
   setAuthenticated,
@@ -125,6 +126,7 @@ export default function GraphPage({
   // OTHER
   const navigate = useNavigate();
 
+  const algorithmService = new AlgorithmService();
 
   // =================================================================
   // ========================== Auth Actions ==========================
@@ -762,19 +764,15 @@ export default function GraphPage({
       }
     },
 
-    handleGetToposort: async () => {
+    handleGetToposort: () => {
       try {
-        const response = await post(
-          `/algorithm/toposort`,
-          graphs.get(currGraph)!,
-        );
-        const ids: string[] = response.data.orderedIds;
-        console.log(ids);
+        const graph = graphs.get(currGraph)!;
+        const ids = algorithmService.toposort(graph);
         algoActions.handleEndAlgorithm();
-        graphActions.handleOrderNodes(ids)
+        graphActions.handleOrderNodes(ids);
         algoActions.displayAnimation(ids, false);
-      } catch (err) {
-        if (isAxiosError(err) && err.response?.status === 422) {
+      } catch (err: any) {
+        if (typeof err === 'object' && err !== null && 'message' in err && err.message === "Graph contains a cycle") {
           setErrorMessage("No valid topological ordering for this graph");
         } else {
           setErrorMessage(DEFAULT_ERROR);
@@ -786,14 +784,13 @@ export default function GraphPage({
     handleGetTraversal: async (type: string) => {
       try {
         const [n1] = highlighted;
-        const response = await post(
-          `/algorithm/${type}?origin=${n1}&value=${searchValueInput}&directed=${graphConfig.directedMode}`,
-          graphs.get(currGraph)!,
-        );
-        const ids: string[] = response.data.visitedIds;
+        const graph = graphs.get(currGraph)!;
+        const ids = type === "bfs"
+          ? algorithmService.bfs(n1, searchValueInput, graph, graphConfig.directedMode)
+          : algorithmService.dfs(n1, searchValueInput, graph, graphConfig.directedMode);
         algoActions.handleEndAlgorithm();
         algoActions.displayAnimation(ids, true);
-      } catch (err) {
+      } catch (err: any) {
         algoActions.handleEndAlgorithm();
         setErrorMessage(DEFAULT_ERROR);
       }
@@ -803,40 +800,35 @@ export default function GraphPage({
     handleGetShortest: async () => {
       try {
         const [n1, n2] = highlighted;
-        const response = await post(
-          `/algorithm/shortest?n1=${n1}&n2=${n2}&directed=${graphConfig.directedMode}&valued=${graphConfig.valuedMode}`,
-          graphs.get(currGraph)!,
-        );
-        const ids: string[] = response.data.visitedIds;
+        const graph = graphs.get(currGraph)!;
+        const ids = algorithmService.shortestPath(n1, n2, graph, graphConfig.directedMode, graphConfig.valuedMode);
         algoActions.handleEndAlgorithm();
         if (ids.length === 0) {
           setErrorMessage("no path exists between these nodes");
         } else {
           algoActions.displayAnimation(ids, true);
         }
-      } catch (err) {
+      } catch (err: any) {
         algoActions.handleEndAlgorithm();
-        if (isAxiosError(err) && err.response?.status === 422) {
-          setErrorMessage(err.message);
-        } else {
-          setErrorMessage(DEFAULT_ERROR);
-        }
+        setErrorMessage(DEFAULT_ERROR);
       }
     },
 
     handleGetMST: async () => {
       try {
-        const response = await post(
-          `/algorithm/mst?directed=${graphConfig.directedMode}&valued=${graphConfig.valuedMode}`,
-          graphs.get(currGraph)!,
-        );
-        const ids: string[] = response.data.visitedIds;
-        console.log(ids);
+        const graph = graphs.get(currGraph)!;
+        const ids = graphConfig.directedMode
+          ? algorithmService.msa(graph, graphConfig.valuedMode)
+          : algorithmService.mst(graph, graphConfig.valuedMode);
         algoActions.handleEndAlgorithm();
         algoActions.displayAnimation(ids, true);
-      } catch (err) {
-        if (isAxiosError(err) && err.response?.status === 422) {
-          setErrorMessage(err.response.data.error);
+      } catch (err: any) {
+        if (typeof err === 'object' && err !== null && 'message' in err) {
+          if (err.message === "Graph has no edges" || err.message === "Graph is not connected!") {
+            setErrorMessage(`Graph has no ${graphConfig.directedMode ? "MSA" : "MST"}`);
+          } else {
+            setErrorMessage(DEFAULT_ERROR);
+          }
         } else {
           setErrorMessage(DEFAULT_ERROR);
         }
@@ -857,7 +849,6 @@ export default function GraphPage({
         setResetShown(true);
       }
     },
-
 
     // END ALGORITHM
     handleEndAlgorithm: () => {
@@ -1032,3 +1023,4 @@ export default function GraphPage({
     </>
   );
 }
+
