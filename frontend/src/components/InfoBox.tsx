@@ -54,7 +54,7 @@ export default function InfoBox({ setBoxActive, setErrorMessage }: Props) {
           </div>
           <p id="love">
             graphit was made by{" "}
-            <a href="https://www.linkedin.com/in/alexander-hamidi-208736254">alex hamidi</a>
+            <a href="https://www.linkedin.com/in/alexander-hamidi-208736254" target="_blank" rel="noopener noreferrer">alex hamidi</a>
           </p>
         </>
       }
