@@ -1,4 +1,4 @@
-import { Graph, Edge, Node } from "./interfaces";
+import { Graph, Edge } from "./interfaces";
 
 interface NumEdge {
     id: string;
@@ -209,7 +209,6 @@ export class AlgorithmService {
     private calculatePathCost(path: string[], adjList: NumAdjList): number {
         let cost = 0;
         for (let i = 1; i < path.length; i += 2) {
-            const edgeId = path[i];
             const fromNode = path[i - 1];
             const toNode = path[i + 1];
 
@@ -272,7 +271,7 @@ export class AlgorithmService {
         let minEdge: NumEdge | null = null;
         let minValue = Infinity;
 
-        for (const [fromNode, edges] of Object.entries(adjList)) {
+        for (const [_, edges] of Object.entries(adjList)) {
             if (edges[node] && edges[node].value < minValue) {
                 minValue = edges[node].value;
                 minEdge = edges[node];

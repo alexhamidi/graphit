@@ -144,7 +144,7 @@ export default function Header({
                     className="plain-button popup-item"
                     onClick={()=>setBoxActive({ ...DEFAULT_BOX_ACTIVE, queryBox: true })}
                   >
-                    <i className="fa-solid fa-question fa-sm"></i>
+                  {AI_ACCESSIBLE && <i className="fa-solid fa-question fa-sm"></i>}
                     query this graph with ai
                   </button>
                 </>
@@ -173,7 +173,7 @@ export default function Header({
                 <i className="fa-solid fa-edit fa-sm"></i>
                 add a new graph with text
               </button>
-              {false && AI_ACCESSIBLE && (
+              {AI_ACCESSIBLE && (
                 <button
                   className="plain-button popup-item"
                   onClick={() =>

@@ -23,7 +23,7 @@ import {
   MiniEdge,
   SelectingAlgo,
 } from "../interfaces";
-import { authorizedFetch, authorizedPost, post } from "../networking";
+import { authorizedFetch, authorizedPost } from "../networking";
 import {
   fetchEmail,
   getNodeAt,

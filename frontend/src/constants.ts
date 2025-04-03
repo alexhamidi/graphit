@@ -7,8 +7,7 @@ import {
 } from "./interfaces";
 
 export const MODE: string = import.meta.env.VITE_MODE!;
-export const AI_ACCESSIBLE: boolean =
-  import.meta.env.VITE_AI_ACCESSIBLE! === "TRUE";
+export const AI_ACCESSIBLE: boolean = false
 
 export const OPTIONS_PAGES: string[] = ["Appearance", "Algorithms"];
 
